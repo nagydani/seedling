@@ -11,4 +11,9 @@ versioned changes, issue tracking and careful debugging. We are programming peop
 endeavor of this magnitude and risk of failure requires reasonably short, but very 
 careful pre-execution planning and an explicit plan available during execution.
 
+The goal of this project is the specification and a self-hosting reference implementation 
+of a foundational programming language sufficiently flexible and extensible to be 
+ultimately suitable for the widest possible range of programming tasks from the lowest 
+to the highest level.
+
 Please read [the rationale](RATIONALE.md) before proceeding.
