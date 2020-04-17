@@ -14,6 +14,7 @@ It is a very sorry state of affairs that we use completely unrelated, different 
  * writing macros for, well, anything,
  * assembling machine code with full control over each bit,
  * describing the build process of a complex piece of software,
+ * designing the circuitry of complex pieces of computing hardware
  * drafting smart contracts for decentralized applications,
  * transacting with these smart contracts,
  * synthesizing or annotating nucleotide sequences,
