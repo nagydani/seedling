@@ -1,6 +1,6 @@
 # On Rocks and Sticks and the Forward-Looking Perspective
 
-All human technology can be built using only rocks and sticks. Yes, even that multi-core CPU with 7nm technology in your computer. In fact, it has all *been* built that way. Our ancestors made better rocks and sticks *using* the ones that they found *on* other ones that they found. Then, using those, made even better tools and so on. All human technology has been built with a tool chain that begins with rocks and sticks found in the pre-human natural environment. I really hope that historians will document the most important of these tool chains in detail.
+All human technology can be built using only rocks and sticks. Yes, even that multi-core CPU made with 7nm litography process in your computer. In fact, it has all *been* built that way. Our ancestors made better rocks and sticks *using* the ones that they found *on* other ones that they found. Then, using those, made even better tools and so on. All human technology has been built with a tool chain that begins with rocks and sticks found in the pre-human natural environment. I really hope that historians will document the most important of these tool chains in detail.
 
 The most productive tools from a backward-looking perspective are the ones with which the things that have already been built by any tool can be built with the least effort. This is the usual perspective that we have when picking tools. The economic effect is the value of what we build in excess of the resources that we use.
 
