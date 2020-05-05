@@ -22,11 +22,20 @@ Seedling source is a sequence of **literals** and **operators**.
 
 ### Numeric Literals
 
+Begins with a decimal digit. As a bare minimum, all-digit decimal integers must be 
+implemented.
+
 ### String Literals
+
+Begins and ends with a double quote. Backslash is used as a literal escape.
 
 ### Quotation Literals
 
+Between curly braces.
+
 ### Tuple Literals
+
+Between round parentheses.
 
 ## Operators
 
