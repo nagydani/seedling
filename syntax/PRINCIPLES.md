@@ -20,6 +20,10 @@ Seedling source is a sequence of **literals** and **operators**.
 
 ## Literals
 
+### Comments (Null Literals)
+
+Begin with a backslash `\` word and last till the end of the line.
+
 ### Numeric Literals
 
 Begins with a decimal digit. As a bare minimum, all-digit decimal integers must be 
@@ -27,15 +31,15 @@ implemented.
 
 ### String Literals
 
-Begins and ends with a double quote. Backslash is used as a literal escape.
+Begins and ends with a double quote `"` character. Backslash is used as a literal escape.
 
 ### Quotation Literals
 
-Between curly braces.
+Between curly brace words `{` and `}`.
 
 ### Tuple Literals
 
-Between round parentheses.
+Between round parentheses words `(` and `)`.
 
 ## Operators
 
