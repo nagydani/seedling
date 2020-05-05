@@ -13,7 +13,7 @@ delimiters on both sides. Source containing characters *different* from printabl
 ones in 7-bit ASCII is *not* considered **fully portable**. Source containing 
 characters *different* from printable ones in 7-bit ASCII outside of string 
 literals is *not* considered **partially portable**. Source containing words longer 
-than 64 characters is *not* considered **partially portable**. The amount of 
+than 31 characters is *not* considered **partially portable**. The amount of 
 whitespace (if greater than zero) outside of string literals is inconsequential.
 
 Seedling source is a sequence of **literals** and **operators**.
