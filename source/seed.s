@@ -1,6 +1,17 @@
+( "T" "T" "T" "S" ) ( "heap" "object" ) ( ) "effect" effect
+
+( "T" "Q" "T" "T" "S" ) ( "heap" "object" ) ( ) "fn" effect
+
+( "T" "T" "S" ) {
+\ No type tracking in Seed
+  dropS dropT dropT
+} ( ) ( ) "cast" fn
+
 ( ) ( "EOF" "read.ERR" ) ( "C" ) "read" effect
 
-( "C" ) { dup 32 le } ( ) ( "C" "?" ) "whitespace?" fn
+( "C" ) ( "I" ) "castI" cast
+
+( "C" ) { dup castI 32 le } ( ) ( "C" "?" ) "whitespace?" fn
 
 "syntax" fail
 
