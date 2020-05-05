@@ -1,31 +1,33 @@
-( "T" "T" "T" "S" ) ( "heap" "object" ) ( ) "effect" effect
+( A N ) "S" type
 
-( "T" "Q" "T" "T" "S" ) ( "heap" "object" ) ( ) "fn" effect
+( T T T S ) ( heap object ) ( ) "effect" effect
 
-( "T" "T" "S" ) {
+( T Q T T S ) ( heap object ) ( ) "fn" effect
+
+( T T S ) {
 \ No type tracking in Seed
   dropS dropT dropT
 } ( ) ( ) "cast" fn
 
-( ) ( "EOF" "read.ERR" ) ( "C" ) "read" effect
+( ) ( EOF read.ERR ) ( C ) "read" effect
 
-( "C" ) ( "I" ) "castI" cast
+( C ) ( I ) "castI" cast
 
-( "C" ) { dup castI 32 le } ( ) ( "C" "?" ) "whitespace?" fn
+( C ) { dup castI 32 le } ( ) ( C ? ) "whitespace?" fn
 
 "syntax" fail
 
-( "C" ) {
+( C ) {
   whitespace? not { syntax } and drop
-} ( "syntax" ) ( "C" ) "whitespace" fn
+} ( syntax ) ( C ) "whitespace" fn
 
-( "C" ) {
+( C ) {
   whitespace? { syntax } and drop
-} ( "syntax" ) ( "C" ) "printable" fn
+} ( syntax ) ( C ) "printable" fn
 
-( "A" "N" ) ( "S" ) "castS" cast
+( A N ) ( S ) "castS" cast
 
-( ) { here 0 castS } ( ) ( "S" ) "emptyS" fn
+( ) { here 0 castS } ( ) ( S ) "emptyS" fn
 
 ( ) {
   emptyS
@@ -36,4 +38,4 @@
     read printable appendC
   } "syntax" until
   castS
-} ( "EOF" "read.ERR" "heap" ) ( "S" ) "word" fn
+} ( EOF read.ERR heap ) ( S ) "word" fn
