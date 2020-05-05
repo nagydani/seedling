@@ -16,11 +16,11 @@
 "syntax" fail
 
 ( "C" ) {
-  whitespace not { syntax } and drop
+  whitespace? not { syntax } and drop
 } ( "syntax" ) ( "C" ) "whitespace" fn
 
 ( "C" ) {
-  whitespace { syntax } and drop
+  whitespace? { syntax } and drop
 } ( "syntax" ) ( "C" ) "printable" fn
 
 ( "A" "N" ) ( "S" ) "castS" cast
