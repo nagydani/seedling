@@ -4,10 +4,11 @@
 
 ### Types
 
-Elementary types are denoted by single characters. Boolean type is denoted by
-a question mark `?`, other elementary types are denoted by capital letters 
-as follows: `I` integer, `S` string, `Q` quotation, `T` touple, `N` unsigned 
-integer, `A` address
+Elementary types are denoted by single capital letters 
+as follows: `N` unsigned integer, `C` character, `S` string, 
+`Q` quotation, `T` touple, `A` address. These are mandatory. 
+Further elementary types are `I` for signed integers, `X` for 
+single precision floating point numbers.
 
 Composite types are denoted by `CamelCase` descriptive names.
 
