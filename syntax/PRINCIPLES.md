@@ -1,7 +1,5 @@
 # Principles
 
-## Preliminaries
-
 Seedling-based programming languages (additionally defined ones: Seed and Sprout) 
 are derived from Seedling by extensions and restrictions. It is sufficiently 
 flexible for defining futher programming and markup languages on its basis in a 
@@ -16,31 +14,9 @@ literals is *not* considered **partially portable**. Source containing words lon
 than 31 characters is *not* considered **partially portable**. The amount of 
 whitespace (if greater than zero) outside of string literals is inconsequential.
 
-Seedling source is a sequence of **literals** and **operators**.
-
-## Literals
-
-### Comments (Null Literals)
-
-Begin with a backslash `\` word and last till the end of the line.
-
-### Numeric Literals
-
-Begins with a decimal digit. As a bare minimum, all-digit decimal integers must be 
-implemented.
-
-### String Literals
-
-Begins and ends with a double quote `"` character. Backslash is used as a literal escape.
-
-### Quotation Literals
-
-Between curly brace words `{` and `}`.
-
-### Tuple Literals
-
-Between round parentheses words `(` and `)`.
-
-## Operators
-
-### Postfix Operators
+Whenever practical, syntax is modeled after 
+[Factor](https://docs.factorcode.org/content/article-syntax.html)
+the following semantic differences might result in divergent syntax:
+ * static typing
+ * failure-based (rather than boolean-based) control structures
+ * explicit side effects
