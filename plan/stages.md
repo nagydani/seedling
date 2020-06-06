@@ -34,15 +34,13 @@ Porting/bootstrapping Seedling to a new architecture consists of
 
 ### Data types (not checked)
 
-#### Fixed-size integer (cell)
+#### Fixed-size unsigned integer (cell)
 
  * Number type for arithmetics
-   * Implicit twos compliment representation of negative numbers
    * Code with numbers not fitting into 16 bits considered not portable
  * Execution token
  * Address for strings of bytes (a.k.a. *c-addr*)
  * On-stack representation of a character
- * Boolean value with 0 being **false**, everything else being **true**
 
 #### String of bytes
 
