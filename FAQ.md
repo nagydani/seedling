@@ -6,6 +6,10 @@ A
 [algebraic types](#what-are-algebraic-types) and 
 [effects](#what-are-algebraic-effects). Execution control in Seedling is 
 [goal-directed](#what-is-goal-directed-execution).
+
+All these features of the language are to help the human user to 
+reason about the program in a structured way, avoiding the need to 
+deal with [spaghetti code](https://en.wikipedia.org/wiki/Spaghetti_code).
  
 ### What is a functional language?
 
