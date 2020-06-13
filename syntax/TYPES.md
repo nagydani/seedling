@@ -75,11 +75,11 @@ The following information is available through effects:
    - A "refined" reference (cast),
    - Checking whether a union type can have members of a given type.
 
- * While the stack is a `Record` with the right-hand member being the topmost 
-   element on the stack and the left-hand member being the rest of the stack, 
-   *no reference to the stack* is available, only to its topmost member. The 
-   reason for this is that internally the stack might be arranged differently. 
-   Stack manipulations are always done through stack effects.
+ * The data stack is a `Record` with the right-hand member being the topmost 
+   element on the stack and the left-hand member being the rest of the stack.
+
+ * The call stack is a `Record` with the left-hand member being the topmost 
+   element on the stack and the right-hand member being the rest of the stack.
 
 ## Sprout
 
