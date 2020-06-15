@@ -9,16 +9,16 @@ This strategy proposal is based on insights from @fare and @klao
 Rejecting the obvious choice between
 
 1. First becoming an expert by going through a graduate-level textbook 
-(or more) doing all exercises etc. and then setting out to do the task,
+(or more) doing all exercises etc. and then setting out to do the task.
 
-2. Adopting an existing type system without any changes
+2. Adopting an existing type system without any changes, as it is.
 
 is motivated by the very objective of maintaining focus on the 
 [forward-looking perspective](../ROCKS_AND_STICKS.md), i.e. requring the 
 minimal amount of resources for the maximal increment in technical 
-sophistication at every step of the way. If one starts out with the 
+sophistication at every step of the way. If one starts out with all the 
 bells and whistles of what is the state-of-the-art, the chances of not 
-using much more than absolutely necessary are very slim.
+using much more than what is absolutely necessary are very slim.
 
 But is there any other way? Surely, reinventing the wheel (badly) won't 
 get us far.
@@ -40,8 +40,7 @@ be done that way to our satisfaction, we move on to Chapter 5 and repeat
 the exercise. Hopefully, understanding Chapter 5 will help us to completely 
 avoid things even from Chapter 3. ;-)
 
-Standing on the shoulders of giants is important, but keep looking forward 
-to see far.
+Standing on the shoulders of giants is important, but keep looking forward.
 
 ## Which Book/Course to Use?
 
