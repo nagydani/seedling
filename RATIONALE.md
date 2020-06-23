@@ -17,6 +17,10 @@ It is a very sorry state of affairs that we use completely unrelated, different 
  * designing the circuitry of complex pieces of computing hardware
  * drafting smart contracts for decentralized applications,
  * transacting with these smart contracts,
+ * defining scalable vector graphics,
+ * typesetting publications,
+ * modeling 3D objects,
+ * representing music,
  * synthesizing or annotating nucleotide sequences,
  * cooking gourmet dishes,
  * choreographing stage performances.
