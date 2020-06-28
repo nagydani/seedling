@@ -26,9 +26,9 @@ from [Star Wars].
 | `}`    | unbrace    | end of a code literal
 | `"`    | quote      | beginning of a string literal
 | `"`    | unquote    | end of a string literal
-| `'`    | tick       | reference to executable code
-| `~`    | tail       | continue with executing a function
-| `\|`   | or        | conjunction executing term 1 then iff it fails, term 2
+| `'`    | tick       | reference to executable function
+| `~`    | tail       | continue with executing function
+| `\|`   | or         | conjunction executing term 1 then iff it fails, term 2
 | `!`    | not        | success upon failure, failure upon success
 | `+`    | plus       | sum of two values
 | `-`    | minus      | difference of two values
