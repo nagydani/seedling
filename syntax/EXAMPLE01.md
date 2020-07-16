@@ -72,7 +72,7 @@ can fail and returns a string followed by a character. It fails, if the argument
 string is empty, in which case it does not return anything. Upon success, it 
 returns the string without the first character followed by that very first character. 
 Its type using what is a comment convention in Seed and syntax higher up would be 
-`( Str` 
+`( str -( fail )- maybe str char )` 
 
 
 ### Example 2: Commented and Formatted Seed
@@ -133,7 +133,8 @@ If the failure return type is not a prefix of the success return type, another w
 `|maybe` ( *or-maybe* ) should delimit the success type from the failure type. 
 The `.` ( *dot* ) follows a label and is followed by another label from the type 
 referenced by the first label, addressing a particular slot within it. Finally, 
-`-(` and `)-` enclose the effect set of the function.
+`-(` and `)-` enclose the effect set of the function (pronounced *can*). If the 
+effect set is empty (i.e. for pure functions), use `--`.
 
 This is about as readable as Seed gets (which is, admittedly, not very much). 
 More interestingly, with these annotations, Seed code becomes valid Sprout code. 
@@ -142,3 +143,5 @@ a trivial configuration of the Sprout compiler can turn any Sprout code into suc
 annotated Seed code which is still valid Sprout code. This is important for 
 bootstrapping so that Seed can build Sprout.
 
+**Note** Strictly speaking memory reading is also an effect of string equality, but it is 
+omitted here for simplicity (just like time and heat). 
