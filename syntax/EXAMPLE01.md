@@ -88,9 +88,9 @@ addresses are 2 cells and, consequently, strings are 3 cells. Because of this,
 gone are `C@` and `C=`, replaced by `@` and `=`, respectively.
 
 ```
-[ addr ; ptr nat ; len ] record str
+[ addr ; ptr nat ; len ] rec str
 
-{ [ str ; a str ; b] in
+{ in [ str ; a str ; b]
 ↓↓⤈⤈⤈⤈local 4 ;; a . len
 ↓↓↓↓↓↓@
 ↓↓↓↓↓↓↓' =
@@ -119,14 +119,14 @@ gone are `C@` and `C=`, replaced by `@` and `=`, respectively.
 'fail| 3
 ↓↓↓~ drip
 -( fail )-
-[ maybe str ] out } defFn $=
+out [ maybe str ] } defFn $=
 ```
 
 The following annotations have been used (all ignored by Seed compiler):
 
 `;` followed by a word labels the top of the stack at that point with that 
 word. `;;` is used after `local` indicating the label where it actually reaches.
-`[` and `]` enclose the sequence of slots of record types. Followed by `in` and 
+`[` and `]` enclose the sequence of slots of record types. Preceeded by `in` and 
 `out`, they indicate the function's input and output type, respectively. The word 
 `maybe` among these delimits the slots that are not returned upon failure. 
 If the failure return type is not a prefix of the success return type, another word 
@@ -144,4 +144,77 @@ annotated Seed code which is still valid Sprout code. This is important for
 bootstrapping so that Seed can build Sprout.
 
 **Note** Strictly speaking memory reading is also an effect of string equality, but it is 
-omitted here for simplicity (just like time and heat). 
+omitted here for simplicity (just like time and heat).
+
+## Sprout
+
+Sprout is a low-level systems programming language, much like C. It has a rudimentary 
+type system, so at this level of abstraction, programmers do not need to concern 
+themselves with cell-level granularity. The compliler knows how long various types 
+are and can perform the relevant calculations and safety checks based on that. The 
+arity of functions is measured in type slots rather than cells. However, memory 
+and stack management are still very much the programmer's task.
+
+### Example 3: Using Sprout Features
+
+This is still recognizably the same algorithm, but the code below is no longer 
+valid Seed code, as it relies on some calculations done by the Sprout compiler 
+based on type information. Also, it is a lot more readable, while still not 
+quite intuitive:
+
+```
+[ addr ; ptr nat ; len ] rec str
+
+{ in [ str ; a str ; b]
+↓↓a . len @
+↓↓=
+↓↓drop
+↓↓a $
+↓↓↓{ in [ str ; b str ; a ]
+    ↓bite ; aFirst
+    ↓↓↓b $
+    ↓↓↓bite ; bFirst
+    ↓↓↓↓↓aFirst @
+    ↓-( fail )-
+    out [ str maybe str char str char char ] }
+↓↓↓↓{ in [ str ; b str char str char char ]
+     ↓↓↓↓=
+     ↓↓↓↓drop
+     ↓↓↓↓b let
+     ↓↓drop
+     -( fail )-
+     out [ maybe Str Str ] }
+while
+↓drop
+-( fail )-
+out [ maybe Str ] } defFn =
+```
+
+Gone are the explicit tail calls (`~`), as the Seed compiler knows the functions' 
+type and thus knows which functions have `~` as their effects so it can safely 
+add `~` before the final call of each function that does not have this effect.
+
+Gone are `'fail|` statements, because by default (and in the vast majority of 
+cases) failing functions do not return any arguments (it is good programming 
+practice to expose only such functions) so the compiler knows how deeply to 
+discard the stack upon failure. In the rare cases when not the entire return 
+argument of a function that can `fail` is `maybe`, it is best specified in the 
+return argument by placing `maybe` or `|maybe` appropriately and let the 
+compiler synchronize all failures rather than inferring the type from the code. 
+This is somewhat in contrast to `drop` statements, which are also somewhat redundant 
+with the return type, but letting the editor continually infer the type as one 
+writes the code is a very powerful aid and guiding this aid by `drop` statements 
+is quite natural. Also, `drop` statements, unlike `'fail|`'s do not need to be 
+synchronized. So `drop` statement still appear in Sprout code, though they, too, 
+will be gone at higher levels of abstraction.
+
+Also gone are special `let` and `drop` statements (`let$` and `drip`), as now the 
+compiler can figure it out from the stack type and function types how to pick the 
+right version of a polymorphic function. However, this is only an option. As an 
+illustration, I left `$` in the code even though it would work perfectly with 
+the polymorphic `@` now. Note, furthermore, that the name of our function changed 
+from `$=` to simply `=` as the semantics is exactly the same as that of other 
+equality functions, and since we have type information, we can simply make this 
+a variant of the polymorhpic `=` function particularly for strings.
+
+Gone are `local` statements, as we can use labels in their stead.
