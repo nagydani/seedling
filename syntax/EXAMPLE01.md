@@ -1,6 +1,17 @@
 # String Equality Example
 
-This example showcases how languages operating on different levels of abstraction can be sufficiently similar to facilitate learning, interfacing and development.
+This example showcases how languages operating on different levels of abstraction can be sufficiently similar to 
+facilitate learning, interfacing and language development.
+
+## Contents
+
+ * Seed
+   - [Example 1](#example-1-raw-uncommented-seed)
+   - [Example 2](#example-2-commented-and-formatted-seed)
+ * Sprout
+   - [Example 3](#example-3-using-sprout-features)
+ * Seedling
+   - [Example 4](#example-4-concise-seedling)
 
 ## Seed
 
@@ -228,7 +239,7 @@ gates and transistors (Sprout and Seed are steps in that direction) or climb hig
 in the direction of automated proof assistants. The main difference from Sprout is 
 that Memory and stack management are no longer the programmer's job.
 
-### Example 4: Seedling
+### Example 4: Concise Seedling
 
 While still recognizably the same algorithm, at this level of abstraction the code 
 becomes very readable. A lot of implementation detail is figured out by the compiler, 
