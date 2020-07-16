@@ -49,3 +49,6 @@ one, as insurance against arbitrary biases of any one author. So the
 first step along the way of coming up with a really good type system is
 finding a few courses/textbooks on the topic and selecting at least two 
 by which to start learning.
+
+Recommended by @akaposi
+R. Harper: [Practical Foundations for Programming Languages](https://www.cs.cmu.edu/~rwh/pfpl/2nded.pdf)
