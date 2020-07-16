@@ -219,6 +219,12 @@ is quite natural. Also, `drop` statements, unlike `'fail|`'s do not need to be
 synchronized. So `drop` statement still appear in Sprout code, though they, too, 
 will be gone at higher levels of abstraction.
 
+**Note** The word `maybe` is just syntactic sugar. As a trivial example, 
+the most common case when the failing function does not return anything can be 
+expressed both as `out [ maybe ... ]` and as `out [ ... |maybe ]`, but the former 
+is preferable. Everything `maybe` conveys can be expressed with `|maybe`, but often 
+in a more verbose manner. The converse, however, is not true.
+
 Also gone are special `let` and `drop` statements (`let$` and `drip`), as now the 
 compiler can figure it out from the stack type and function types how to pick the 
 right version of a polymorphic function. However, this is only an option. As an 
@@ -272,6 +278,6 @@ and how everything is eventually dropped. We may give different objectives to th
 Seedling compiler about optimizing for speed, stack space, energy efficiency, 
 object code length, etc. and they may result in different types for the inner functions. 
 At this level, we do not care about lower-level details. We only specify what we 
-do care about, like the function's type `( str str -( fail )- str )` and the 
+do care about, like the function's type `( str str -( fail )- maybe str )` and the 
 general structure of the algorithm. As long as our specification contains no 
 contradictions, the compiler finds us a solution.
