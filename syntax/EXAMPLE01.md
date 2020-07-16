@@ -244,7 +244,7 @@ language at around the abstraction level of Python. It is also probably the best
 starting point for learning programming and then delve deeper in the direction of 
 gates and transistors (Sprout and Seed are steps in that direction) or climb higher 
 in the direction of automated proof assistants. The main difference from Sprout is 
-that Memory and stack management are no longer the programmer's job.
+that memory and stack management are no longer the programmer's job.
 
 ### Example 4: Concise Seedling
 
