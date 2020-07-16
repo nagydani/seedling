@@ -115,7 +115,7 @@ gone are `C@` and `C=`, replaced by `@` and `=`, respectively.
           ↓↓↓↓↓↓↓bite ; bFirst
           ↓↓↓↓↓↓⤈⤈⤈⤈⤈local 5 ;; aFirst
           ↓↓↓↓↓↓↓↓↓↓↓~ @
-          ↓↓↓-( fail )-
+          ↓↓↓can -( fail )-
           [ str maybe str char str char char ] out }
 ↓↓↓↓↓↓↓↓↓↓↓{ [ str ; b str char str char char ] in
             ↓↓↓↓↓↓↓↓↓↓↓↓' =
@@ -124,12 +124,12 @@ gone are `C@` and `C=`, replaced by `@` and `=`, respectively.
             ⤈⤈⤈⤈⤈⤈⤈⤈⤈⤈local 10 ;; b
             ↓↓↓↓↓↓↓↓↓↓let$
             ↓↓↓↓↓↓~ drop
-            -( fail )-
+            can -( fail )-
             [ maybe str str ] out }
 ↓↓↓' while
 'fail| 3
 ↓↓↓~ drip
--( fail )-
+can -( fail )-
 out [ maybe str ] } defFn $=
 ```
 
@@ -144,8 +144,8 @@ If the failure return type is not a prefix of the success return type, another w
 `|maybe` ( *or-maybe* ) should delimit the success type from the failure type. 
 The `.` ( *dot* ) follows a label and is followed by another label from the type 
 referenced by the first label, addressing a particular slot within it. Finally, 
-`-(` and `)-` enclose the effect set of the function (pronounced *can*). If the 
-effect set is empty (i.e. for pure functions), use `--`.
+`-(` and `)-` enclose the effect set of the function preceeded by `can`. If the 
+effect set is empty (i.e. for pure functions), use `--` or simply omit it.
 
 This is about as readable as Seed gets (which is, admittedly, not very much). 
 More interestingly, with these annotations, Seed code becomes valid Sprout code. 
@@ -186,18 +186,18 @@ quite intuitive:
     ↓↓↓b $
     ↓↓↓bite ; bFirst
     ↓↓↓↓↓aFirst @
-    ↓-( fail )-
+    ↓can -( fail )-
     out [ str maybe str char str char char ] }
 ↓↓↓↓{ in [ str ; b str char str char char ]
      ↓↓↓↓=
      ↓↓↓↓drop
      ↓↓↓↓b let
      ↓↓drop
-     -( fail )-
+     can -( fail )-
      out [ maybe Str Str ] }
 while
 ↓drop
--( fail )-
+can -( fail )-
 out [ maybe Str ] } defFn =
 ```
 
@@ -263,7 +263,7 @@ a @ ; c
   c bite ; other }
 { one @ other @ = }
 while
--( fail )-
+can -( fail )-
 out [ maybe str ] } defFn =
 ```
 
