@@ -218,3 +218,49 @@ equality functions, and since we have type information, we can simply make this
 a variant of the polymorhpic `=` function particularly for strings.
 
 Gone are `local` statements, as we can use labels in their stead.
+
+## Seedling
+
+Seedling is a general-purpose application programming and algorithm-sketching 
+language at around the abstraction level of Python. It is also probably the best 
+starting point for learning programming and then delve deeper in the direction of 
+gates and transistors (Sprout and Seed are steps in that direction) or climb higher 
+in the direction of automated proof assistants. The main difference from Sprout is 
+that Memory and stack management are no longer the programmer's job.
+
+### Example 4: Seedling
+
+While still recognizably the same algorithm, at this level of abstraction the code 
+becomes very readable. A lot of implementation detail is figured out by the compiler, 
+this is more-or-less the minimal description of the algorithm without knowing what 
+equality is. Incidentally, this is the highest level of abstraction at which this 
+code still needs to be written; go one step higher, and the compiler would be able 
+to derive equality function for strings simply from the type declaration of `str` 
+and the declaration of abstract `=`.
+
+```
+{ in [ str ; a str ; b ]
+a len b len =
+a @ ; c
+{ b bite ; one
+  c bite ; other }
+{ one @ other @ = }
+while
+-( fail )-
+out [ maybe str ] } defFn =
+```
+
+The internal representation of `str` is no longer relevant; as long as we have 
+`len` and `bite` functions operating on them (or references to them), the compiler 
+knows what to do.
+
+Note that the type of the inner functions is omitted. However, unlike the first 
+example, this is not because it doesn't have one, but because it is not interesting: 
+Different types would satisfy the specification and it is really not important where 
+and how everything is eventually dropped. We may give different objectives to the 
+Seedling compiler about optimizing for speed, stack space, energy efficiency, 
+object code length, etc. and they may result in different types for the inner functions. 
+At this level, we do not care about lower-level details. We only specify what we 
+do care about, like the function's type `( str str -( fail )- str )` and the 
+general structure of the algorithm. As long as our specification contains no 
+contradictions, the compiler finds us a solution.
