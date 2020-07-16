@@ -83,7 +83,8 @@ can fail and returns a string followed by a character. It fails, if the argument
 string is empty, in which case it does not return anything. Upon success, it 
 returns the string without the first character followed by that very first character. 
 Its type using what is a comment convention in Seed and syntax higher up would be 
-`( str -( fail )- maybe str char )` 
+`( str -( fail )- maybe str char )` if we ignore reading the memory. If we don't, it 
+would become `( str -( fail memRd )- maybe str char )`
 
 
 ### Example 2: Commented and Formatted Seed
