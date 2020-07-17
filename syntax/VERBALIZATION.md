@@ -36,6 +36,8 @@ from [Star Wars].
 | `<`    | greater is | the second value is greater than the first
 | `>`    | less is    | the second value is less than the first
 | `,`    | comma      | append the second value to the first one
+| `;`    | (sus)pend  | suspend the the top of the stack
+| `:`    | label      | label the top of the stack
 
 > Fun fact: it is fairly common that a block of code does something until it 
 > fails and finally does something else. Such code in raw Seedling  ends 
