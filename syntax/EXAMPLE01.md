@@ -307,9 +307,12 @@ type declaration of `str` and the declaration of abstract `=`.
 { in [ : a str : b str ]
 a len b len =
 : c a @
-{ b : x bite
-  c : y bite }
-{ x @ y @ = }
+{
+  b : x bite
+  c : y bite 
+  out [ : x char : y char ] }
+{ in [ : x char : y char ]
+  x @ y @ = }
 while
 can -( fail )-
 out [ maybe str ] } defFn =
@@ -319,15 +322,25 @@ The internal representation of `str` is no longer relevant; as long as
 we have `len` and `bite` functions operating on them (or references to 
 them), the compiler knows what to do.
 
-Note that the type of the inner functions is omitted. However, unlike 
-the first example, this is not because it doesn't have one, but because 
-it is not interesting: Different types would satisfy the specification 
-and it is really not important where and how everything is eventually 
-dropped. We may give different objectives to the Seedling compiler about 
-optimizing for speed, stack space, energy efficiency, object code 
-length, etc. and they may result in different types for the inner 
-functions. At this level, we do not care about lower-level details. We 
-only specify what we do care about, like the function's type `( str str 
--( fail )- maybe str )` and the general structure of the algorithm. As 
-long as our specification contains no contradictions, the compiler finds 
-us a solution.
+Note that the input type of the first inner function and the output type 
+of the second inner function are omitted as are their effects. However, 
+unlike the first example, this is not because they don't have them, but 
+because they are not interesting: Different types would satisfy the 
+specification and it is really not important where and how everything is 
+eventually dropped. We may give different objectives to the Seedling 
+compiler about optimizing for speed, stack space, energy efficiency, 
+object code length, etc. and they may result in different types for the 
+inner functions. At this level, we do not care about lower-level 
+details. We only specify what we do care about, like the function's type 
+`( str str -( fail )- maybe str )` and the general structure of the 
+algorithm. As long as our specification contains no contradictions, the 
+compiler finds us a solution.
+
+From a type safety perspective, inner functions that are immediately 
+called can be assumed to have all the locals of the calling function as 
+their argument type, unless otherwise specified. This is slightly different 
+from having an empty argument type as they can still "reach out" to 
+the local stack of the enclosing function as if they were in an access 
+monad. If such inner functions are not immediately used or even exposed 
+( e. g. by returning them ), explicit declarations of the access monad 
+are required. But not in this example.
