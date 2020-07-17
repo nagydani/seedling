@@ -311,8 +311,8 @@ type declaration of `str` and the declaration of abstract `=`.
     b bite
     c bite 
   out [ char char ] }
-  { in [ : x char : y char ]
-    x @ y @ =
+  { in [ char char ]
+    =
   }
   while
 can -( fail )-
@@ -326,19 +326,20 @@ them), the compiler knows what to do.
 Note that the input type of the first inner function and the output type 
 of the second inner function are omitted as are their effects. However, 
 unlike the first example, this is not because they don't have them, but 
-because they are implicit. Different types would satisfy the 
-specification and it is really not important where and how unused values are 
-eventually dropped. We may give different objectives to the Seedling 
-compiler about optimizing for speed, stack space, energy efficiency, 
-object code length, etc. and they may result in different types for the 
-inner functions. At this level, we do not care about lower-level 
-details. We only specify what we do care about, like the function's type 
-`( str str -( fail )- maybe str )` and the general structure of the 
-algorithm. As long as our specification contains no contradictions, the 
-compiler finds us a solution.
+because the types are empty and the effects implicit.
 
-From a type safety perspective, inner functions are not exactly pure, as 
-they can "reach out" to the local stack of the enclosing function as if 
-they were in an access monad. If such inner functions are exposed, 
-explicit declarations of the access monad are required. But not in this 
-example.
+Unused values are eventually dropped, but the programmer no longer needs 
+to specify where and how that happens. We may give different objectives 
+to the Seedling compiler about optimizing for speed, stack space, energy 
+efficiency, object code length, etc. and they may result in different 
+ways of getting rid of unused values. At this level, we do not care about 
+lower-level details. We only specify what we do care about, like the 
+function's type `( str str -( fail )- maybe str )` and the general 
+structure of the algorithm. As long as our specification contains no 
+contradictions, the compiler finds us a solution.
+
+As for effects, from a type safety perspective inner functions are not 
+exactly pure, as they can "reach out" to the local stack of the 
+enclosing function as if they were in an access monad. If such inner 
+functions are exposed, explicit declarations of the access monad are 
+required. But not in this example.
