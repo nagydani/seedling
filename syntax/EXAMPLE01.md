@@ -327,7 +327,7 @@ Note that the input type of the first inner function and the output type
 of the second inner function are omitted as are their effects. However, 
 unlike the first example, this is not because they don't have them, but 
 because they are not interesting: Different types would satisfy the 
-specification and it is really not important where and how everything is 
+specification and it is really not important where and how unused values are 
 eventually dropped. We may give different objectives to the Seedling 
 compiler about optimizing for speed, stack space, energy efficiency, 
 object code length, etc. and they may result in different types for the 
