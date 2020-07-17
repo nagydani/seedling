@@ -120,36 +120,36 @@ addrSize natSize + const strSize
 [ : ptr addr : len nat ] rec str
 
 { in [ : a str : b str ]
-↓↓⤈⤈⤈⤈local 4 }: a . len :{
-↓↓↓↓↓↓@
-↓↓↓↓↓↓↓' =
-'fail| 5
-⤈⤈⤈⤈⤈⤈local 6 }: a :{
-↓↓↓↓↓↓$
-↓↓↓↓↓↓↓↓↓{ in [ : b str : a str ]
-          ↓↓↓↓↓↓: aFirst
-          ↓↓↓bite
-          ⤈⤈⤈⤈⤈⤈⤈local 7 }: b :{
-          ↓↓↓↓↓↓↓$
-          ↓↓↓↓↓↓↓↓↓↓: bFirst
-          ↓↓↓↓↓↓↓bite
-          ↓↓↓↓↓↓⤈⤈⤈⤈⤈aFirst
-          ↓↓↓↓↓↓↓↓↓↓↓~ @
-          ↓↓↓can -( fail )-
+ ↓↓⤈⤈⤈⤈local 4 }: a . len :{
+ ↓↓↓↓↓↓@
+ ↓↓↓↓↓↓↓' =
+ 'fail| 5
+ ⤈⤈⤈⤈⤈⤈local 6 }: a :{
+ ↓↓↓↓↓↓$
+ ↓↓↓↓↓↓↓↓↓{ in [ : b str : a str ]
+           ↓↓↓↓↓↓: aFirst
+           ↓↓↓bite
+           ⤈⤈⤈⤈⤈⤈⤈local 7 }: b :{
+           ↓↓↓↓↓↓↓$
+           ↓↓↓↓↓↓↓↓↓↓: bFirst
+           ↓↓↓↓↓↓↓bite
+           ↓↓↓↓↓↓⤈⤈⤈⤈⤈aFirst
+           ↓↓↓↓↓↓↓↓↓↓↓~ @
+           ↓↓↓can -( fail )-
           out [ str maybe str char str char char ] }
-↓↓↓↓↓↓↓↓↓↓↓{ in [ : b str str char str char char ]
-            ↓↓↓↓↓↓↓↓↓↓↓↓' =
-            'fail| 10
-            ↓↓↓↓↓↓↓↓↓↓drop
-            ⤈⤈⤈⤈⤈⤈⤈⤈⤈⤈local 10 }: b :{
-            ↓↓↓↓↓↓↓↓↓↓let$
-            ↓↓↓↓↓↓~ drop
-            can -( fail )-
+ ↓↓↓↓↓↓↓↓↓↓↓{ in [ : b str str char str char char ]
+             ↓↓↓↓↓↓↓↓↓↓↓↓' =
+             'fail| 10
+             ↓↓↓↓↓↓↓↓↓↓drop
+             ⤈⤈⤈⤈⤈⤈⤈⤈⤈⤈local 10 }: b :{
+             ↓↓↓↓↓↓↓↓↓↓let$
+             ↓↓↓↓↓↓~ drop
+             can -( fail )-
             out [ maybe str str ] }
-↓↓↓' while
-'fail| 3
-↓↓↓~ drip
-can -( fail )-
+ ↓↓↓' while
+ 'fail| 3
+ ↓↓↓~ drip
+ can -( fail )-
 out [ maybe str ] } defFn $=
 ```
 
@@ -228,14 +228,14 @@ quite intuitive:
     ↓↓↓bite
     ↓↓↓↓↓aFirst @
     ↓can -( fail )-
-    out [ str maybe str char str char char ] }
+   out [ str maybe str char str char char ] }
 ↓↓↓↓{ in [ : b str str char str char char ]
      ↓↓↓↓=
      ↓↓↓↓drop
      ↓↓↓↓b let
      ↓↓drop
      can -( fail )-
-     out [ maybe Str Str ] }
+    out [ maybe Str Str ] }
 while
 ↓drop
 can -( fail )-
@@ -305,15 +305,16 @@ type declaration of `str` and the declaration of abstract `=`.
 
 ```
 { in [ : a str : b str ]
-a len b len =
-: c a @
-{
-  b : x bite
-  c : y bite 
+  a len b len =
+  : c a @
+  {
+    b : x bite
+    c : y bite 
   out [ : x char : y char ] }
-{ in [ : x char : y char ]
-  x @ y @ = }
-while
+  { in [ : x char : y char ]
+    x @ y @ =
+  }
+  while
 can -( fail )-
 out [ maybe str ] } defFn =
 ```
