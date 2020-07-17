@@ -338,6 +338,16 @@ function's type `( str str -( fail )- maybe str )` and the general
 structure of the algorithm. As long as our specification contains no 
 contradictions, the compiler finds us a solution.
 
+Note the body (subject, second argument) of `while`. It contains a single 
+call to `=`, so why is it `{ = }` instead of `' =`? That is precisely 
+because of the difference in types. The type of `=` is `( x x -- maybe x)` 
+whereas here our type is `( char char -- )`. The unused value of `=` 
+needs to be discarded. It is generally good Seedling practice to use `'` 
+only in expressions intended as combinators for later or lazy 
+evaluation. If the point of the combinator is immediate evaluation control, 
+enclosing even a single function in braces results in more readable 
+and maintainable code.
+
 As for effects, from a type safety perspective inner functions are not 
 exactly pure, as they can "reach out" to the local stack of the 
 enclosing function as if they were in an access monad. If such inner 
