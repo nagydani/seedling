@@ -290,7 +290,9 @@ It is also probably the best starting point for learning programming and
 then delve deeper in the direction of gates and transistors (Sprout and 
 Seed are steps in that direction) or climb higher in the direction of 
 automated proof assistants. The main difference from Sprout is that 
-memory and stack management are no longer the programmer's job.
+memory and stack management are no longer necessarily the programmer's job. 
+Thus, all valid Sprout code is valid Seedling code, but as we shall see, 
+in Seedling we have the option to get rid of a lot of clutter from Sprout.
 
 ### Example 4: Concise Seedling
 
