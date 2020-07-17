@@ -308,9 +308,9 @@ type declaration of `str` and the declaration of abstract `=`.
   a len b len =
   : c a @
   {
-    b : x bite
-    c : y bite 
-  out [ : x char : y char ] }
+    b bite
+    c bite 
+  out [ char char ] }
   { in [ : x char : y char ]
     x @ y @ =
   }
@@ -326,7 +326,7 @@ them), the compiler knows what to do.
 Note that the input type of the first inner function and the output type 
 of the second inner function are omitted as are their effects. However, 
 unlike the first example, this is not because they don't have them, but 
-because they are not interesting: Different types would satisfy the 
+because they are implicit. Different types would satisfy the 
 specification and it is really not important where and how unused values are 
 eventually dropped. We may give different objectives to the Seedling 
 compiler about optimizing for speed, stack space, energy efficiency, 
@@ -337,11 +337,8 @@ details. We only specify what we do care about, like the function's type
 algorithm. As long as our specification contains no contradictions, the 
 compiler finds us a solution.
 
-From a type safety perspective, inner functions that are immediately 
-called can be assumed to have all the locals of the calling function as 
-their argument type, unless otherwise specified. This is slightly different 
-from having an empty argument type as they can still "reach out" to 
-the local stack of the enclosing function as if they were in an access 
-monad. If such inner functions are not immediately used or even exposed 
-( e. g. by returning them ), explicit declarations of the access monad 
-are required. But not in this example.
+From a type safety perspective, inner functions are not exactly pure, as 
+they can "reach out" to the local stack of the enclosing function as if 
+they were in an access monad. If such inner functions are exposed, 
+explicit declarations of the access monad are required. But not in this 
+example.
