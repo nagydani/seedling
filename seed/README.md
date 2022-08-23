@@ -114,9 +114,10 @@ later.
 A possible effect of some computations is *failure* in 
 which case both stacks are reset to their positions at 
 the time of the registration of the *failure handler* 
-and the failure handler is deregistered (making the 
-previous error handler active) and executed. Conditional 
-failure is the only means of conditional branching in 
-Seed. Unconditional failure is always a tail call, as 
-the computation cannot succeed, once it failed.
+(a computation itself) and the failure handler is 
+deregistered (making the previous error handler active) 
+and executed. Conditional failure is the only means of 
+conditional branching in Seed. Unconditional failure is 
+always a tail call, as the computation cannot succeed, 
+once it failed.
 
