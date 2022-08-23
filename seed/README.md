@@ -6,9 +6,10 @@ The Seed is a basic abstraction above the computer
 hardware and the operating system (if there is one; some 
 Seeds may run on the "bare metal"). It is a program 
 implementing the Seed language. The *Seed language* is a 
-low-level programming language whose sole objective is 
-to compile other Seeds and the Sprout (a hihger-level 
-language with similar syntax, but richer semantics).
+low-level programming language whose objective is to 
+compile other Seeds and the Sprout (a hihger-level 
+language with similar syntax, but richer semantics) as 
+well as hardware drivers for it.
 
 All Seeds are written in Seed language, and thus can 
 compile each other. Every computer architecture requires 
@@ -366,3 +367,56 @@ All of the above always succeeds.
    reference on the top of the stack and writes the 
    least significant 8 bits of the value to the given 
    location as a byte.
+
+All of the above always succeeds. *TODO: Out of memory 
+effect*
+
+### Stack Manipulation
+
+ * `drop` ( a -- )
+ * `nip` ( a b -- b )
+ * `swap` ( a b -- b a )
+ * `dup` ( a -- a a )
+ * `over` ( a b -- a b a )
+ * `third` ( a b c -- a b c a )
+ * `>r` moves the top element of the data stack to the 
+   return stack
+ * `r>` moves the top element of the return stack to the
+   data stack
+
+All of the above always succeeds.
+
+### Arithmetic primitives
+
+ * `+` (pronounced as *"plus"*) takes two cells from 
+   the top of the data stack and replaces them by their 
+   sum. Sets *carry* on overflow.
+ * `-` (pronounced as *"minus"*) takes two cells from 
+   the top of the data stack and replaces them by their 
+   difference. Sets *carry* on underflow.
+ * `u*` (pronounced as *"u-star"*) takes two cells from 
+   the top of the data stack and replaces them by the 
+   lower and the upper cells of their product. Unsigned.
+ * `/mod` (pronounced as *"slash-mod"*) takes two cells 
+   from the top of the data stack and replaces them by 
+   the reminder and the quotient after division. Unsigned.
+ * `1+` (pronounced as *"one-plus"*) increments the top 
+   cell of the data stack by one. Sets *carry* on overflow.
+ * `1-` (pronounced as *"one-minus"*) decrements the top 
+   cell of the data stack by one. Sets *carry* on underflow.
+ * `*` (pronounced as *"star"*) impements `u* drop`.
+ * `/` (pronounced as *"slash"*) implements `/mod nip`
+ * `mod` implements `/mod drop`
+
+All of the above always succeeds.
+
+### Bitwise logic primitives
+
+ * `or` replaces the top two cells of the data stack by 
+   their bitwise or.
+ * `and` replaces the top two cells of the data stack by 
+   their bitwise and.
+ * `xor` replaces the top two cells of the data stack by 
+   their bitwise xor.
+
+All of the above always succeeds.
