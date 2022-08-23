@@ -66,11 +66,11 @@ knowing Forth is not required to understand it.
 ### Parsing
 
 Seed sources consist of *lines* (not exceeding 64 
-characters) terminated by either LF or CR LF sequences. 
+characters) terminated by either `LF` or `CR LF` sequences. 
 Lines consist of *words* delimited by one or more 
-*whitespace*: any character with codes below that of the 
-exclamation mark !, excluding 0, which is not allowed in 
-Seed source. Words cosist of *printable ASCII* 
+*whitespace*: any character with ASCII codes below that of 
+the exclamation mark !, excluding 0, which is not allowed 
+in Seed source. Words cosist of *printable ASCII* 
 characters in the range between ! and ~ (inclusive) and 
 must be at most 30 characters long.
 
@@ -80,7 +80,7 @@ Seed starts in *interpreter mode*, reading a line from
 the input, iterating through its words and executing the 
 corresponding computation for each one. In the beginning 
 only the words specified in this document are allowed in 
-Seed source; all words must be ultimately defined in 
+Seed source; all other words must be ultimately defined in 
 terms of these.
 
 Computations in Seed may *succeed* or *fail* (see below 
