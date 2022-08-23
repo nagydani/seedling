@@ -212,6 +212,9 @@ Example:
 " Hello world!"
 ```
 
+Places the reference to `Hello world!` on the data 
+stack.
+
 ### Quotations
 
 Quotations start with the word `{` (pronounced 
@@ -230,4 +233,51 @@ There are several ways to end a quotation:
  * `}~` (pronounced *"tail"*) ends the computation with a 
    tail call to the interpreter mode behavior of the
    following word.
+
+There can be (and are) defined further words that end a 
+quotation, if their compilation behavior fails. They will 
+be discussed in other sections.
+
+Example:
+```
+{ " Hello world!" type }~ cr
+```
+
+Places a reference to a computation that outputs 
+`Hello world!` and a newline character on the data stack.
+
+### Unnamed Macros
+
+Unnamed macros start with the word `[` (pronounced 
+*"meta"*) and end with the word `]` (pronounced 
+*"end-meta"*). They must only be used in compiler mode. 
+What is between `[` and `]` is executed in interpreter 
+mode allowing for compile-time computations.
+
+Example:
+```
+{ [ 5 3 + literal ] . }
+```
+
+Places onto the data stack a reference to a computation 
+that outputs 8. However, the addition of 5 and 3 happens 
+in compile-time rather than in run-time.
+
+### Output effects
+
+ * `emit` outputs a single byte popping it from the data 
+    stack.
+ * `.` outputs a numeral string in the current base 
+   corresponding to the value popped from the data stack
+   followed by a whitespace.
+ * `space` outputs a whitespace.
+ * `cr` outputs a line ending of the underlying platform.
+ * `type` outputs a zero-terminated string popping the 
+    reference from the data stack.
+ * `write` outputs a given number of bytes. Expects a 
+    reference to the first byte and the number of bytes on 
+    the data stack. Places the bytes actually written onto 
+    the data stack.
+
+All of the above always succeeds.
 
