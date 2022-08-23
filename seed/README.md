@@ -229,14 +229,14 @@ stack.
 
 ### Computation Literals
 
-* `'` (pronounced *"tick"*) followed by a word places a 
-  reference to its interpreter mode behavior onto the 
-  data stack.
-* `'id` (pronounced *"tick-id"*) places a reference to the 
-  empty (identity) computation onto the data stack.
-* `'self` (pronounced *"tick-self"*) places a reference to 
-  the current *quotation* or *colon definition* (see below)
-  onto the data stack.
+ * `'` (pronounced *"tick"*) followed by a word places a 
+   reference to its interpreter mode behavior onto the 
+   data stack.
+ * `'id` (pronounced *"tick-id"*) places a reference to the 
+   empty (identity) computation onto the data stack.
+ * `'self` (pronounced *"tick-self"*) places a reference to 
+   the current *quotation* or *colon definition* (see below)
+   onto the data stack.
 
 ### Quotations
 
@@ -342,3 +342,27 @@ in compile-time rather than in run-time.
 
 All of the above always succeeds.
 
+### Heap Effects
+
+ * `,` (pronounced *"comma"*) allocates one cell on the 
+   heap and writes the cell from the data stack to the 
+   newly allocated place.
+ * `c,` (pronounced *"see-comma"*) allocates one byte on 
+   the heap and writes the least significant 8 bits of the 
+   cell from the data stack to the newly allocated place.
+ * `allot` allocates the number of bytes on heap given by 
+   the cell popped off the stack.
+ * `here` puts the reference to the next byte to be allocated
+    on the stack.
+ * `@` (pronounced *"fetch"*) replaces the reference to a 
+   heap location by the cell at that location on the stack.
+ * `c@` (pronounced *"see-fetch"*) replaces the reference 
+   to a heap location by the byte at that location on the 
+   stack.
+ * `!` (pronounced *"store"*) expects a value and a 
+   reference on the top of the stack and writes the value to 
+   the given location as a cell.
+ * `c!` (pronounced *"see-store"*) expects a value and a 
+   reference on the top of the stack and writes the 
+   least significant 8 bits of the value to the given 
+   location as a byte.
