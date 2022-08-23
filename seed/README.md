@@ -74,8 +74,8 @@ sequences. Lines consist of *words* delimited by one or
 more *whitespace* (blanks, ASCII code 32). Words cosist 
 of *printable ASCII* characters in the range between ! 
 and ~ (inclusive) and must be at most 30 characters 
-long. Seed is case-sensitive, thus Foo, FOO and foo 
-are three different words.
+long. Seed is case-sensitive, thus `Foo`, `FOO` and 
+`foo` are three different words.
 
 ### Seed Execution
 
