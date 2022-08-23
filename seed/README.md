@@ -162,7 +162,7 @@ The word `\` denotes a comment till the end of the line.
 Note that since it is a word, there must be at least one 
 whitespace between it and the rest of the comment.
 
-The word '(' denotes a comment till the matching ')'. 
+The word `(` denotes a comment till the matching `)`. 
 These comments are reserved for type signatures which 
 will have a well-defined syntax, so that automatic type 
 checkers can actually use them.
@@ -173,8 +173,9 @@ Numeric literals are sequences of digits in the current
 base. Seed starts in base ten, but this can be changed. 
 Digits from zero to nine are denoted by 0 to 9, whereas 
 digits from ten to thirty-five are denoted by A to Z. 
-Bases greater than 36 are not supported. Using digits 
-greater or equal to the current base is not allowed.
+Bases greater than thirty-six are not supported. Using 
+digits greater or equal to the current base is not 
+allowed.
 
 Numeric literals place their *value* onto the data stack 
 as a single cell. If the numeral value described by the 
@@ -286,6 +287,25 @@ Example:
 
 Creates a new word `greet` outputting `Hello world!` and 
 a newline.
+
+### Postponed Colon Definitions
+
+Using the word `postpone`, it is possible to postpone a 
+colon definition of the following word, so that we can 
+use the word before actually defining the computation 
+associated with it. This comes in handy, for example, 
+when two computations call each other.
+
+The compiler mode behavior changes (see later) must be 
+added after the `postpone` statement, not the postponed 
+definition. The postponed definition itself begins with 
+the word `{::` (pronounced *"colon-colon"*) with a 
+syntax that is identical to `{:`.
+
+By convention, the type signature comment is added after 
+the newly defined word both in the `postpone` statement 
+and the actual definition.
+
 
 ### Unnamed Macros
 
