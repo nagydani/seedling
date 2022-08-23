@@ -5,12 +5,12 @@
 The Seed is a basic abstraction above the computer 
 hardware and the operating system (if there is one; some 
 Seeds may run on the "bare metal"). It is a program 
-implementing the Seed language. The Seed language is a 
+implementing the Seed language. The *Seed language* is a 
 low-level programming language whose sole objective is 
 to compile other Seeds and the Sprout (a hihger-level 
 language with similar syntax, but richer semantics).
 
-All Seeds are written in *Seed language*, and thus can 
+All Seeds are written in Seed language, and thus can 
 compile each other. Every computer architecture requires 
 its own Seed. Porting the entire Seed/Sprout/Seedling 
 stack onto a new architecture only requires writing a 
@@ -156,6 +156,17 @@ compilation.
 
 ## Word Reference
 
+### Comments
+
+The word `\` denotes a comment till the end of the line. 
+Note that since it is a word, there must be at least one 
+whitespace between it and the rest of the comment.
+
+The word '(' denotes a comment till the matching ')'. 
+These comments are reserved for type signatures which 
+will have a well-defined syntax, so that automatic type 
+checkers can actually use them.
+
 ### Numeric Literals
 
 Numeric literals are sequences of digits in the current 
@@ -215,6 +226,17 @@ Example:
 Places the reference to `Hello world!` on the data 
 stack.
 
+### Computation Literals
+
+* `'` (pronounced *"tick"*) followed by a word places a 
+  reference to its interpreter mode behavior onto the 
+  data stack.
+* `'id` (pronounced *"tick-id"*) places a reference to the 
+  empty (identity) computation onto the data stack.
+* `'self` (pronounced *"tick-self"*) places a reference to 
+  the current *quotation* or *colon definition* (see below)
+  onto the data stack.
+
 ### Quotations
 
 Quotations start with the word `{` (pronounced 
@@ -246,6 +268,25 @@ Example:
 Places a reference to a computation that outputs 
 `Hello world!` and a newline character on the data stack.
 
+### Colon Definitions
+
+Colon definitions start with the word `{:` (pronounced 
+*"colon"*) and end the same way as quotations. Instead 
+of placing the reference on the data stack, an 
+association between the following word and the further 
+described computation is written into the dictionary and 
+added to the current vocabulary. The computation becomes 
+the interpreter mode behavior of the word, while the 
+compiler mode behavior is to compile a call to it.
+
+Example:
+```
+{: greet " Hello world!" type }~ cr
+```
+
+Creates a new word `greet` outputting `Hello world!` and 
+a newline.
+
 ### Unnamed Macros
 
 Unnamed macros start with the word `[` (pronounced 
@@ -263,7 +304,7 @@ Places onto the data stack a reference to a computation
 that outputs 8. However, the addition of 5 and 3 happens 
 in compile-time rather than in run-time.
 
-### Output effects
+### Output Effects
 
  * `emit` outputs a single byte popping it from the data 
     stack.
@@ -274,10 +315,10 @@ in compile-time rather than in run-time.
  * `cr` outputs a line ending of the underlying platform.
  * `type` outputs a zero-terminated string popping the 
     reference from the data stack.
- * `write` outputs a given number of bytes. Expects a 
-    reference to the first byte and the number of bytes on 
-    the data stack. Places the bytes actually written onto 
-    the data stack.
+ * `write` outputs a given number of bytes from the 
+    heap. Expects a reference to the first byte and the 
+    number of bytes on the data stack. Places the bytes 
+    actually written onto the data stack.
 
 All of the above always succeeds.
 
