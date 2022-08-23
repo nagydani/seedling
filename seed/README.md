@@ -379,33 +379,33 @@ effect*
  * `dup` ( a -- a a )
  * `over` ( a b -- a b a )
  * `third` ( a b c -- a b c a )
- * `>r` moves the top element of the data stack to the 
-   return stack
- * `r>` moves the top element of the return stack to the
-   data stack
+ * `>r` (pronounced *"to-r"*) moves the top element of 
+   the data stack to the return stack
+ * `r>` (pronounced *"r-from"*) moves the top element of 
+   the return stack to the data stack
 
 All of the above always succeeds.
 
 ### Arithmetic primitives
 
- * `+` (pronounced as *"plus"*) takes two cells from 
+ * `+` (pronounced *"plus"*) takes two cells from 
    the top of the data stack and replaces them by their 
    sum. Sets *carry* on overflow.
- * `-` (pronounced as *"minus"*) takes two cells from 
+ * `-` (pronounced *"minus"*) takes two cells from 
    the top of the data stack and replaces them by their 
    difference. Sets *carry* on underflow.
- * `u*` (pronounced as *"u-star"*) takes two cells from 
+ * `u*` (pronounced *"u-star"*) takes two cells from 
    the top of the data stack and replaces them by the 
    lower and the upper cells of their product. Unsigned.
- * `/mod` (pronounced as *"slash-mod"*) takes two cells 
+ * `/mod` (pronounced *"slash-mod"*) takes two cells 
    from the top of the data stack and replaces them by 
    the reminder and the quotient after division. Unsigned.
- * `1+` (pronounced as *"one-plus"*) increments the top 
+ * `1+` (pronounced *"one-plus"*) increments the top 
    cell of the data stack by one. Sets *carry* on overflow.
- * `1-` (pronounced as *"one-minus"*) decrements the top 
+ * `1-` (pronounced *"one-minus"*) decrements the top 
    cell of the data stack by one. Sets *carry* on underflow.
- * `*` (pronounced as *"star"*) impements `u* drop`.
- * `/` (pronounced as *"slash"*) implements `/mod nip`
+ * `*` (pronounced *"star"*) impements `u* drop`.
+ * `/` (pronounced *"slash"*) implements `/mod nip`
  * `mod` implements `/mod drop`
 
 All of the above always succeeds.
