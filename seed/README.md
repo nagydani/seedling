@@ -27,6 +27,9 @@ this specification.
    * [Parsing](#parsing)
    * [Seed Execution](#seed-execution)
    * [Computational Model](#computational-model)
+   * [Compilation](#compilation)
+   * [Vocabularies](#vocabularies)
+ * [Word Rerefence](#word-reference)
 
 ## Requirements
 
@@ -66,26 +69,27 @@ knowing Forth is not required to understand it.
 ### Parsing
 
 Seed sources consist of *lines* (not exceeding 64 
-characters) terminated by either `LF` or `CR LF` sequences. 
-Lines consist of *words* delimited by one or more 
-*whitespace*: any character with ASCII codes below that of 
-the exclamation mark !, excluding 0, which is not allowed 
-in Seed source. Words cosist of *printable ASCII* 
-characters in the range between ! and ~ (inclusive) and 
-must be at most 30 characters long.
+characters) terminated by either `LF` or `CR LF` 
+sequences. Lines consist of *words* delimited by one or 
+more *whitespace* (blanks, ASCII code 32). Words cosist 
+of *printable ASCII* characters in the range between ! 
+and ~ (inclusive) and must be at most 30 characters 
+long. Seed is case-sensitive, thus Foo, FOO and foo 
+are three different words.
 
 ### Seed Execution
 
 Seed starts in *interpreter mode*, reading a line from 
 the input, iterating through its words and executing the 
-corresponding computation for each one. In the beginning 
-only the words specified in this document are allowed in 
-Seed source; all other words must be ultimately defined in 
-terms of these.
+corresponding computation (called *interpreter mode 
+behavior*) for each one. In the beginning only the words 
+specified in this document are allowed in Seed source; 
+all other words must be ultimately defined in terms of 
+these.
 
 Computations in Seed may *succeed* or *fail* (see below 
-for more details), however, all computations in Seed source 
-must succeed.
+for more details), however, all computations in Seed 
+source must succeed.
 
 The behavior of Seed in case of encountering undefined 
 words or failing computations is undefined. Sensible 
@@ -121,3 +125,88 @@ conditional branching in Seed. Unconditional failure is
 always a tail call, as the computation cannot succeed, 
 once it failed.
 
+In addition to the two stacks, a memory area called 
+*heap* or *dictionary* (the two are used synonymously in 
+the context of Seed) is available to Seed programs, 
+which may be allocated as needed. Definitions of newly 
+created words go here as well as any data that the Seed 
+program may use. Note that Seed has no facilities for 
+freeing up heap space. The heap forms a continuous 
+memory area with addresses starting at some arbitrary 
+number. Heap references must fit into one cell.
+
+### Compilation
+
+In addition to their *interpeter mode behavior* 
+described above, words in Seed have a *compiler mode 
+behavior*: a computation that receives a reference to 
+their interpreter mode behavior as its argument on the 
+stack when compiling *quotations* or *colon definitions*.
+
+Quotations are computations that are built as a sequence 
+of other computations. Colon definitions are named 
+quotations that can be later referenced by their names.
+
+The default compiler mode behavior is to compile a call 
+to the interpreter mode behavior and succeed. Compiler 
+mode behaviors that fail cause the end of the 
+compilation.
+
+### Vocabularies
+
+## Word Reference
+
+### Numeric Literals
+
+Numeric literals are sequences of digits in the current 
+base. Seed starts in base ten, but this can be changed. 
+Digits from zero to nine are denoted by 0 to 9, whereas 
+digits from ten to thirty-five are denoted by A to Z. 
+Bases greater than 36 are not supported. Using digits 
+greater or equal to the current base is not allowed.
+
+Numeric literals place their *value* onto the data stack 
+as a single cell. If the numeral value described by the 
+literal is greater than what would fit into a cell then 
+the reminder after division by 2 to the power of the 
+cell size is placed onto the stack. So, for example the 
+numeric literal 10000 in the current base of sixteen 
+would place zero onto the stack.
+
+If a word is not found in the context vocabulary, an 
+attempt to interpret it as a numeric literal is made. 
+Thus, certain numeric values can be redefined as words, 
+but unless their meaning is identical to the numeric 
+literal they override, this can be very confusing and is 
+best avoided.
+
+### Character Literals
+
+Character literals start with the word `ascii` and put 
+the ASCII code of the first character of the following 
+word onto the data stack. Thus, `ascii A` would put 
+decimal 65 on the stack, and so would `ascii Alpha`. 
+However, to avoid confusion, the latter use is 
+discouraged.
+
+### String Literals
+
+String literals start with the word `"`. Unlike most 
+programming languages, there is a mandatory whitespace 
+after `"`, which is not part of the string literal. 
+String literals consist of printable characters and 
+whitespace and are terminated by a double quote (`"`) 
+character. Double quotes inside string literals are 
+denoted by `\"` and backlashes by `\\`.
+
+String literals must not contain line breaks. Thus, 
+their maximal length is constrained by the line length.
+
+A string literal compiles into the dictionary as a 
+zero-terminated sequence of characters and its start 
+address is placed on the data stack.
+
+Example:
+```
+" Hello world!"
+```
