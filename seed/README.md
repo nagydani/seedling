@@ -191,13 +191,14 @@ discouraged.
 
 ### String Literals
 
-String literals start with the word `"`. Unlike most 
-programming languages, there is a mandatory whitespace 
-after `"`, which is not part of the string literal. 
-String literals consist of printable characters and 
-whitespace and are terminated by a double quote (`"`) 
-character. Double quotes inside string literals are 
-denoted by `\"` and backlashes by `\\`.
+String literals start with the word `"` (pronounced 
+*"quote"*). Unlike most programming languages, there is 
+a mandatory whitespace after `"`, which is not part of 
+the string literal. String literals consist of printable 
+characters and whitespace and are terminated by a double 
+quote (`"`, pronounced *"unquote"*) character. Double 
+quotes inside string literals are denoted by `\"` and 
+backlashes by `\\`.
 
 String literals must not contain line breaks. Thus, 
 their maximal length is constrained by the line length.
@@ -210,3 +211,23 @@ Example:
 ```
 " Hello world!"
 ```
+
+### Quotations
+
+Quotations start with the word `{` (pronounced 
+*"brace"*). They are compiled into the dictionary as a 
+computation to which a reference is placed onto the data 
+stack.
+
+There are several ways to end a quotation:
+
+ * `}` (pronounced *"unbrace"*) ends the computation 
+    with success.
+ * `}~fail` (pronounced *"fail"*) ends the computation 
+   with failure.
+ * `}~self` (pronounced *"tail-self"*) ends the computation
+   with a tail call to itself.
+ * `}~` (pronounced *"tail"*) ends the computation with a 
+   tail call to the interpreter mode behavior of the
+   following word.
+
