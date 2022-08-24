@@ -202,7 +202,7 @@ vocabulary.
  * [=](#relations)
  * [>](#relations)
  * [>=](#relations)
- * [>lit](#)
+ * [>lit](#other-ways-to-create-and-modify-words)
  * [>lower](#mappers)
  * [>number](#mappers)
  * [>r](#stack-manipulation)
@@ -494,6 +494,10 @@ by `does`:
  * `endtail` compiles a call to the interpret mode behavior,
    then a tail call to the interpret mode behavior of the 
    following word and then ends the compiling.
+ * `>lit` compiles a literal from the interpret mode 
+   behavior of the word that returns the value on the 
+   stack as its interpret mode behavior (such as `ascii` and
+   `'`).
  * `quotate` compiles a literal from the interpret mode 
    behavior of the word that allocates some data on the 
    heap and returns a reference to it (such as `"` and 
@@ -535,6 +539,21 @@ in compile-time rather than in run-time.
     actually written onto the data stack.
 
 All of the above always succeeds.
+
+### Input Effects
+
+ * `key` reads a byte from the input source and places it on 
+   the stack.
+ * `input` inputs a line from the input source and 
+   points `tib` to its beginning. Facilities for interactive 
+   editing might or might not be provided.
+ * `bite` if the line pointed by `tib` is empty, `bite` 
+   fails. Otherwise, it reads the first byte from `tib` 
+   placing it on the data stack and increments `tib`.
+ * `word` reads the next word from the line buffer pointed 
+   by `tib` and places it as a zero-terminated string in 
+   the `pad` buffer. At the end of the line, it reads an 
+   empty string. `word` never fails.
 
 ### Heap Effects
 
@@ -662,6 +681,9 @@ stack as pure functions. They always succeed.
  * `>upper` (pronounced *"to-upper") changes lower-case 
    letters to upper-case letters leaving every other value 
    unchanged.
+ * `wsskip` (pronounced *"whitespace-skip"*) changes the 
+   reference to a zero-terminated string to one without 
+   leading whitespace characters.
 
 ### Failure Handling
 
