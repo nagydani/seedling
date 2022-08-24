@@ -123,13 +123,13 @@ later.
 
 A possible effect of some computations is *failure* in 
 which case both stacks are reset to their positions at 
-the time of the registration of the *failure handler* 
-(a computation itself) and the failure handler is 
-deregistered (making the previous error handler active) 
-and executed. Conditional failure is the only means of 
-conditional branching in Seed. Unconditional failure is 
-always a tail call, as the computation cannot succeed, 
-once it failed.
+the time of the registration of the *failure handler* (a 
+computation itself) and the failure handler is 
+deregistered (making the previous failure handler 
+active) and executed. Conditional failure is the only 
+means of conditional branching in Seed. Unconditional 
+failure is always a tail call, as the computation cannot 
+succeed, once it failed.
 
 In addition to the two stacks, a memory area called 
 *heap* or *dictionary* (the two are used synonymously in 
