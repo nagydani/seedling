@@ -488,7 +488,8 @@ mode behavior, which always succeeds.
  * `immediate` sets the compile mode behavior of the 
    most recently defined word in the current vocabulary 
    to executing the interpret mode behavior, effectively 
-   turning the word into a named macro.
+   turning the word into a named macro. Synonymous with
+   `' execute does`
 
 Below are other compile mode behaviors that can be assigned 
 by `does`:
