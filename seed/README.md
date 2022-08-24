@@ -328,7 +328,8 @@ literal is greater than what would fit into a cell then
 the reminder after division by 2 to the power of the 
 cell size is placed onto the stack. So, for example the 
 numeric literal 10000 in the current base of sixteen 
-would place zero on the data stack.
+would place zero on the data stack, if the cell size is 
+sixteen bits.
 
 The words `hex` and `decimal` change the current base to 
 sixteen and ten, respectively.
