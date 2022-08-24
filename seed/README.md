@@ -685,6 +685,36 @@ stack as pure functions. They always succeed.
    reference to a zero-terminated string to one without 
    leading whitespace characters.
 
+### Relations
+
+All these relations succeed, if the two topmost cells 
+on the stack are in the corresponding relation, dropping 
+the topmost element. If the two topmost cells are not in 
+the relation, the computation fails.
+
+Relations curried with a single argument become filters.
+
+Note on the recommended pronunciation: reading 
+concatenative programming languages sounds somewhat like 
+Yoda from Star Wars. We'll just reinforce this pattern 
+here.
+
+ * `<` (pronounced *"less-is"*) compares two cells as 
+   unsigned integers.
+ * `<=` (pronounced *"less-is-or-equals"*) compares two 
+   cells as unsigned integers.
+ * `<>` (pronounced *"equals-not"*) compares two cells
+ * `=` (pronounced *"equals"*) compares two cells
+ * `>` (pronounced *"greater-is"*) compares two cells as 
+   unsigned integers
+ * `>=` (pronounced *"greater-is-or-equals"*) compares 
+   two cells as unsigned integers.
+ * `s<>` (pronounced *"ess-equals-not"*) compares two 
+   strings referenced by the two cells on the top of the 
+   stack.
+ * `s=` (pronounced *"ess-equals"*) compares two strings
+   referenced by the two cells on the top of the stack.
+
 ### Failure Handling
 
 `&` (pronounced *"pend"*) registers the reference from 
