@@ -664,7 +664,8 @@ succeeding or fail.
  * `ddigit` succeeds for ASCII codes of decimal digits.
  * `upper` succeeds for ASCII codes of upper-case letters.
  * `lower` succeeds for ASCII codes of lower-case.
-   letters * `letter` succeeds for ASCII codes of letters.
+   letters
+ * `letter` succeeds for ASCII codes of letters.
  * `alphanum` succeeds for ASCII codes of letters or 
     decimal digits.
  * `printable` succeeds for ASCII codes in the range between
