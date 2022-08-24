@@ -262,6 +262,7 @@ vocabulary.
  * [nip](#stack-manipulation)
  * [nonempty](#filters)
  * [or](#bitwise-logic-primitives)
+ * [output](#miscellaneous)
  * [over](#stack-manipulation)
  * [pad](#predefined-constants)
  * [postpone](#postponed-colon-definitions)
@@ -872,13 +873,17 @@ The following two words only make sense in interpret mode.
  * `bye` releases all resources held by Seed and exits
  * `carry?` fails, if the previous operation set the 
    carry flag
+ * `execute` takes a reference to a computation off the top 
+   of the stack and executes it.
  * `literal` takes the cell on the top of the stack and 
    compiles a literal from it. Useful in macros.
+ * `output` executes `seedl` with handlers set up in such a
+   way that input is read from the rest of the input 
+   stream and output is written to wherever object code 
+   is expected. Typically, the first word in a Seed source.
  * `s>number` takes a string and transforms it into a number 
    on the top of the stack. However, it is not a mapper, 
    because it can fail and depends on the current base.
- * `execute` takes a reference to a computation off the top 
-   of the stack and executes it.
  * `seedl` is the Seed loop.
  * `traverse&` is a generator traversing a linked list 
    created by `cons`. It generates references to the 
