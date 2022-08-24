@@ -344,8 +344,28 @@ is to compile a call to their (above described) interpret
 mode behavior, which always succeeds.
 
  * `does` changes the compile mode behavior of the most 
-   recently defined word in the current vocabulary to the 
-   computation to which a reference is popped off the stack.
+   recently defined word in the current vocabulary to 
+   the computation to which a reference is popped off 
+   the stack. This computation is given a reference on 
+   the stack to the interpret mode behavior when 
+   compiling the word.
+ * `immediate` sets the compile mode behavior of the 
+   most recently defined word in the current vocabulary 
+   to executing the interpret mode behavior, effectively 
+   turning the word into a named macro.
+
+Below are other compile mode behaviors that can be assigned 
+by `does`:
+
+ * `endcomp` compiles a call to the interpret mode behavior 
+   and ends the compiling.
+ * `endtail` compiles a call to the interpret mode behavior,
+   then a tail call to the interpret mode behavior of the 
+   following word and then ends the compiling.
+ * `quotate` compiles a literal from the interpret mode 
+   behavior of the word that allocates some data on the 
+   heap and returns a reference to it (such as `"` and 
+   `{`).
 
 ### Unnamed Macros
 
@@ -489,6 +509,9 @@ succeeding or fail.
     decimal digits.
 
 ### Mappers
+
+Mappers change the value of the topmost cell on the data 
+stack as pure functions. They always succeed.
 
  * `1+` (pronounced *"one-plus"*) increments the top 
    cell of the data stack by one. Sets *carry* on overflow.
