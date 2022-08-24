@@ -225,7 +225,6 @@ vocabulary.
  * [cell+](#mappers)
  * [cell-](#mappers)
  * [cells](#mappers)
- * [cons](#heap-effects)
  * [constant](#other-ways-to-create-and-modify-words)
  * [context](#predefined-constants)
  * [cr](#output-functions)
@@ -256,6 +255,7 @@ vocabulary.
  * [last](#vocabulary-manipulation-words)
  * [length](#mappers)
  * [letter](#filters)
+ * [link](#heap-effects)
  * [literal](#miscellaneous)
  * [lower](#filters)
  * [mod](#binary-arithmetic-primitives)
@@ -596,7 +596,7 @@ All of the above always succeeds.
    reference on the top of the stack and writes the 
    least significant 8 bits of the value to the given 
    location as a byte.
- * `cons` takes a reference to a linked list and allocates 
+ * `link` takes a reference to a linked list and allocates 
    a new element linking to that list. The reference to the 
    new element is returned on the top of the stack.
 
@@ -797,7 +797,7 @@ result from a generator that passes a filter.
 Example:
 ```
 {: assoc ( key value list -( heap )- )
-dup @ cons swap ! swap , , }
+dup @ link swap ! swap , , }
 
 {: recall ( key list -( heap )- value )
 traverse& third over @ = cut drop drop nip cell+ cell+ @ }
@@ -886,6 +886,6 @@ The following two words only make sense in interpret mode.
    because it can fail and depends on the current base.
  * `seedl` is the Seed loop.
  * `traverse&` is a generator traversing a linked list 
-   created by `cons`. It generates references to the 
+   created by `link`. It generates references to the 
    *head* of each list element and after reaching the end of 
    the list it fails.
