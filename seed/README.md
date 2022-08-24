@@ -174,9 +174,9 @@ Numeric literals are sequences of digits in the current
 base. Seed starts in base ten, but this can be changed. 
 Digits from zero to nine are denoted by 0 to 9, whereas 
 digits from ten to thirty-five are denoted by A to Z. 
-Bases greater than thirty-six are not supported. Using 
-digits greater or equal to the current base is not 
-allowed.
+Bases greater than thirty-six or smaller than two are 
+not supported. Using digits greater or equal to the 
+current base is not allowed.
 
 Numeric literals place their *value* onto the data stack 
 as a single cell. If the numeral value described by the 
@@ -307,7 +307,6 @@ By convention, the type signature comment is added after
 the newly defined word both in the `postpone` statement 
 and the actual definition.
 
-
 ### Unnamed Macros
 
 Unnamed macros start with the word `[` (pronounced 
@@ -351,6 +350,10 @@ All of the above always succeeds.
  * `c,` (pronounced *"see-comma"*) allocates one byte on 
    the heap and writes the least significant 8 bits of the 
    cell from the data stack to the newly allocated place.
+ * `s,` (pronounces *"ess-comma"*) adds a zero-terminated 
+   string referenced on the top of the stack to the heap, 
+   allocating the corresponding space. Note that the 
+   trailing zero itself is not added to the heap.
  * `allot` allocates the number of bytes on heap given by 
    the cell popped off the stack.
  * `here` puts the reference to the next byte to be allocated
@@ -380,13 +383,16 @@ effect*
  * `over` ( a b -- a b a )
  * `third` ( a b c -- a b c a )
  * `>r` (pronounced *"to-r"*) moves the top element of 
-   the data stack to the return stack
+   the data stack to the return stack.
  * `r>` (pronounced *"r-from"*) moves the top element of 
-   the return stack to the data stack
+   the return stack to the data stack.
 
 All of the above always succeeds.
 
-### Arithmetic primitives
+### Binary Arithmetic primitives
+
+These functions replace the top two cells of the data stack 
+with the result of some arithmetic operation on them.
 
  * `+` (pronounced *"plus"*) takes two cells from 
    the top of the data stack and replaces them by their 
@@ -400,17 +406,18 @@ All of the above always succeeds.
  * `/mod` (pronounced *"slash-mod"*) takes two cells 
    from the top of the data stack and replaces them by 
    the reminder and the quotient after division. Unsigned.
- * `1+` (pronounced *"one-plus"*) increments the top 
-   cell of the data stack by one. Sets *carry* on overflow.
- * `1-` (pronounced *"one-minus"*) decrements the top 
-   cell of the data stack by one. Sets *carry* on underflow.
  * `*` (pronounced *"star"*) impements `u* drop`.
- * `/` (pronounced *"slash"*) implements `/mod nip`
- * `mod` implements `/mod drop`
+ * `/` (pronounced *"slash"*) implements `/mod nip`.
+ * `mod` implements `/mod drop`.
 
 All of the above always succeeds.
 
-### Bitwise logic primitives
+### Miscellaneous
+
+ * `carry?` fails, if the previous operation set the 
+   carry flag
+
+### Bitwise Logic Primitives
 
  * `or` replaces the top two cells of the data stack by 
    their bitwise or.
@@ -420,3 +427,117 @@ All of the above always succeeds.
    their bitwise xor.
 
 All of the above always succeeds.
+
+### Filters
+
+Filters are functions that, depending on its value, 
+either leave the topmost cell of the stack unchanged 
+succeeding or fail.
+
+ * `0=` (pronounced *"zero-equal"*) succeeds for zero
+   values.
+ * `0<>` (pronounced *"zero-unequal"*) succeeds for 
+   non-zero.
+ * `nonempty` succeeds for non-empty strings.
+ * `ddigit` succeeds for ascii codes of decimal digits.
+ * `upper` succeeds for ascii codes of upper-case letters.
+ * `lower` succeeds for ascii codes of lower-case.
+   letters * `letter` succeeds for ascii codes of letters.
+ * `alphanum` succeeds for ascii codes of letters or 
+    decimal digits.
+
+### Mappers
+
+ * `1+` (pronounced *"one-plus"*) increments the top 
+   cell of the data stack by one. Sets *carry* on overflow.
+ * `1-` (pronounced *"one-minus"*) decrements the top 
+   cell of the data stack by one. Sets *carry* on underflow.
+ * `>lower` (pronounced *"to-lower") changes upper-case 
+   letters to lower-case letters leaving every other value 
+   unchanged.
+ * `>upper` (pronounced *"to-upper") changes lower-case 
+   letters to upper-case letters leaving every other value 
+   unchanged.
+
+### Failure Handling
+
+`&` (pronounced *"pend"*) registers the reference from 
+the top of the stack as the failure handler. It is useful 
+for writing *generators* whose name by convention also ends 
+with a `&` symbol.
+
+Example:
+```
+{: scan& nonempty { 1+ }~ scan& & dup }~ c@
+```
+
+This generator called `scan&` takes a reference to a 
+string as an argument on the data stack and produces its 
+characters in sequence. At the end of the string, it fails.
+
+`|` (pronounced *"or"*) is the disjunction combinator. 
+It takes two references to computations as arguments and 
+executes the first one with the second one as the 
+failure handler. In practice, the disjunction succeeds if
+any of its arguments succeed or in other words only fails 
+if both arguments fail.
+
+`'id|` (pronounced *"tick-id-or"*) implements `'id |`. 
+It takes a reference to a computation as its sole 
+argument, executing it with an empty failure handler. 
+The idiomatic use of this word is giving it a 
+tail-recursive computation that fails upon some condition 
+resulting in a terminating loop that succeeds.
+
+*TODO: a good example*
+
+`}~|` (pronounced *"tail-or"*) ends a computation with a 
+disjunction. It is equivalent to `}~ |` but the idiom is 
+worth implementing as a single word.
+
+Example:
+```
+{: hello& " Hello " }~ scan&
+
+{: world& " world!" }~ scan&
+
+{: helloWorld& ' hello& ' world& }~|
+```
+
+We have defined two generators and then chained them 
+together using `}~|`.
+
+
+`'id}~|` (pronounced *"tick-id-tail-or"*) implements 
+`'id }~ |`, ending a computation.
+
+Example:
+```
+{: countdown { 1- carry? dup . }~self 'id}~|
+```
+
+We defined a word `countdown` that takes an integer from 
+the top of the stack and counts down to zero, succeeding 
+in the end.
+
+`cut` deregisters the current failure handler. It is 
+particularly useful when we are only interested in the first 
+result from a generator that passes a filter.
+
+The below example illustrates how `cut` works:
+
+Example:
+```
+{: cutTest
+  {
+    { 1 . cut }~fail
+    { 2 . }~fail
+  }~|
+  { 3 . }
+}~|
+
+```
+
+The above defined `cutTest` word would output `1 3 `.
+
+
