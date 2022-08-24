@@ -661,13 +661,13 @@ succeeding or fail.
  * `0<>` (pronounced *"zero-unequal"*) succeeds for 
    non-zero.
  * `nonempty` succeeds for non-empty strings.
- * `ddigit` succeeds for ascii codes of decimal digits.
- * `upper` succeeds for ascii codes of upper-case letters.
- * `lower` succeeds for ascii codes of lower-case.
-   letters * `letter` succeeds for ascii codes of letters.
- * `alphanum` succeeds for ascii codes of letters or 
+ * `ddigit` succeeds for ASCII codes of decimal digits.
+ * `upper` succeeds for ASCII codes of upper-case letters.
+ * `lower` succeeds for ASCII codes of lower-case.
+   letters * `letter` succeeds for ASCII codes of letters.
+ * `alphanum` succeeds for ASCII codes of letters or 
     decimal digits.
- * `printable` succeeds for ascii codes in the range between
+ * `printable` succeeds for ASCII codes in the range between
    `!` and `~` (inclusive). 
 
 ### Mappers
@@ -852,7 +852,7 @@ The following two words only make sense in interpret mode.
 ### Predefined constants
 
  * `base` points to a single byte containing the current base
- * `bl` is the ascii code of the whitespace
+ * `bl` is the ASCII code of the whitespace
  * `context` is a reference to the reference to the context 
     vocabulary.
  * `current` is a reference to the reference to the current 
