@@ -189,7 +189,7 @@ vocabulary.
  * [+](#binary-arithmetic-primitives)
  * [,](#heap-effects)
  * [-](#binary-arithmetic-primitives)
- * [.](#output-effects)
+ * [.](#output-functions)
  * [/](#binary-arithmetic-primitives)
  * [/mod](#binary-arithmetic-primitives)
  * [0<>](#filters)
@@ -215,7 +215,7 @@ vocabulary.
  * [and](#bitwise-logic-primitives)
  * [ascii](#character-literals)
  * [base](#predefined-constants)
- * [bite](#input-effects)
+ * [bite](#input-functions)
  * [bl](#predefined-constants)
  * [bye](#miscellaneous)
  * [c!](#heap-effects)
@@ -228,7 +228,7 @@ vocabulary.
  * [cons](#heap-effects)
  * [constant](#other-ways-to-create-and-modify-words)
  * [context](#predefined-constants)
- * [cr](#output-effects)
+ * [cr](#output-functions)
  * [create](#other-ways-to-create-and-modify-words)
  * [current](#predefined-constants)
  * [cut](#failure-handling)
@@ -275,18 +275,17 @@ vocabulary.
  * [search](#vocabulary-manipulation-words)
  * [seed](#vocabulary-manipulation-words)
  * [seedl](#miscellaneous)
- * [selfref](#other-ways-to-create-and-modify-words)
- * [space](#output-effects)
+ * [space](#output-functions)
  * [swap](#stack-manipulation)
  * [third](#stack-manipulation)
  * [tib](#predefined-constants)
  * [traverse&](#miscellaneous)
- * [type](#output-effects)
+ * [type](#output-functions)
  * [u*](#binary-arithmetic-primitives)
  * [upper](#filters)
  * [variable](#other-ways-to-create-and-modify-words)
  * [vocabulary](#vocabulary-manipulation-words)
- * [word](#input-effects)
+ * [word](#input-functions)
  * [write](#output-effects)
  * [ws](#filters)
  * [wsskip](#mappers)
@@ -300,7 +299,6 @@ vocabulary.
  * [}~fail](#quotations)
  * [}~self](#quotations)
  * [}~|](#failure-handling)
-
 
 ### Comments
 
@@ -469,6 +467,9 @@ and the actual definition.
  * `create` creates a word that returns the reference
    to the top of the heap after its creation. It can be used 
    to refer to blocks of memory on the heap.
+ * `effect` creates a word that can be used in computations 
+   that are given as the first argument to `handle`. See 
+   [below](#effect-handling).
 
 All the above words create words whose compile mode behavior 
 is to compile a call to their (above described) interpret 
@@ -523,6 +524,17 @@ in compile-time rather than in run-time.
 
  * `emit` outputs a single byte popping it from the data 
     stack.
+ * `write` outputs a given number of bytes from the 
+    heap. Expects a reference to the first byte and the 
+    number of bytes on the data stack. Places the bytes 
+    actually written onto the data stack.
+
+All of the above always succeeds.
+
+### Output Functions
+
+The functions below use the `emit` effect.
+
  * `.` outputs a numeral string in the current base 
    corresponding to the value popped from the data stack
    followed by a whitespace.
@@ -532,10 +544,6 @@ in compile-time rather than in run-time.
  * `type` outputs a zero-terminated string (without the 
     trailing zero) popping the reference from the data 
     stack.
- * `write` outputs a given number of bytes from the 
-    heap. Expects a reference to the first byte and the 
-    number of bytes on the data stack. Places the bytes 
-    actually written onto the data stack.
 
 All of the above always succeeds.
 
@@ -546,6 +554,9 @@ All of the above always succeeds.
  * `input` inputs a line from the input source and 
    points `tib` to its beginning. Facilities for interactive 
    editing might or might not be provided.
+
+### Input Functions
+
  * `bite` if the line pointed by `tib` is empty, `bite` 
    fails. Otherwise, it reads the first byte from `tib` 
    placing it on the data stack and increments `tib`.
@@ -814,6 +825,18 @@ Example:
 ```
 
 The above defined `cutTest` word would output `1 3 `.
+
+### Effect Handling
+
+The word `handle` takes three arguments from the top of 
+the stack (from bottom to top): a computation that 
+contains calls to the handled effect, a computation that 
+is the effect handler and a reference to the effect to 
+handle. The handler is registered, the first computation is 
+executed with the second substituted for the effect and then 
+the handler is deregistered.
+
+*TODO: a good example*
 
 ### Vocabulary Manipulation Words
 
