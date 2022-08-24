@@ -226,7 +226,7 @@ vocabulary.
  * [cell+](#mappers)
  * [cell-](#mappers)
  * [cells](#mappers)
- * [cons](#lists)
+ * [cons](#heap-effects)
  * [constant](#other-ways-to-create-and-modify-words)
  * [context](#predefined-constants)
  * [cr](#output-effects)
@@ -281,7 +281,7 @@ vocabulary.
  * [swap](#stack-manipulation)
  * [third](#stack-manipulation)
  * [tib](#predefined-constants)
- * [traverse&](#lists)
+ * [traverse&](#miscellaneous)
  * [type](#output-effects)
  * [u*](#binary-arithmetic-primitives)
  * [upper](#filters)
@@ -564,6 +564,10 @@ All of the above always succeeds.
    reference on the top of the stack and writes the 
    least significant 8 bits of the value to the given 
    location as a byte.
+ * `cons` takes a reference to a linked list and allocates 
+   a new element linking to that list. The reference to the 
+   new element is returned on the top of the stack.
+
 
 All of the above always succeeds. *TODO: Out of memory 
 effect*
@@ -724,6 +728,26 @@ in the end.
 particularly useful when we are only interested in the first 
 result from a generator that passes a filter.
 
+Example:
+```
+{: assoc ( key value list -( heap )- )
+dup @ cons swap ! swap , , }
+
+{: recall ( key list -( heap )- value )
+traverse& third over @ = cut drop drop nip cell+ cell+ @ }
+```
+
+In this example, the word `assoc` creates an association 
+between a key and a value provided on the stack just 
+below a reference to the list's head; a variable 
+initialized with 0 for an empty association list. The 
+more interesting word `recall` traverses the association 
+list searching for the value corresponding to the 
+provided key. Once such an association is found, the 
+unneeded data are removed from the stack and the value 
+is returned. If there is no such association in the 
+list, the computation fails, because the generator fails.
+
 The below example illustrates how `cut` works:
 
 Example:
@@ -776,7 +800,10 @@ The following two words only make sense in interpret mode.
  * `s>number` takes a string and transforms it into a number 
    on the top of the stack. However, it is not a mapper, 
    because it can fail and depends on the current base.
- * `seedl` is the Seed loop.
  * `execute` takes a reference to a computation off the top 
    of the stack and executes it.
-
+ * `seedl` is the Seed loop.
+ * `traverse&` is a generator traversing a linked list 
+   created by `cons`. It generates references to the 
+   *head* of each list element and after reaching the end of 
+   the list it fails.
