@@ -253,7 +253,6 @@ vocabulary.
  * [hex](#numeric-literals)
  * [immediate](#other-ways-to-create-and-modify-words)
  * [input](#input-effects)
- * [interpret](#miscellaneous)
  * [key](#input-effects)
  * [last](#vocabulary-manipulation-words)
  * [length](#mappers)
@@ -607,11 +606,6 @@ with the result of some arithmetic operation on them.
 
 All of the above always succeeds.
 
-### Miscellaneous
-
- * `carry?` fails, if the previous operation set the 
-   carry flag
-
 ### Bitwise Logic Primitives
 
  * `or` replaces the top two cells of the data stack by 
@@ -771,4 +765,18 @@ The following two words only make sense in interpret mode.
    input line.
  * `tib` points to a reference to the unread portion of the 
    input line.
+
+### Miscellaneous
+
+ * `bye` releases all resources held by Seed and exits
+ * `carry?` fails, if the previous operation set the 
+   carry flag
+ * `literal` takes the cell on the top of the stack and 
+   compiles a literal from it. Useful in macros.
+ * `s>number` takes a string and transforms it into a number 
+   on the top of the stack. However, it is not a mapper, 
+   because it can fail and depends on the current base.
+ * `seedl` is the Seed loop.
+ * `execute` takes a reference to a computation off the top 
+   of the stack and executes it.
 
