@@ -469,7 +469,9 @@ and the actual definition.
    to refer to blocks of memory on the heap.
  * `effect` creates a word that can be used in computations 
    that are given as the first argument to `handle`. See 
-   [below](#effect-handling).
+   [below](#effect-handling) for details. It takes a 
+   reference to a computation that is the default handler 
+   as its argument.
 
 All the above words create words whose compile mode behavior 
 is to compile a call to their (above described) interpret 
