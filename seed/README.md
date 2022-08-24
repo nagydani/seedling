@@ -204,7 +204,6 @@ vocabulary.
  * [>=](#relations)
  * [>lit](#other-ways-to-create-and-modify-words)
  * [>lower](#mappers)
- * [>number](#mappers)
  * [>r](#stack-manipulation)
  * [>upper](#mappers)
  * [@](#heap-effects)
