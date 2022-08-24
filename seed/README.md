@@ -80,9 +80,9 @@ long. Seed is case-sensitive, thus `Foo`, `FOO` and
 
 ### Seed Execution
 
-Seed starts in *interpreter mode*, reading a line from 
+Seed starts in *interpret mode*, reading a line from 
 the input, iterating through its words and executing the 
-corresponding computation (called *interpreter mode 
+corresponding computation (called *interpret mode 
 behavior*) for each one. In the beginning only the words 
 specified in this document are allowed in Seed source; 
 all other words must be ultimately defined in terms of 
@@ -139,21 +139,35 @@ number. Heap references must fit into one cell.
 ### Compilation
 
 In addition to their *interpeter mode behavior* 
-described above, words in Seed have a *compiler mode 
+described above, words in Seed have a *compile mode 
 behavior*: a computation that receives a reference to 
-their interpreter mode behavior as its argument on the 
+their interpret mode behavior as its argument on the 
 stack when compiling *quotations* or *colon definitions*.
 
 Quotations are computations that are built as a sequence 
 of other computations. Colon definitions are named 
 quotations that can be later referenced by their names.
 
-The default compiler mode behavior is to compile a call 
-to the interpreter mode behavior and succeed. Compiler 
+The default compile mode behavior is to compile a call 
+to the interpret mode behavior and succeed. Compiler 
 mode behaviors that fail cause the end of the 
 compilation.
 
 ### Vocabularies
+
+Seed can handle multiple vocabularies (namespaces). It 
+is searching for words in the *context vocabulary* and 
+adds new definitions to the *current vocabulary*. In the 
+beginning, both the context and the current vocabulary is 
+the initial vocabulary named `seed`. Each new word added 
+to it is immediately usable.
+
+A newly created vocabulary already contains all the 
+words from the current vocabulary at the time of 
+creation. The word making the newly created vocabulary 
+context (which is the name of the vocabulary) is added 
+to the *parent vocabulary*, but is not part of the new 
+vocabulary.
 
 ## Word Reference
 
@@ -184,7 +198,10 @@ literal is greater than what would fit into a cell then
 the reminder after division by 2 to the power of the 
 cell size is placed onto the stack. So, for example the 
 numeric literal 10000 in the current base of sixteen 
-would place zero onto the stack.
+would place zero on the data stack.
+
+The words `hex` and `decimal` change the current base to 
+sixteen and ten, respectively.
 
 If a word is not found in the context vocabulary, an 
 attempt to interpret it as a numeric literal is made. 
@@ -231,7 +248,7 @@ stack.
 ### Computation Literals
 
  * `'` (pronounced *"tick"*) followed by a word places a 
-   reference to its interpreter mode behavior onto the 
+   reference to its interpret mode behavior onto the 
    data stack.
  * `'id` (pronounced *"tick-id"*) places a reference to the 
    empty (identity) computation onto the data stack.
@@ -255,7 +272,7 @@ There are several ways to end a quotation:
  * `}~self` (pronounced *"tail-self"*) ends the computation
    with a tail call to itself.
  * `}~` (pronounced *"tail"*) ends the computation with a 
-   tail call to the interpreter mode behavior of the
+   tail call to the interpret mode behavior of the
    following word.
 
 There can be (and are) defined further words that end a 
@@ -278,8 +295,8 @@ of placing the reference on the data stack, an
 association between the following word and the further 
 described computation is written into the dictionary and 
 added to the current vocabulary. The computation becomes 
-the interpreter mode behavior of the word, while the 
-compiler mode behavior is to compile a call to it.
+the interpret mode behavior of the word, while the 
+compile mode behavior is to compile a call to it.
 
 Example:
 ```
@@ -297,7 +314,7 @@ use the word before actually defining the computation
 associated with it. This comes in handy, for example, 
 when two computations call each other.
 
-The compiler mode behavior changes (see later) must be 
+The compile mode behavior changes (see later) must be 
 added after the `postpone` statement, not the postponed 
 definition. The postponed definition itself begins with 
 the word `{::` (pronounced *"colon-colon"*) with a 
@@ -307,11 +324,34 @@ By convention, the type signature comment is added after
 the newly defined word both in the `postpone` statement 
 and the actual definition.
 
+### Other Ways to Create and Modify Words
+
+ * `constant` creates a word that would put a single cell
+   on the stack. Example: `6 constant six` creates a new word
+   `six` that puts 6 on the stack.
+ * `variable` creates a word that returns a reference to 
+   a cell allocated on the heap and initializes it with 
+   the topmost cell on the stack. Example `6 variable 
+   years` creates a word that puts a reference on the 
+   stack to a cell that initially contains 6. It can be 
+   read by `years @` and written by `years !` (see below).
+ * `create` creates a word that returns the reference
+   to the top of the heap after its creation. It can be used 
+   to refer to blocks of memory on the heap.
+
+All the above words create words whose compile mode behavior 
+is to compile a call to their (above described) interpret 
+mode behavior, which always succeeds.
+
+ * `does` changes the compile mode behavior of the most 
+   recently defined word in the current vocabulary to the 
+   computation to which a reference is popped off the stack.
+
 ### Unnamed Macros
 
 Unnamed macros start with the word `[` (pronounced 
 *"meta"*) and end with the word `]` (pronounced 
-*"end-meta"*). They must only be used in compiler mode. 
+*"end-meta"*). They must only be used in compile mode. 
 What is between `[` and `]` is executed in interpreter 
 mode allowing for compile-time computations.
 
@@ -332,9 +372,11 @@ in compile-time rather than in run-time.
    corresponding to the value popped from the data stack
    followed by a whitespace.
  * `space` outputs a whitespace.
- * `cr` outputs a line ending of the underlying platform.
- * `type` outputs a zero-terminated string popping the 
-    reference from the data stack.
+ * `cr` outputs a line 
+    ending of the underlying platform.
+ * `type` outputs a zero-terminated string (without the 
+    trailing zero) popping the reference from the data 
+    stack.
  * `write` outputs a given number of bytes from the 
     heap. Expects a reference to the first byte and the 
     number of bytes on the data stack. Places the bytes 
@@ -452,6 +494,12 @@ succeeding or fail.
    cell of the data stack by one. Sets *carry* on overflow.
  * `1-` (pronounced *"one-minus"*) decrements the top 
    cell of the data stack by one. Sets *carry* on underflow.
+ * `cell+` (pronounced *"cell-plus"*) increments the top 
+   cell of the data stack by the byte size of one cell.
+ * `cell-` (pronounced *"cell-minus"*) decrements the top 
+   cell of the data stack by the byte size of one cell.
+ * `cells` multiplies the top cell of the data stack by 
+   the byte size of one cell.
  * `>lower` (pronounced *"to-lower") changes upper-case 
    letters to lower-case letters leaving every other value 
    unchanged.
@@ -540,4 +588,29 @@ Example:
 
 The above defined `cutTest` word would output `1 3 `.
 
+### Vocabulary Manipulation Words
+
+The following two words only make sense in interpret mode.
+
+ * `vocabulary` creates a new vocabulary adding its name
+   to the current vocabulary. The new vocabulary's name 
+   makes it the context vocabulary.
+ * `definitions` sets the current vocabulary to the context 
+   vocabulary, i. e. after `definitions` new word definitions 
+   will be added to what was the context vocabulary before.
+
+### Predefined constants
+
+ * `base` points to a single byte containing the current base
+ * `bl` is the ascii code of the whitespace
+ * `context` is a reference to the reference to the context 
+    vocabulary.
+ * `current` is a reference to the reference to the current 
+    vocabulary
+ * `dictionary` the lowmost writable address of the heap
+ * `dp` the dictionary pointer, read by `here`
+ * `pad` points to the buffer where words are read from the 
+   input line.
+ * `tib` points to a reference to the unread portion of the 
+   input line.
 
