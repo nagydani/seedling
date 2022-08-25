@@ -691,10 +691,10 @@ stack as pure functions. They always succeed.
    cell of the data stack by the byte size of one cell.
  * `cells` multiplies the top cell of the data stack by 
    the byte size of one cell.
- * `>lower` (pronounced *"to-lower") changes upper-case 
+ * `>lower` (pronounced *"to-lower"*) changes upper-case 
    letters to lower-case letters leaving every other value 
    unchanged.
- * `>upper` (pronounced *"to-upper") changes lower-case 
+ * `>upper` (pronounced *"to-upper"*) changes lower-case 
    letters to upper-case letters leaving every other value 
    unchanged.
  * `wsskip` (pronounced *"whitespace-skip"*) changes the 
