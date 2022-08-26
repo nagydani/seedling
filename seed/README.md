@@ -7,7 +7,7 @@ hardware and the operating system (if there is one; some
 Seeds may run on the "bare metal"). It is a program 
 implementing the Seed language. The *Seed language* is a 
 low-level programming language whose objective is to 
-compile other Seeds and the Sprout (a hihger-level 
+compile other Seeds and the Sprout (a higher-level 
 language with similar syntax, but richer semantics) as 
 well as hardware drivers for it.
 
@@ -30,7 +30,7 @@ this specification.
    * [Computational Model](#computational-model)
    * [Compilation](#compilation)
    * [Vocabularies](#vocabularies)
- * [Word Rerefence](#word-reference)
+ * [Word Reference](#word-reference)
 
 ## Requirements
 
@@ -66,7 +66,7 @@ code is not portable anyway.
 
 ## The Seed Language
 
-The Seed langauge is heavily inspired by Forth, so many 
+The Seed language is heavily inspired by Forth, so many 
 of its features and conventions will be familiar to 
 those who already know Forth. However, this 
 specification makes no further references to Forth; 
@@ -77,7 +77,7 @@ knowing Forth is not required to understand it.
 Seed sources consist of *lines* (not exceeding 64 
 characters) terminated by either `LF` or `CR LF` 
 sequences. Lines consist of *words* delimited by one or 
-more *whitespace* (blanks, ASCII code 32). Words cosist 
+more *whitespace* (blanks, ASCII code 32). Words consist 
 of *printable ASCII* characters in the range between ! 
 and ~ (inclusive) and must be at most 30 characters 
 long. Seed is case-sensitive, thus `Foo`, `FOO` and 
@@ -99,7 +99,7 @@ source must succeed.
 
 The behavior of Seed in case of encountering undefined 
 words or failing computations is undefined. Sensible 
-behavior for interactive use may be outputing error 
+behavior for interactive use may be outputting error 
 messages and/or restarting, but it is not required.
 
 ### Computational model
@@ -143,7 +143,7 @@ number. Heap references must fit into one cell.
 
 ### Compilation
 
-In addition to their *interpeter mode behavior* 
+In addition to their *interpreter mode behavior* 
 described above, words in Seed have a *compile mode 
 behavior*: a computation that receives a reference to 
 their interpret mode behavior as its argument on the 
@@ -638,7 +638,7 @@ with the result of some arithmetic operation on them.
  * `/mod` (pronounced *"slash-mod"*) takes two cells 
    from the top of the data stack and replaces them by 
    the reminder and the quotient after division. Unsigned.
- * `*` (pronounced *"star"*) impements `u* drop`.
+ * `*` (pronounced *"star"*) implements `u* drop`.
  * `/` (pronounced *"slash"*) implements `/mod nip`.
  * `mod` implements `/mod drop`.
 
@@ -863,7 +863,7 @@ The following two words only make sense in interpret mode.
     vocabulary.
  * `current` is a reference to the reference to the current 
     vocabulary
- * `dictionary` the lowmost writable address of the heap
+ * `dictionary` the low-most writable address of the heap
  * `dp` the dictionary pointer, read by `here`
  * `pad` points to the buffer where words are read from the 
    input line.
