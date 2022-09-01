@@ -1,0 +1,1779 @@
+output \ this must be on the first line
+
+\ This is the Seed source for amd64 Linux
+
+\ Requirements
+\ It can be compiled by any Seed that has at least 16 bit
+\ cells and about 20 kilobytes of free RAM space available.
+
+\ Assembler
+\ This implements a very limited subset of the amd64
+\ assembly language and is only suited for compiling
+\ code that lives in the virtual address range between
+\ 10000 and 17FFF inclusive.
+
+hex
+
+\ Auxiliary functions for the Assembler
+
+\ execute n times
+{: times ( x n -- )
+{ 0<> 1- >r dup >r execute r> r> }~self
+{ drop }~ drop
+}~|
+
+\ extract least significant 8 bits
+{: lsb		100 /mod swap }
+
+\ Heap manipulation words for the assembler
+\ note, that it should work on both little-endian and
+\ big-endian architectures, with various cell sizes.
+
+\ 16-bit little-endian comma
+{: w,		lsb c, c, }
+
+\ 32-bit little-endian comma
+{: d,		{ lsb c, } 3 times c, }
+
+\ 64-bit little-endian comma
+{: q,		{ lsb c, } 7 times c, }
+
+\ 64-bit virtual address comma
+{: a,		w, 1 w, 0 d, }
+
+\ 16-bit little-endian fetch
+{: w@		dup c@ swap 1+ c@ 100 * or }
+
+\ 16-bit little-endian store
+{: w!		dup >r 1+ >r 100 /mod r> c! r> c! }
+
+\ dump the tail of the heap for outputting the result
+{: dump		here over - write drop }
+
+\ Offset between host and target addresses
+0 variable offset
+
+\ Assembler directives
+{: $		here offset @ - }
+{: org		here swap - offset ! }
+{: align	{ dup $ swap mod 0<> drop 0 c, }~self ' drop }~|
+
+\ Labels
+
+\ 8 labels must be enough
+create labels
+8 cells allot
+
+\ access label
+{: lbl		cells labels + }
+
+\ absolute backward label
+{: label	$ swap lbl ! }
+
+\ use absolute backward label
+{: lb		lbl @ }
+
+\ use absolute forward label after a one-byte opcode
+{: fl1		here 1+ swap lbl ! 0 }
+
+\ use absolute forward label immediately (32 bits)
+{: fl0		here swap lbl ! 0 w, 1 w, }
+
+\ absolute forward label (only 16 bits!)
+{: flabel	lbl @ $ swap w! }
+
+\ relative forward jump
+{: jrf		here swap lbl ! 0 d, }
+
+\ relative forward label
+{: rlabel	lb dup here swap - 4 - swap w! }
+
+\ short relative forward jump
+{: jrfs		here swap lbl ! 0 c, }
+
+\ relative short forward label
+{: rslabel	lb dup here swap - 1- swap c! }
+
+\ registers
+0 constant rax
+1 constant rcx
+2 constant rdx
+3 constant rbx
+4 constant rsp
+5 constant rbp
+6 constant rsi
+7 constant rdi
+
+\ relative jump backwards
+{: rel          $ 4 + - w, FFFF w, }
+
+\ short relative jump
+{: srel		$ 1+ - c, }
+
+\ Opcodes
+
+{: mov_rr,x		swap B8 + c, d, }
+{: mov_rr,aa		swap B8 + c, w, 1 w, }
+{: mov_rr,xx		swap 48 c, B8 + c, q, }
+{: mov_rr,rr		48 c, 89 c, 8 * + C0 or c, }
+{: mov_rl,rl		88 c, 8 * + C0 or c, }
+{: mov_er,er		89 c, 8 * + C0 or c, }
+{: mov_byte_[rr],x      C6 c, swap c, c, }
+{: mov_[rr],rr		48 c, 89 c, 8 * + c, }
+{: mov_[rr],er		89 c, 8 * + c, }
+{: mov_er,[rr]		8B c, swap 8 * + c, }
+{: mov_[rr],rl		88 c, 8 * + c, }
+{: mov_rl,[rr]		8A c, swap 8 * + c, }
+{: mov_rr,[rr]		48 c, 8B c, swap 8 * + c, }
+{: mov_[aa],rr		48 c, 89 c, 8 * 4 + c, 25 c, w, 1 w, }
+{: mov_[aa],rl		88 c, 8 * 4 + c, 25 c, w, 1 w, }
+{: mov_rl,[aa]		8A c, swap 8 * 4 + c, 25 c, w, 1 w, }
+{: mov_rr,[aa]		48 c, 8B c, swap 8 * 4 + c, 25 c, w, 1 w, }
+{: syscall		50F w, }
+{: add_rr,rr		48 c, 01 c, 8 * + C0 or c, }
+{: add_rr,s		48 c, 83 c, swap C0 + c, c, }
+{: add_rr,[aa]		48 c, 03 c, swap 8 * 4 + c, 25 c, w, 1 w, }
+{: sub_rr,s		48 c, 83 c, swap E8 + c, c, }
+{: sub_rr,rr		48 c, 29 c, 8 * + C0 or c, }
+{: cmp_rr,s		48 c, 83 c, swap F8 + c, c, }
+{: cmp_rr,rr		48 c, 39 c, 8 * + C0 or c, }
+{: cmp_rr,[rr]		48 c, 3B c, swap 8 * + c, }
+{: cmp_rl,[rr]		3A c, swap 8 * + c, }
+{: and_rr,rr		48 c, 21 c, 8 * + C0 or c, }
+{: or_rr,rr		48 c, 09 c, 8 * + C0 or c, }
+{: xor_rr,rr		48 c, 31 c, 8 * + C0 or c, }
+{: call			E8 c, rel }
+{: call_f		E8 c, jrf }
+{: call_rr		FF c, D0 or c, }
+{: jmp			E9 c, rel }
+{: jmp_f		E9 c, jrf }
+{: jmp_[aa]		FF c, 24 c, 25 c, w, 1 w, }
+{: jmp_rr		FF c, E0 or c, }
+{: jc_s			72 c, srel }
+{: jb_s			}~ jc_s
+{: jnc_s		73 c, srel }
+{: jae_s		}~ jnc_s
+{: jz_s			74 c, srel }
+{: jnz_s		75 c, srel }
+{: jbe_s		76 c, srel }
+{: ja_s			77 c, srel }
+{: jc_fs		72 c, jrfs }
+{: jnc_fs		73 c, jrfs }
+{: jz_fs		74 c, jrfs }
+{: jnz_fs		75 c, jrfs }
+{: jc			0F c, 82 c, rel }
+{: jb			}~ jc
+{: jnc			0F c, 83 c, rel }
+{: jae			}~ jnc
+{: jz			0F c, 84 c, rel }
+{: jnz			0F c, 85 c, rel }
+{: jbe			0F c, 86 c, rel }
+{: ja			0F c, 87 c, rel }
+{: ret			C3 c, }
+{: push			50 + c, }
+{: pop			58 + c, }
+{: inc_rr		48 c, FF c, C0 or c, }
+{: dec_rr		48 c, FF c, C8 or c, }
+{: clc			F8 c, }
+{: stc			F9 c, }
+{: cld			FC c, }
+{: std			FD c, }
+{: shl_rr,s		48 c, C1 c, swap E0 or c, c, }
+{: shr_rr,s		48 c, C1 c, swap E8 or c, c, }
+{: rep_movsq		F3 c, 48 c, A5 c, }
+{: rep_movsb		F3 c, A4 c, }
+{: cmpsb		A6 c, }
+{: mul_rr		48 c, F7 c, E0 or c, }
+{: div_rr		48 c, F7 c, F0 or c, }
+
+\ Cross Compilation
+\ The Seed language cannot be directly cross-compiled,
+\ because the compile mode behavior of the newly defined
+\ words cannot be executed on the host architecture.
+\ However, there is only a handful of words with compile
+\ mode behavior that differs from default, so we can
+\ write those behaviors in host Seed and look them up from
+\ an association list.
+
+\ assembler macros
+
+{: torax
+rbx 8 sub_rr,s
+rax rbx mov_rr,[rr]
+}
+
+{: fromrax
+rbx rax mov_[rr],rr
+rbx 8 add_rr,s
+}
+
+{: binary
+rcx rax mov_rr,rr
+torax
+}
+
+{: binary_cmp
+binary
+rax rcx cmp_rr,rr
+}
+
+\ pointer to cross-compiled vocabulary
+create xcurrent 0 w,
+
+{: xlink ( a -- a )
+8 align
+{ 0<> $ swap }~ a,
+{ $ swap }~ q,
+}~|
+
+{: xlast ( -- a )
+xcurrent }~ w@
+
+{: xtraverse& ( a -( fail pend )- a )
+w@ 0<>
+offset @ +
+'self &
+dup
+8 +
+}
+
+{: xsearch ( a -( pad fail )- a )
+xtraverse& 10 +
+pad s= cut }~ nip
+
+{: xfind ( -( pad fail )- a )
+xcurrent xsearch 10 }~ -
+
+\ target tick
+{: x'
+word xfind }~ w@
+
+\ target pointer to callcomp
+0 variable callcomp
+
+\ target pointer to endcomp
+0 variable endcomp
+
+\ target pointer to execute
+0 variable exec
+
+\ target create
+{: xcreate
+xlast
+xlink
+xcurrent w!
+here
+0 a,
+callcomp @
+a,
+word
+pad
+s,
+0 c,
+$ swap w!
+}
+
+\ target literal
+{: xliteral ( x -( heap )- )
+fromrax
+rax swap mov_rr,xx
+}
+
+\ target address literal
+{: xaliteral ( a -( heap )- )
+fromrax
+rax swap mov_rr,aa
+}
+
+{: x{{ ( -( heap )- a )
+E8 c, 0 d, \ call forward
+}~ here
+
+{: x}} ( a -( heap )- )
+dup here swap - swap 4 - w!
+fromrax
+rax pop
+}
+
+\ create association
+{: assoc ( key value table -( heap )- )
+dup @ link swap !
+swap , , }
+
+\ recall association
+{: recall ( key table -- value )
+traverse& third over @ s= cut drop drop nip cell+ cell+ @ }
+
+\ compile tail call to self
+{: tail jmp }~fail
+
+\ target host associations
+0 variable xcomps
+
+\ Compile mode behaviors for ends of computation
+
+" }"		{ drop ret }~fail	xcomps assoc
+" }~"		{ drop word xfind
+		w@ jmp }~fail		xcomps assoc
+" }~fail"	' tail			xcomps assoc
+" }~|"		' tail			xcomps assoc
+" }~self"	{ drop dup
+		offset @ - jmp }~fail	xcomps assoc
+" 'id}~|"	' tail			xcomps assoc
+
+\ comments
+
+" \\"		{ drop }~ \		xcomps assoc
+" ("		{ drop }~ (		xcomps assoc
+
+\ unnamed macros
+
+" ["		{ drop ' interpret
+		'id}~|			xcomps assoc
+
+
+\ literal constructors
+
+" ascii"	{ drop word pad
+		c@ xliteral }		xcomps assoc
+" '"		{ drop word xfind
+		w@ xaliteral }		xcomps assoc
+" 'self"	{ drop dup
+		offset @ - xaliteral }	xcomps assoc
+
+\ while loop
+{: while
+>r \ subject on return stack
+dup >r \ predicate on return stack
+\ predicate on data stack
+{ r>drop r>drop r>drop } |
+r> \ predicate on data stack
+r> \ subject on data stack
+swap
+>r \ predicate on return stack
+dup >r \ subject on return stack
+execute \ execute subject
+r> \ subject on data stack
+r> \ predicate on data stack
+swap }~self
+
+\ The cross-compiler
+{: xcompile
+word
+{ pad c@ 0= drop }
+{ input word }
+while
+{ xfind w@
+  { pad xcomps recall }
+  { ' call }
+}~|
+{ pad s>number ' xliteral }
+|
+execute
+}~self
+
+\ cross string literal
+{: xlits
+bite
+drop
+{ bite ascii " <>
+        { ascii \ = drop ' bite { A } }~|
+        'id| c,
+}~self
+{ 0 }~ c,
+}~|
+
+
+\ quoted literals
+" {"		{ drop 
+		x{{ ' xcompile 'id | }~ x}}	xcomps assoc
+" \""		{ drop x{{ xlits }~ x}}		xcomps assoc
+
+\ Offsets in ELF header
+
+0 variable headersLength
+0 variable f_EntryPoint
+0 variable f_ProgramHeaders
+0 variable f_SectionHeaders
+0 variable f_SizeInFile
+0 variable f_TotalFileSize
+0 variable f_StringTableVA
+0 variable f_StringTableOffset
+
+{: 0c, 0 c, }
+
+{: field here swap ! }
+
+\ system variables
+18000 constant SEED
+18008 constant DP
+18010 constant TIB
+18018 constant FAIL
+18020 constant ERR_SP
+18028 constant CONTEXT
+18030 constant CURRENT
+18038 constant DICTIONARY
+18040 constant BASE
+18041 constant EMIT_BUF
+18042 constant PAD
+   20 constant PAD_LEN
+18062 constant TIB_BUF
+  100 constant TIB_BUF_LEN
+
+18168 constant EFFECTS
+
+\ effect pointer for cross-compiling
+EFFECTS variable effects
+
+\ native word definition
+{: native
+xcreate
+}
+
+\ postpone colon definition
+{: postpone
+native
+E9 c, 0 d, \ jmp forward
+}
+
+\ effect definition
+{: effect ( -- )
+native
+effects @ dup 8 + effects !
+jmp_[aa]
+}
+
+\ constant definition
+{: constant
+native
+fromrax
+rax swap mov_rr,x
+ret
+}
+
+\ address definition (because of 16-bit cells)
+{: address
+native
+fromrax
+rax swap mov_rr,aa
+ret
+}
+
+\ change compile mode behavior
+{: does
+xlast
+10 +
+offset @ +
+w! }
+
+{: immediate
+exec @ }~ does
+
+\ alias
+{: alias
+xcreate
+word
+xfind
+dup
+w@ \ interpret mode behavior
+swap
+8 +
+w@ \ compile mode behavior
+does
+xlast
+8 +
+offset @ +
+w! }
+
+\ target quotation
+{: {
+$ ' xcompile 'id}~|
+
+\ postponed colon definition
+{: {::
+word xfind w@ offset @ + \ host address of jmp instruction
+1+ \ host address of jmp relative address
+dup
+4 + \ host address of jmp anchor
+here swap -
+swap w!
+$ ' xcompile 'id|
+}~ drop \ TODO: adjust interpret mode behavior address, too
+
+\ colon definitions
+{: {:
+native
+here
+' xcompile
+' drop
+}~|
+
+\ Beginning of cross-compilation
+create ELF
+
+0 org
+
+\ Signature
+7F c, ascii E c, ascii L c, ascii F c,
+
+\ Class 2, 64-bit
+2 c,
+
+\ Little-endian
+1 c,
+
+\ ELF version
+1 c,
+
+\ OS ABI
+0c,
+
+\ Extended ABI
+0 q,
+
+\ Executable file type
+2 w,
+
+\ Target architecture x86_64
+3E w,
+
+\ Additional ELF version
+1 d,
+
+f_EntryPoint field
+
+0 w, 1 w, 0 d,
+
+f_ProgramHeaders field
+
+0 q,
+
+f_SectionHeaders field
+
+0 q,
+
+\ Unused flags
+0 d,
+
+\ Header size
+40 w,
+
+\ Program header entry size
+38 w,
+
+\ Number of program header entries
+1 w,
+
+\ Section header entry size
+40 w,
+
+\ Number of section header entries
+4 w,
+
+\ Index of string table section
+3 w,
+
+\ Program Headers
+
+$ f_ProgramHeaders @ w!
+
+\ Program header type: 1 = loadable segment
+1 d,
+
+\ Program header flags: 7 = read + write + execute
+7 d,
+
+\ Loadable segment offset in the file
+0 q,
+
+\ Virtual address 10000
+0 w, 1 w, 0 d,
+
+\ Physical address ???
+0 w, 1 w, 0 d,
+
+f_SizeInFile field
+0 q,
+
+\ Size in memory
+0 w, 1 w, 0 d,
+
+\ Alignment
+8000 q,
+
+\ Section Headers
+
+$ f_SectionHeaders @ w!
+
+\ null header
+' 0c, 40 times
+
+\ .text segment
+
+\ Offset of .text in the table
+1 d,
+
+\ Loadable "bits" section
+1 d,
+
+\ Flags: 6 = allocated + executable
+6 q,
+
+\ Virtual address 10000
+0 w, 1 w, 0 d,
+
+\ Offset in the file
+0 q,
+
+f_TotalFileSize field
+0 q,
+
+\ Linked section index
+0 d,
+
+\ Info ???
+0 d,
+
+\ Alignment
+10 q,
+
+\ Section entry size
+0 q,
+
+\ .bss segment
+
+\ Offset of .bss in the table
+7 d,
+
+\ Type: nobits
+8 d,
+
+\ Flags: writable, allocated, executable
+7 q,
+
+\ Virtual address
+8000 w, 1 w, 0 d,
+
+\ Offset in the file
+0 q,
+
+\ Section size
+8000 q,
+
+\ Linked section index
+0 d,
+
+\ Info ???
+0 d,
+
+\ Alignment
+10 q,
+
+\ Section entry size
+0 q,
+
+
+
+\ String Table Section
+C d,
+
+\ Type: string table
+3 d,
+
+\ No need to load it
+0 q,
+
+f_StringTableVA field
+0 w, 1 w, 0 d,
+
+f_StringTableOffset field
+0 q,
+
+\ Length
+16 q,
+
+\ Other stuff
+0 d, 0 d, 1 q, 0 q,
+
+$ f_EntryPoint @ w!
+
+7 jmp_f \ jump over the initial dictionary
+
+0 label \ get heap top
+rax C mov_rr,x  \ brk
+syscall
+ret
+
+1 label \ low-level heap allocation of rcx bytes
+rax push
+rbx push
+rcx push
+rdi 0 mov_rr,x
+0 lb call
+rcx pop
+rcx DP add_rr,[aa]
+rax rcx cmp_rr,rr
+2 jnc_fs
+rdi rcx mov_rr,rr
+0 lb call
+rdi DICTIONARY mov_rr,[aa] \ beginning of heap
+rax rdi sub_rr,rr	\ calculate length of heap
+rsi rax mov_rr,rr	\ move length to rsi
+rdx 7 mov_rr,x		\ PROT_READ + PROT_WRITE + PROT_EXEC
+rax A mov_rr,x		\ mprotect
+syscall
+2 rslabel
+rbx pop
+rax pop
+ret
+
+native callcomp
+$ callcomp !
+rcx 5 mov_rr,x
+1 lb call
+rcx DP mov_rr,[aa]
+rcx E8 mov_byte_[rr],x \ call
+2 label
+rcx inc_rr
+rax rcx sub_rr,rr
+rax 4 sub_rr,s
+rcx rax mov_[rr],er
+rcx 4 add_rr,s
+DP rcx mov_[aa],rr
+torax
+ret
+
+x' callcomp does
+
+native tailcomp
+rcx 5 mov_rr,x
+1 lb call
+rcx DP mov_rr,[aa]
+rcx E9 mov_byte_[rr],x \ jmp
+2 lb jmp
+
+native endcomp
+$ endcomp !
+x' tailcomp call
+2 jmp_f
+
+native }~fail
+2 rlabel
+2 label
+rcx FAIL mov_rr,aa
+3 label
+rsp ERR_SP mov_rr,[aa]	\ restore rsp
+rdx pop			\ handler pointer in rdx
+rcx rdx cmp_rr,rr	\ compare with current effect's
+rbx pop			\ rbx = previous handler address
+rax rdx mov_rr,[rr]
+rdx rbx mov_[rr],rr	\ restore previous handler address
+rbx rax mov_rr,rr	\ rbx = current handler address
+rax pop			\ rax = previous ERR_SP
+ERR_SP rax mov_[aa],rr	\ restore previous ERR_SP
+3 lb jnz_s		\ next handler, if not found
+rcx rbx mov_rr,rr	\ rcx = current handler address
+rbx pop			\ restore data stack pointer
+rax rbx mov_rr,[rr]	\ restore TOS
+rcx jmp_rr		\ continue with handler
+
+x' endcomp does
+
+native carry?
+2 lb jc
+ret
+
+\ arithmetic filters
+
+native 0=
+rax rax or_rr,rr
+2 lb jnz
+ret
+
+native 0<>
+rax rax or_rr,rr
+2 lb jz
+ret
+
+\ relations
+
+native =
+binary_cmp
+2 lb jnz
+ret
+
+native <>
+binary_cmp
+2 lb jz
+ret
+
+native >
+binary_cmp
+2 lb jbe
+ret
+
+native >=
+binary_cmp
+2 lb jb
+ret
+
+native <
+binary_cmp
+2 lb jae
+ret
+
+native <=
+binary_cmp
+2 lb ja
+ret
+
+\ compare strings for equality
+3 label
+rsi rax mov_rr,rr
+torax
+rdi rax mov_rr,rr
+rcx rcx xor_rr,rr
+4 label
+rcx rsi cmp_rl,[rr]
+5 jz_fs
+rcx rdi cmp_rl,[rr]
+6 jz_fs
+cmpsb
+4 lb jz_s
+6 rslabel
+stc
+ret
+5 rslabel
+rcx rdi cmp_rl,[rr]
+ret
+
+native s=
+3 lb call
+2 lb jc
+ret
+
+native s<>
+3 lb call
+2 lb jnc
+ret
+
+\ heap manipulation
+
+DP address dp
+
+native dictionary
+fromrax
+rax DICTIONARY mov_rr,[aa]
+ret
+
+native here
+fromrax
+rax DP mov_rr,[aa]
+ret
+
+native ,
+rcx 8 mov_rr,x
+1 lb call
+rcx DP mov_rr,[aa]
+rcx rax mov_[rr],rr
+rcx 8 add_rr,s
+DP rcx mov_[aa],rr
+torax
+ret
+
+native d,
+rcx 4 mov_rr,x
+1 lb call
+rcx DP mov_rr,[aa]
+rcx rax mov_[rr],er
+rcx 4 add_rr,s
+DP rcx mov_[aa],rr
+torax
+ret
+
+native c,
+rcx 1 mov_rr,x
+1 lb call
+rcx DP mov_rr,[aa]
+rcx rax mov_[rr],rl
+rcx inc_rr
+DP rcx mov_[aa],rr
+torax
+ret
+
+native @
+rax rax mov_rr,[rr]
+ret
+
+native d@
+rcx rax mov_er,[rr]
+rax rax xor_rr,rr
+rax rcx mov_er,er
+ret
+
+native c@
+rcx rax mov_rl,[rr]
+rax rax xor_rr,rr
+rax rcx mov_rl,rl
+ret
+
+native !
+binary
+rcx rax mov_[rr],rr
+torax
+ret
+
+native d!
+binary
+rcx rax mov_[rr],er
+torax
+ret
+
+native c!
+binary
+rcx rax mov_[rr],rl
+torax
+ret
+
+native allot
+binary
+rcx push
+1 lb call
+rcx pop
+rcx DP add_rr,[aa]
+DP rcx mov_[aa],rr
+ret
+
+\ end Seed execution
+
+native bye
+rax 3C mov_rr,x \ Exit program
+rdi 0 mov_rr,x
+syscall
+
+\ constnats
+TIB address tib
+PAD address pad
+
+\ I/O effects
+
+native stdemit
+EMIT_BUF rax mov_[aa],rl
+torax
+rax push
+rbx push
+rax 1 mov_rr,x
+rdi 1 mov_rr,x
+rsi EMIT_BUF mov_rr,aa
+rdx 1 mov_rr,x
+syscall
+rax 1 cmp_rr,s
+rbx pop
+rax pop
+2 lb jnz
+ret
+
+effect emit ( -( emit fail )- )
+
+native stdwrite
+binary
+rbx push
+rsi rax mov_rr,rr \ buffer
+rdx rcx mov_rr,rr \ length
+rax 1 mov_rr,x \ write
+rdi 1 mov_rr,x \ stdout
+syscall
+rbx pop
+ret
+
+effect write ( -( write )- )
+
+native stdkey
+rax push
+rbx push
+rax 0 mov_rr,x
+rdi 0 mov_rr,x
+rsi EMIT_BUF mov_rr,aa
+rdx 1 mov_rr,x
+syscall
+rax rax or_rr,rr
+rbx pop
+rax pop
+2 lb jz
+fromrax
+rax rax xor_rr,rr
+rax EMIT_BUF mov_rl,[aa]
+ret
+
+effect key ( -( key fail )- c )
+
+\ edit a line of text on stdin (quick and dirty)
+native stdinput
+rax push
+rbx push
+rsi TIB_BUF mov_rr,aa
+TIB rsi mov_[aa],rr
+3 label
+rsi push
+rax 0 mov_rr,x
+rdi 0 mov_rr,x
+rdx 1 mov_rr,x
+syscall
+rsi pop
+rax 1 cmp_rr,s
+4 jnz_fs 
+rax rsi mov_rl,[rr]
+rax A cmp_rr,s
+5 jz_fs
+rsi inc_rr
+rcx TIB_BUF TIB_BUF_LEN + 1+ mov_rr,aa
+rsi rcx cmp_rr,rr
+3 lb jnz_s
+4 rslabel
+5 rslabel
+rsi 0 mov_byte_[rr],x
+rbx pop
+rax pop
+ret
+
+effect input
+
+\ stack manipulation primitives
+
+native drop
+rbx 8 sub_rr,s
+rax rbx mov_rr,[rr]
+ret
+
+native nip
+rbx 8 sub_rr,s
+ret
+
+native swap
+binary
+rbx rcx mov_[rr],rr
+rbx 8 add_rr,s
+ret
+
+native dup
+fromrax
+ret
+
+native over
+binary
+rbx 8 add_rr,s
+rbx rcx mov_[rr],rr
+rbx 8 add_rr,s
+ret
+
+native third
+rcx rbx mov_rr,rr
+fromrax
+rcx 10 sub_rr,s
+rax rcx mov_rr,[rr]
+ret
+
+native >r
+binary
+rdx pop
+rcx push
+rdx jmp_rr
+
+native r>
+fromrax
+rcx pop
+rax pop
+rcx jmp_rr
+
+native r>drop
+rcx pop
+rdx pop
+rcx jmp_rr
+
+\ execution control
+
+\ end of computation
+native }
+ret
+
+{ c@ c, }~fail
+
+does
+
+\ reference to identity
+native 'id
+fromrax
+rax x' } mov_rr,aa
+ret
+
+\ execute computation
+native execute
+$ exec !
+binary
+rcx jmp_rr
+
+\ handle effect
+native handle
+binary			\ effect reference in rcx
+rcx 3 add_rr,s
+rdx rdx xor_rr,rr
+rdx rcx mov_er,[rr]	\ handler pointer in rdx
+3 label
+rbx 10 sub_rr,s		\ data stack pointer to be saved
+rbx push		\ save data stack pointer
+rbx 10 add_rr,s		\ current data stack pointer
+rcx ERR_SP mov_rr,[aa]	\ ERR_SP in rcx
+rcx push		\ save previous ERR_SP
+rcx rdx mov_rr,[rr]	\ previous handler address in rcx
+rcx push		\ save previous handler address
+rdx push		\ save handler pointer
+ERR_SP rsp mov_[aa],rr  \ set new ERR_SP
+binary			\ handler reference in rcx
+rdx rcx mov_[rr],rr	\ handler reference changed
+x' execute call		\ execute code with effects
+rsp ERR_SP mov_rr,[aa]	\ stack to handler frame
+rcx pop			\ handler ptr in rcx
+rdx pop			\ previous handler addr. in rdx
+rcx rdx mov_[rr],rr	\ restore handler
+rcx pop
+ERR_SP rcx mov_[aa],rr	\ restore ERR_SP
+rsp 8 add_rr,s		\ discard data stack pointer
+ret
+
+\ disjunction combinator
+native |
+rdx FAIL mov_rr,aa
+3 lb jmp
+
+\ tail disjunction
+alias }~| |
+
+x' endcomp does
+
+\ disjunction with identity
+native 'id|
+x' 'id call
+x' | jmp
+
+\ tail disjunction with identity
+alias 'id}~| 'id|
+
+x' endcomp does
+
+\ cut handler
+native cut
+rdi ERR_SP mov_rr,[aa]
+rcx rdi mov_rr,[rr]	\ handler ptr in rcx
+rdi 8 add_rr,s
+rdx rdi mov_rr,[rr]	\ previous handler reference in rdx
+rdi 8 add_rr,s
+rcx rdx mov_[rr],rr	\ restore previous handler
+rcx rdi mov_rr,[rr]	\ previous ERR_SP in rcx
+ERR_SP rcx mov_[aa],rr	\ restore previous ERR_SP
+ret
+
+\ pend
+native &
+rsi pop			\ return address in rsi
+binary			\ failure handler in rcx
+rbx push		\ save data stack pointer
+rdx ERR_SP mov_rr,[aa]	\ previous ERR_SP in rdx
+rdx push		\ save previous ERR_SP
+rdx FAIL mov_rr,[aa]	\ previous handler in rdx
+rdx push		\ save previous handler
+rdx FAIL mov_rr,aa
+rdx push		\ save failure handler pointer
+rdx rcx	mov_[rr],rr	\ set new handler
+ERR_SP rsp mov_[aa],rr	\ set new ERR_SP
+rcx 18 mov_rr,x		\ frame offset
+rcx rsp add_rr,rr	\ add stack pointer
+3 label
+rcx push
+rsi call_rr		\ call what follows
+rcx pop
+rcx 8 add_rr,s
+rsi rcx mov_rr,[rr]
+3 lb jmp
+
+\ arithmetic mappers
+
+native 1-
+rax dec_rr
+ret
+
+native 1+
+rax inc_rr
+ret
+
+native cell-
+rax 8 sub_rr,s
+ret
+
+native cell+
+rax 8 add_rr,s
+ret
+
+native cells
+rax 3 shl_rr,s
+ret
+
+\ binary arithmetic primitives
+
+native +
+binary
+rax rcx add_rr,rr
+ret
+
+native -
+binary
+rax rcx sub_rr,rr
+ret
+
+native u* ( n n -- l h )
+binary
+rcx mul_rr
+fromrax
+rax rdx mov_rr,rr
+ret
+
+native /mod ( n n -- n n )
+binary
+rdx rdx xor_rr,rr
+rcx div_rr
+rbx rdx mov_[rr],rr
+rbx 8 add_rr,s
+ret
+
+\ binary bitwise logic primitives
+
+native and
+binary
+rax rcx and_rr,rr
+ret
+
+native or
+binary
+rax rcx or_rr,rr
+ret
+
+native xor
+binary
+rax rcx xor_rr,rr
+ret
+
+\ tail call
+
+postpone word
+
+postpone find
+
+native }~
+2 lb jmp \ not permitted in interpret mode
+
+{ drop word find @ endcomp } does
+
+\ literal constructors
+
+{: literal
+48 c, 89 c, 03 c,
+48 c, 83 c, C3 c, 08 c,
+48 c, B8 c, }~ , 
+
+{: >lit execute }~ literal
+
+{: ascii word pad }~ c@
+
+x' >lit does
+
+{: ' word find }~ @
+
+x' >lit does
+
+{: {{
+E8 c, 0 }~ d,
+
+{: }}
+dup here swap - swap 4 - d!
+48 c, 89 c, 03 c,
+48 c, 83 c, C3 c, 08 c,
+58 }~ c,
+
+\ self references
+
+\ tail call to self
+native }~self
+2 lb jmp \ not permitted in interpret mode
+
+{ drop dup here - 5 - E9 c, d, }~fail
+
+does
+
+\ self reference
+native 'self
+2 lb jmp \ not permitted in interpret mode
+
+{ drop dup }~ literal
+does
+
+postpone compile
+
+\ quotation
+
+{: quotate {{ execute }~ }}
+
+{: { here ' compile 'id}~|
+
+x' quotate does
+
+\ quoted string literal
+
+{: bite
+tib @ dup c@ 0<> swap 1+ tib }~ !
+
+{: "
+here bite drop
+{ bite ascii " <>
+{ ascii \ = drop ' bite { A } }~|
+'id|
+c,
+}~self
+{ 0 }~ c,
+}~|
+
+x' quotate does
+
+\ comments
+
+\ skip the rest of the line
+{: \ 0 tib @ }~ c!
+
+immediate
+
+\ skip till the closing paren
+{: ( { word pad " )" s<> drop }~self 'id}~|
+
+immediate
+
+\ character filters
+
+\ ascii code of space (a.k.a. blank)
+bl constant bl
+
+\ check whitespace
+{: ws
+bl }~ <=
+
+\ check printable
+{: printable
+ascii ! >= ascii ~ }~ <=
+
+\ decimal digit
+{: ddigit
+ascii 0 >= ascii 9 }~ <=
+
+\ lowercase letter
+{: lower
+ascii a >= ascii z }~ <=
+
+\ uppercase letter
+{: upper
+ascii A >= ascii Z }~ <=
+
+\ letter
+{: letter
+' lower ' upper }~|
+
+\ alphanumeric
+{: alphanum
+' ddigit ' letter }~|
+
+\ character mappers
+
+\ capitalize
+{: >upper
+{ lower DF }~ and
+'id}~|
+
+\ un-capitalize
+{: >lower
+{ upper 20 }~ or
+'id}~|
+
+\ arithmetics
+
+{: * u* }~ drop
+
+{: / /mod }~ nip
+
+{: mod /mod }~ drop
+
+\ numerals
+
+BASE address base
+
+\ set hexadecimal base
+{: hex
+10 base }~ c!
+
+\ set decimal base
+{: decimal
+A base }~ c!
+
+\ digit to integer conversion
+{: digit>int
+alphanum
+ascii 0 -
+carry?
+{ 9 }~ <=
+{ 7 }~ -
+|
+base c@ }~ <
+
+\ auxiliary numeral conversion
+{: >number
+base c@ * over c@ digit>int + swap 1+ dup c@
+{ ws drop }~ drop
+{ drop swap }~ >number
+}~|
+
+\ string numeral to integer conversion
+{: s>number
+0 }~ >number
+
+\ string functions
+
+\ non-empty filter
+{: nonempty
+dup c@ 0<> }~ drop
+
+\ string length
+{: length
+0 swap
+{ nonempty 1+ swap 1+ swap }~self
+' drop
+}~|
+
+\ discard leading whitespace
+{: wsskip
+{ dup c@ 0<> ws drop 1+ }~self
+'id}~|
+
+\ dictionary (a.k.a. heap) functions
+
+\ put a string on the heap (w/o the trailing zero)
+{: s,
+{ dup c@ 0<> c, 1+ }~self
+' drop
+}~|
+
+\ list functions
+
+\ list extension
+{: link
+here swap }~ ,
+
+\ list traversal
+{: traverse&
+@ 0<> 'self & dup }~ cell+
+
+\ vocabulary functions
+
+\ skip word name
+{: skipstr ( a -- a )
+dup length + }~ 1+
+
+\ vocabulary in which words are searched
+CONTEXT address context
+
+\ vocabulary in which words are created
+CURRENT address current
+
+\ last word in the current vocabulary
+{: last
+current @ }~ @
+
+\ make current vocabulary the same as the context vocabulary
+{: definitions
+context @ current }~ !
+
+\ create new word returning the payload address
+{: create
+word
+last
+link
+current @ !
+here cell+ cell+ pad length + 1+ ,
+' callcomp ,
+pad s, 0 c,
+here 12 +
+literal
+C3 c,			\ ret
+}
+
+\ create a new variable with an initial value
+{: variable
+create }~ ,
+
+\ redefine last word
+{: redefine
+last
+cell+ cell+ cell+ skipstr
+dp }~ !
+
+\ create constant
+{: constant
+create redefine
+literal
+C3 }~ c,		\ ret
+
+\ create effect with default handler
+{: effect ( x -( heap )- )
+create redefine
+here 7 +
+FF c, 24 c, 25 c, d,	\ jmp [address]
+}~ ,
+
+\ create vocabulary
+{: vocabulary ( -( heap )- )
+here last ,
+create redefine
+literal
+' context callcomp ' ! }~ tailcomp
+
+\ postpone colon definition
+{: postpone
+create redefine
+'id }~ tailcomp
+
+\ search vocabulary
+{: search ( a -( pad fail )- a )
+traverse& cell+ cell+ pad s= cut cell- cell- }~ nip
+
+\ find word in context vocabulary
+{:: find ( -( pad fail )- a )
+context @ }~ search
+
+\ create colon definition
+{: {: ( -( heap )- )
+create
+redefine
+here ' compile 'id|
+}~ drop
+
+\ postponed colon definition
+{: {::
+word find @ \ address of jmp instruction
+1+ \ address of jmp relative address
+dup
+4 + \ address of jmp anchor
+here swap -
+swap ! \ TODO: adjust interpret mode behavior address, too
+here ' compile 'id|
+}~ drop
+
+\ change compile mode behavior
+{: does ( x -( heap )- )
+last cell+ }~ !
+
+\ make most recently definted word immediate
+{: immediate ( -( heap )- )
+' execute }~ does
+
+\ I/O functions
+
+{: type
+dup length write }~ drop
+
+\ emit new line (a.k.a. carriage return)
+{: cr
+A }~ emit
+
+\ emit space
+{: space
+bl }~ emit
+
+\ emit all context words
+{: words
+{ context @ traverse& cell+ cell+ type space }~fail
+' cr }~| 
+
+\ interpreter functions
+
+\ interpreter
+{: interpret
+word
+{ find @ ' execute { cut }~fail }~|
+{ { pad }~ s>number { pad type "  undefined" type }~ cr }~|
+| }~self
+
+\ unnamed macro
+
+{: [ ' interpret 'id}~|
+
+x' execute does
+
+{: ] }~fail
+
+x' }~fail does   \  TODO: not allowed in compile mode
+
+\ numeral functions
+
+\ convert integer to digit
+{: >digit ( n -- c )
+{ 9 <= ascii 0 }
+{ [ ascii A A - xliteral ] }
+| }~ +
+
+\ emit positive number w/o trailing space
+{: .nz
+{ 0<> base c@ /mod .nz >digit }~ emit
+' drop
+}~|
+
+\ emit number w/ trailing space
+{: .
+{ 0= ascii 0 emit }~ drop
+' .nz
+| }~ space
+
+\ input functions
+
+\ get next word from the input buffer
+{:: word ( -( tib pad fail )- )
+tib @ wsskip
+pad
+{ over c@ printable over c! pad
+[ PAD_LEN xliteral ] + < 1+ swap 1+ swap }~self
+{ 0 swap c! tib }~ !
+}~|
+
+\ compiler
+
+{:: compile
+word
+{ find dup cell+ @ swap @ }~ swap
+{ pad s>number ' literal }
+| execute
+}~ compile  \ TODO: why }~self doesn't work?
+
+\ ok effect
+{: stdok
+"  ok" type }~ cr
+
+effect ok
+
+\ empty word
+{:
+ok }~ input
+
+{ drop }~ input
+
+does
+
+\ seed vocabulary
+native seed
+rcx SEED mov_rr,aa
+CONTEXT rcx mov_[aa],rr
+ret
+
+\ debugging
+
+\ forget a word and what was defined after it
+{: forget
+word
+current @ context @ =
+search dictionary >=
+cell- dup @ current @ ! dp }~ !
+
+\ output data stack content
+native .s
+rcx effects @ 8 + mov_rr,aa \ stack bottom
+3 label
+rbx rcx cmp_rr,rr
+x' cr jc
+4 jz_fs
+rcx push
+fromrax
+rax rcx mov_rr,[rr]
+x' . call
+rcx pop
+rcx 8 add_rr,s
+3 lb jmp
+4 rslabel
+fromrax
+x' . call
+x' cr jmp
+
+\ Seed loop
+{: seedl
+input
+' interpret
+{ "  fail" type }~ cr
+|
+}~self
+
+\ output object code
+{: output
+' seedl 'id ' ok }~ handle
+
+7 rlabel \ the dictionary is ready here
+7 label
+
+rax A mov_rr,x
+BASE rax mov_[aa],rl \ initialize numeral base
+rdi 0 mov_rr,x
+0 lb call \ get heap bottom
+DP rax mov_[aa],rr \ initialize dictionary end
+DICTIONARY rax mov_[aa],rr \ and beginning
+rbx effects @ mov_rr,aa \ initialize stack pointer
+rcx xcurrent @ mov_rr,aa \ initial vocabulary
+rdx SEED mov_rr,aa \ seed vocabulary pointer
+rdx rcx mov_[rr],rr \ initialize it
+CONTEXT rdx mov_[aa],rr \ initialize context vocabulary
+CURRENT rdx mov_[aa],rr \ initialize current vocabulary
+
+6 label
+rbx rax mov_[rr],rr	\ save TOS
+rbx push		\ save data stack ptr.
+rcx rsp mov_rr,rr	\ return stack ptr. to rcx
+rcx 18 sub_rr,s		\ bottom of handler frame
+rcx push		\ circular reference
+rcx 6 lb mov_rr,aa	\ this handler's address
+rcx push		\ circular reference
+rcx FAIL mov_rr,aa	\ failure handler
+rcx push
+ERR_SP rsp mov_[aa],rr	\ set ERR_SP
+
+\ initialize effects
+rcx x' stdemit mov_rr,aa
+EFFECTS rcx mov_[aa],rr
+rcx x' stdwrite mov_rr,aa
+EFFECTS 8 + rcx mov_[aa],rr
+rcx x' stdkey mov_rr,aa
+EFFECTS 10 + rcx mov_[aa],rr
+rcx x' stdinput mov_rr,aa
+EFFECTS 18 + rcx mov_[aa],rr
+rcx x' stdok mov_rr,aa
+EFFECTS 20 + rcx mov_[aa],rr
+
+\ execute seed loop
+x' seedl jmp
+
+0 q,
+
+$ dup dup
+f_SizeInFile @ w!
+f_StringTableVA @ w!
+f_StringTableOffset @ w!
+
+0 c,
+
+" .text" drop
+" .bss" drop
+" .shstrtab" drop
+
+$ f_TotalFileSize @ w!
+
+ELF dump
+
+bye
