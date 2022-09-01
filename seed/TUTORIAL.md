@@ -47,7 +47,7 @@ it a program, enclose it in curly braces:
 ```
 
 If you type this, seemingly nothing happens, but if you 
-type `execute` new, the greeting appears.
+type `execute` now, the greeting appears.
 
 We can also create new words using existing words. Let 
 us give the name `greet` to our program:
