@@ -106,7 +106,7 @@ Hello, world!
 Hello, world!
 ```
 
-The word `greet` is encosed in curly braces, because it 
+The word `greet` is enclosed in curly braces, because it 
 makes it a computation. In fact, there is an alternative 
 way to refer to computations corresponding to single 
 words, the tick mark `'`. Try this:
