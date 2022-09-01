@@ -269,6 +269,7 @@ vocabulary.
  * [printable](#filters)
  * [quotate](#other-ways-to-create-and-modify-words)
  * [r>](#stack-manipulation)
+ * [r>drop](#stack-manipulation)
  * [s,](#heap-effects)
  * [s<>](#relations)
  * [s=](#relations)
@@ -618,6 +619,9 @@ effect*
    the data stack to the return stack.
  * `r>` (pronounced *"r-from"*) moves the top element of 
    the return stack to the data stack.
+ * `r>drop` (pronounced *"r-drop"*) drops the top element
+   of the return stack. Equivalent to `r> drop`, but more
+   efficient.
 
 All of the above always succeeds.
 
