@@ -1272,6 +1272,11 @@ native }~
 
 { drop word find @ endcomp } does
 
+\ prelude compiler (no prelude in Linux amd64)
+{: vm, }
+
+x' drop does
+
 \ literal constructors
 
 {: literal
