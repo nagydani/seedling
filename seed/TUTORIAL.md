@@ -407,4 +407,28 @@ just put them after one another (for efficiency, use the
 one that is less likely to succeed first). In Seed, function 
 composition is this simple.
 
+Now that we have seen how to use our `scan&` generator, we 
+can actually look into how it works in order to be able to 
+write our own generators.
+
+The first word is `nonempty`: scanning an empty string 
+results in a failure immediately. Then comes a quotation 
+that increments the string reference and tail-calls 
+`scan&`. The next word is `&` (pronounced "*pend*"), 
+which registers the provided quotation as the failure 
+handler. `dup` and `c@` put the first character of the 
+string on the stack without consuming the string 
+pointer, which is the state of our generator. So, when a 
+failure occurs down the line, the registered quotation 
+kicks in, takes a step in the string and restarts the 
+generator, again registering itself as the error handler.
+
+Here is another simple generator, generating numbers 
+from *n*-1 to 0, given the number *n* on the top of the 
+stack:
+
+```
+{: countdown& ( n -( & )- n )
+0<> 1- 'self & }~ dup
+```
 
