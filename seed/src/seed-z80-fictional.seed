@@ -1,0 +1,1933 @@
+output \ this must be the first line
+
+\ This is the Seed source for a fictional Z80-based computer
+
+\ The fictional computer has the entire Z80 address
+\ space filled with RAM. Reading from port 0 reads a
+\ byte from the standard input and sending a byte to
+\ port 0 writes that byte to the standard output.
+
+\ Requirements
+\ It can be compiled by any seed that has at least 16 bit
+\ cells and about 12 kilobytes of free RAM space available.
+
+\ Assembler
+\ This is a full-fledged Z80 assembler that can be used both
+\ for cross-compiling and for writing native computations
+\ on Z80-based Seeds.
+
+hex
+
+\ 16-bit negation
+{: negate	10000 swap - }
+
+\ 16-bit little-endian comma
+{: w,		100 /mod swap c, c, }
+
+\ 16-bit little-endian fetch
+{: w@		dup c@ swap 1+ c@ 100 * or }
+
+\ 16-bit little-endian store
+{: w!		dup >r 1+ >r 100 /mod r> c! r> c! }
+
+\ dump the tail of the heap
+{: dump		here over - write }
+
+\ new vocabulary for assembly instructions
+vocabulary z80
+
+z80 definitions
+
+\ directives
+0 variable offset
+{: $		here offset @ - }
+{: org		here swap - offset ! }
+{: align	{ dup $ swap mod 0<> drop 0 c, }~self ' drop }~|
+
+\ labels
+
+\ 8 labels must be enough for a block
+create labels
+8 cells allot
+
+\ access label
+{: lbl		cells labels + }
+
+\ absolute backward label
+{: label	$ swap lbl ! }
+
+\ use absolute backward label
+{: lb		lbl @ }
+
+\ relative forward label
+{: rlabel	lb dup here swap - 1- swap c! }
+
+\ relative forward jump
+{: jrf		here swap lbl ! 0 c, }
+
+\ relative backward jump
+{: rel		$ - 1- c, }
+
+\ use absolute forward label after a one-byte opcode
+{: fl1		here 1+ swap lbl ! 0 }
+
+\ use absolute forward label immediately
+{: fl0		here swap lbl ! 0 w, }
+
+\ absolute forward label
+{: flabel	lbl @ $ swap w! }
+
+\ registers
+0 constant b
+1 constant c
+2 constant d
+3 constant e
+4 constant h
+5 constant l
+6 constant (hl)
+7 constant a
+{: 8*		8 * }
+
+\ register pairs
+0 constant bc
+10 constant de
+20 constant hl
+30 constant sp
+30 constant af
+
+\ conditions
+0 constant nz
+8 constant z
+10 constant nc
+18 constant cf
+20 constant po
+28 constant pe
+30 constant p
+38 constant m
+
+\ 1 byte opcodes
+
+{: nop		0 c, }
+{: ld_rr,xx	swap 1 or c, w, }
+{: ld_(bc),a	2 c, }
+{: inc_rr	3 or c, }
+{: inc_r	8* 4 or c, }
+{: dec_r	8* 5 or c, }
+{: ld_r,x	swap 8* 6 or c, c, }
+{: rlca		7 c, }
+{: ex_af,af'	8 c, }
+{: add_hl,rr	9 or c, }
+{: ld_a,(bc)	A c, }
+{: dec_rr	B or c, }
+{: rrca		F c, }
+
+{: djnz		10 c, rel }
+{: djnz_f	10 c, jrf }
+{: ld_(de),a	12 c, }
+{: rla		17 c, }
+{: jr		18 c, rel }
+{: jr_f		18 c, jrf }
+{: ld_a,(de)	1A c, }
+{: rra		1F c, }
+
+{: jr_nz	20 c, rel }
+{: jr_nz_f	20 c, jrf }
+{: ld_(xx),hl	22 c, w, }
+{: daa		27 c, }
+{: jr_z		28 c, rel }
+{: jr_z_f	28 c, jrf }
+{: ld_hl,(xx)	2A c, w, }
+{: cpl		2F c, }
+
+{: jr_nc	30 c, rel }
+{: jr_nc_f	30 c, jrf }
+{: ld_(xx),a	32 c, w, }
+{: scf		37 c, }
+{: jr_c		38 c, rel }
+{: jr_c_f	38 c, jrf }
+{: ld_a,(xx)	3A c, w, }
+{: ccf		3F c, }
+
+{: ld_r,r	swap 8* or 40 or c, }
+{: halt		76 c, }
+
+{: add_a,r	80 or c, }
+{: adc_a,r	88 or c, }
+
+{: sub_r	90 or c, }
+{: sbc_a,r	98 or c, }
+
+{: and_r	A0 or c, }
+{: xor_r	A8 or c, }
+
+{: or_r		B0 or c, }
+{: cp_r		B8 or c, }
+
+{: ret_cc	C0 or c, }
+{: pop		C1 or c, }
+{: jp_cc	swap C2 or c, w, }
+{: jp		C3 c, w, }
+{: call_cc	swap C4 or c, w, }
+{: push		C5 or c, }
+{: add_a,x	C6 c, c, }
+{: rst		C7 or c, }
+{: ret		C9 c, }
+{: call		CD c, w, }
+{: adc_a,x	CE c, c, }
+
+{: out_(x),a	D3 c, c, }
+{: sub_x	D6 c, c, }
+{: exx		D9 c, }
+{: in_a,(x)	DB c, c, }
+{: sbc_a,x	DE c, c, }
+
+{: ex_(sp),hl	E3 c, }
+{: and_x	E6 c, c, }
+{: jp_(hl)	E9 c, }
+{: ex_de,hl	EB c, }
+{: xor_x	EE c, c, }
+
+{: di		F3 c, }
+{: or_x		F6 c, c, }
+{: ld_sp,hl	F9 c, }
+{: ei		FB c, }
+{: cp_x		FE c, c, }
+
+\ ED-prefixed opcodes
+{: ed,		ED c, }
+
+{: in_r,(c)	ed, 8* 40 or c, }
+{: out_(c),r	ed, 8* 41 or c, }
+{: sbc_hl,rr	ed, 42 or c, }
+{: ld_(xx),rr	ed, 43 or c, w, }
+{: neg		ed, 44 c, }
+{: retn		ed, 45 c, }
+{: im_0		ed, 46 c, }
+{: ld_i,a	ed, 47 c, }
+{: adc_hl,rr	ed, 4A	or c, }
+{: ld_rr,(xx)	ed, swap 4B or c, w, }
+{: reti		ed, 4D c, }
+{: ld_r,a	ed, 4F c, }
+
+{: im_1		ed, 56 c, }
+{: ld_a,i	ed, 57 c, }
+{: im_2		ed, 5E c, }
+{: ld_a,r	ed, 5F c, }
+
+{: rrd		ed, 67 c, }
+{: rld		ed, 6F c, }
+
+{: ldi		ed, A0 c, }
+{: cpi		ed, A1 c, }
+{: ini		ed, A2 c, }
+{: outi		ed, A3 c, }
+{: ldd		ed, A8 c, }
+{: cpd		ed, A9 c, }
+{: ind		ed, AA c, }
+{: outd		ed, AB c, }
+
+{: ldir		ed, B0 c, }
+{: cpir		ed, B1 c, }
+{: inir		ed, B2 c, }
+{: otir		ed, B3 c, }
+{: lddr		ed, B8 c, }
+{: cpdr		ed, B9 c, }
+{: indr		ed, BA c, }
+{: otdr		ed, BB c, }
+
+\ CB-prefixed opcodes
+{: cb,		CB c, }
+
+{: rlc		cb, c, }
+{: rrc		cb, 8 or c, }
+
+{: rl		cb, 10 or c, }
+{: rr		cb, 18 or c, }
+
+{: sla		cb, 20 or c, }
+{: sra		cb, 28 or c, }
+
+{: sll		cb, 30 or c, }
+{: srl		cb, 38 or c, }
+
+{: bit		cb, 40 or swap 8* or c, }
+
+{: res		cb, 80 or swap 8* or c, }
+
+{: set		cb, C0 or swap 8* or c, }
+
+\ DD-prefixed opcodes
+{: ix,		DD c, }
+
+{: inc_(ix+i)	ix, (hl) inc_r c, }
+{: dec_(ix+i)	ix, (hl) dec_r c, }
+{: ld_(ix+i),x	ix, 36 c, swap c, c, }
+{: ld_(ix+i),r	ix, (hl) swap ld_r,r c, }
+{: ld_r,(ix+i)	ix, swap (hl) ld_r,r c, }
+{: add_a,(ix+i)	ix, (hl) add_a,r c, }
+{: adc_a,(ix+i)	ix, (hl) adc_a,r c, }
+{: sub_(ix+i)	ix, (hl) sub_r c, }
+{: sbc_a,(ix+i)	ix, (hl) sbc_a,r c, }
+{: and_(ix+i)	ix, (hl) and_r c, }
+{: xor_(ix+i)	ix, (hl) xor_r c, }
+{: or_(ix+i)	ix, (hl) or_r c, }
+{: cp_(ix+i)	ix, (hl) cp_r c, }
+
+{: b_(ix+i)	ix, cb, c, (hl) }
+
+\ FD-prefixed opcodes
+{: iy,		FD c, }
+
+{: inc_(iy+i)	iy, (hl) inc_r c, }
+{: dec_(iy+i)	iy, (hl) dec_r c, }
+{: ld_(iy+i),x	iy, 36 c, swap c, c, }
+{: ld_(iy+i),r	iy, (hl) swap ld_r,r c, }
+{: ld_r,(iy+i)	iy, swap (hl) ld_r,r c, }
+{: add_a,(iy+i)	iy, (hl) add_a,r c, }
+{: adc_a,(iy+i)	iy, (hl) adc_a,r c, }
+{: sub_(iy+i)	iy, (hl) sub_r c, }
+{: sbc_a,(iy+i)	iy, (hl) sbc_a,r c, }
+{: and_(iy+i)	iy, (hl) and_r c, }
+{: xor_(iy+i)	iy, (hl) xor_r c, }
+{: or_(iy+i)	iy, (hl) or_r c, }
+{: cp_(iy+i)	iy, (hl) cp_r c, }
+
+{: b_(iy+i)	iy, cb, c, (hl) }
+
+\ END of assembler
+
+
+\ Seed cross-compiler for Z80-based targets
+
+\ pointer to cross-compiled vocabulary
+create xcurrent 0 w,
+
+{: xlink ( a -- a )
+$ swap }~ w,
+
+{: xlast ( -- a )
+xcurrent }~ w@
+
+{: xtraverse& ( a -( fail pend )- a )
+w@ 0<>
+offset @ +
+'self &
+dup
+2 +
+}
+
+{: xsearch ( a -( pad fail )- a )
+xtraverse& pad s= cut }~ nip
+
+{: xfind ( -( pad fail )- a )
+xcurrent xsearch }~ skipstr
+
+\ target tick
+{: x'
+word xfind 2 + offset @ }~ -
+
+\ target create
+{: xcreate
+xlast
+xlink
+xcurrent w!
+word
+pad
+s,
+0 c,
+}
+
+\ target pointer to 8-bit literal
+0 variable lit8
+
+\ target pointer to 16-bit literal
+0 variable lit16
+
+\ target pointer to 8-bit string literal
+0 variable lits
+
+{: xliteral ( x -( heap )- )
+{ FF <= lit8 @ w, }~ c, { lit16 @ w, }~ w, }~|
+
+{: x{{ ( -( heap )- a )
+lits @ w, 0 c, }~ here
+
+{: x}} ( a -( heap )- )
+dup here swap - swap 1- }~ c!
+
+\ target pointer to comma
+0 variable comma
+
+\ target pointer to endcomp
+0 variable endcomp
+
+\ target pointer to endtail
+0 variable endtail
+
+\ target pointer to selfref
+0 variable selfref
+
+\ target pointer to ~selfref
+0 variable ~selfref
+
+\ target pointer to >lit
+0 variable >lit
+
+\ target pointer to quotate
+0 variable quotate
+
+\ target pointer to execute
+0 variable exec
+
+\ create association
+{: assoc ( key value table -( heap )- )
+dup @ link swap !
+swap , , }
+
+\ recall asocciation
+{: recall ( key table -- value )
+traverse& third over @ @ = cut drop drop nip cell+ cell+ @ }
+
+\ target host associations
+0 variable xcomps
+
+comma   ' w,                            xcomps assoc
+endcomp { w, }~fail                     xcomps assoc
+endtail { w, word xfind
+        offset @ - 2 + w, }~fail        xcomps assoc
+
+\ comments
+
+{: comments_and_meta
+{
+  { drop pad " \\" s= drop }~ \
+  { drop pad " (" s= drop }~ (
+}~|
+{ drop pad " [" s= drop ' interpret 'id}~|
+}~|
+
+exec    ' comments_and_meta             xcomps assoc
+
+\ self references
+{: sref w, dup dup here - c, }
+
+selfref ' sref                          xcomps assoc
+~selfref { sref }~fail                  xcomps assoc
+
+\ literal constructors
+
+{: x>lit
+{ drop pad " ascii" s= drop word pad c@ xliteral }
+{ drop pad " '" s= drop word xfind offset @ - 2 + xliteral }
+}~|
+
+>lit    ' x>lit                         xcomps assoc
+
+\ while loop
+{: while
+>r \ subject on return stack
+dup >r \ predicate on return stack
+\ predicate on data stack
+{ r>drop r>drop r>drop } |
+r> \ predicate on data stack
+r> \ subject on data stack
+swap
+>r \ predicate on return stack
+dup >r \ subject on return stack
+execute \ execute subject
+r> \ subject on data stack
+r> \ predicate on data stack
+swap }~self
+
+\ cross-compiler
+{: xcompile
+word
+{ pad c@ 0= drop }
+{ input word }
+while
+{ xfind dup 2 + offset @ - swap w@ xcomps ' recall 'id| } \ WTF?
+{ pad s>number ' xliteral }
+|
+execute
+}~self
+
+\ restart addresses
+ 0 constant start_rst
+ 8 constant vm_rst
+10 constant dat_rst
+18 constant ex_rst
+20 constant pop_rst
+28 constant push_rst
+
+\ system variables
+1000 constant DP
+1002 constant TIB
+1004 constant FAIL
+1006 constant ERR_SP
+1008 constant CONTEXT
+100A constant CURRENT
+100C constant SEED
+100E constant BASE
+101F constant PAD
+  20 constant PAD_LEN
+103F constant DICTIONARY
+
+\ memory layout
+C000 constant STK_BOT
+FF00 constant STK_TOP
+
+\ labels
+7 constant start
+6 constant catch
+5 constant fail
+4 constant vm_l
+
+\ macros
+{: vm		vm_rst rst }
+{: dat		dat_rst rst }
+{: tobc		pop_rst rst }
+{: frombc	push_rst rst }
+{: next		ix, jp_(hl) }
+
+\ cross string literal
+{: xlits
+bite
+drop
+{ bite ascii " <>
+        { ascii \ = drop ' bite { A } }~|
+        'id| c,
+}~self
+{ 0 }~ c,
+}~|
+
+\ cross-quotate
+{: xquotate
+x{{
+{ pad " {" s= drop vm ' xcompile 'id}~|
+{ pad " \"" s= drop xlits }
+|
+x}}
+}
+
+quotate { drop xquotate }               xcomps assoc
+
+\ native word definition
+{: native
+xcreate
+comma @ w, }
+
+\ postpone colon definition
+{: postpone
+native
+0 jp }
+
+\ effect definition
+{: effect ( x -- )
+native
+jp }
+
+\ constant definition
+{: constant
+native
+bc swap ld_rr,xx
+frombc
+next }
+
+\ change compile-time behavior
+{: does
+xlast
+2 +
+offset @ +
+skipstr
+w! }
+
+\ target quotation
+{: {
+$
+vm
+' xcompile
+'id}~|
+
+\ postponed colon definition
+{: {::
+word xfind
+3 +
+$ swap w!
+here
+vm
+' xcompile
+' drop
+}~|
+
+\ colon definitions
+{: {:
+native
+here
+vm
+' xcompile
+' drop
+}~|
+
+\ Beginning of cross-compilation
+create target
+0 org
+
+\ restart
+start fl1 jp
+8 align
+
+\ begin threading
+ex_(sp),hl
+vm_l label
+c (hl) ld_r,r
+hl inc_rr
+b (hl) ld_r,r
+hl inc_rr
+bc push
+ret
+8 align
+
+\ put data address on stack
+bc pop
+frombc
+next
+8 align
+
+\ catch exception
+bc pop
+catch fl1 jp
+8 align
+
+\ pop bc from data stack
+ex_de,hl
+hl dec_rr
+b (hl) ld_r,r
+hl dec_rr
+c (hl) ld_r,r
+ex_de,hl
+ret
+8 align
+
+\ push bc to data stack
+ex_de,hl
+(hl) c ld_r,r
+hl inc_rr
+(hl) b ld_r,r
+hl inc_rr
+ex_de,hl
+ret
+8 align
+
+xcreate , ( n -( heap )- )
+$ 2 + w,
+$ comma !
+tobc
+hl push
+DP ld_hl,(xx)
+(hl) c ld_r,r
+hl inc_rr
+(hl) b ld_r,r
+0 label
+hl inc_rr
+DP ld_(xx),hl
+hl pop
+next
+
+native c, ( c -( heap )- )
+tobc
+hl push
+DP ld_hl,(xx)
+(hl) c ld_r,r
+0 lb jr
+
+native @
+tobc
+ld_a,(bc)
+bc inc_rr
+ld_(de),a
+ld_a,(bc)
+0 label
+de inc_rr
+ld_(de),a
+de inc_rr
+next
+
+native c@
+tobc
+ld_a,(bc)
+ld_(de),a
+a xor_r
+0 lb jr
+
+native c!
+tobc
+de dec_rr
+0 label
+de dec_rr
+ld_a,(de)
+ld_(bc),a
+next
+
+native !
+tobc
+de dec_rr
+bc inc_rr
+ld_a,(de)
+ld_(bc),a
+bc dec_rr
+0 lb jr
+
+native bye ( -( halt )- )
+halt
+
+native cpu ( -- )
+ex_(sp),hl
+ret
+
+\ constants
+TIB constant tib
+PAD constant pad
+
+\ I/O effects
+
+$
+de dec_rr
+de dec_rr
+ld_a,(de)
+0 out_(x),a
+next
+
+effect emit ( c -( emit )- )
+
+$
+tobc
+bc push
+tobc
+bc push
+exx
+hl pop
+bc pop
+bc push
+0 label
+a (hl) ld_r,r
+0 out_(x),a
+hl inc_rr
+bc dec_rr
+a b ld_r,r
+c or_r
+0 lb jr_nz
+exx
+bc pop
+frombc
+next
+
+effect write ( a n -( write )- )
+
+$
+0 in_a,(x)
+ld_(de),a
+de inc_rr
+a xor
+ld_(de),a
+de inc_rr
+next
+
+effect key ( -( key )- c )
+
+$
+hl push
+hl STK_TOP ld_rr,xx
+TIB ld_(xx),hl
+0 label
+0 in_a,(x)
+A cp_x
+1 jr_z_f
+(hl) a ld_r,r
+hl inc_rr
+a h ld_r,r
+l and_r
+a inc_r
+0 lb jr_nz
+1 rlabel
+(hl) 0 ld_r,x
+hl pop
+next
+
+effect input ( -( input tib )- )
+
+\ stack manipulation primitives
+
+native drop
+de dec_rr
+de dec_rr
+next
+
+native nip
+tobc
+de dec_rr
+de dec_rr
+frombc
+next
+
+native swap
+tobc
+bc push
+tobc
+bc push
+af pop
+bc pop
+af push
+frombc
+bc pop
+frombc
+next
+
+native dup
+hl push
+hl 2 negate ld_rr,xx
+0 label
+de add_hl,rr
+ldi
+ldi
+hl pop
+next
+
+native over
+hl push
+hl 4 negate ld_rr,xx
+0 lb jr
+
+native third
+hl push
+hl 6 negate ld_rr,xx
+0 lb jr
+
+native >r
+tobc
+bc push
+next
+
+native r>
+bc pop
+frombc
+next
+
+native r>drop
+bc pop
+next
+
+\ failure
+
+xcreate }~fail
+0 fl0
+fail label
+bc FAIL ld_rr,xx
+catch flabel
+catch label
+sp ERR_SP ld_rr,(xx)
+hl pop
+a and_r
+bc sbc_hl,rr
+bc add_hl,rr
+de pop
+a (hl) ld_r,r
+(hl) e ld_r,r
+e a ld_r,r
+hl inc_rr
+a (hl) ld_r,r
+(hl) d ld_r,r
+d a ld_r,r
+hl pop
+ERR_SP ld_(xx),hl
+catch lb jr_nz
+ex_de,hl
+de pop
+ex_(sp),hl
+ret
+
+\ integer comparison primitives
+
+native =
+tobc
+bc push
+tobc
+ex_(sp),hl
+a and_r
+bc sbc_hl,rr
+hl pop
+fail lb jr_nz
+1 label
+de inc_rr
+de inc_rr
+next
+
+native <>
+tobc
+bc push
+tobc
+ex_(sp),hl
+a and_r
+bc sbc_hl,rr
+hl pop
+fail lb jr_z
+1 lb jr
+
+native 0=
+ex_de,hl
+hl dec_rr
+a (hl) ld_r,r
+hl dec_rr
+(hl) or_r
+hl inc_rr
+hl inc_rr
+ex_de,hl
+fail lb jr_nz
+next
+
+native 0<>
+ex_de,hl
+hl dec_rr
+a (hl) ld_r,r
+hl dec_rr
+(hl) or_r
+hl inc_rr
+hl inc_rr
+ex_de,hl
+fail lb jr_z
+next
+
+native carry?
+fail lb jr_c
+next
+
+\ successful end of computation
+
+native endcomp
+0 flabel
+$ endcomp !
+vm
+comma @ w,
+fail lb w,
+
+native }
+hl pop
+next
+
+x' endcomp does
+
+\ reference to identity
+
+native 'id
+bc 0 fl1 ld_rr,xx
+frombc
+0 flabel
+next
+
+\ execute quotation
+
+native execute
+$ exec !
+tobc
+bc push
+ret
+
+\ pend
+
+native &
+tobc
+de push
+exx
+ERR_SP ld_hl,(xx)
+hl push
+FAIL ld_hl,(xx)
+hl push
+hl FAIL ld_rr,xx
+hl push
+ERR_SP sp ld_(xx),rr
+exx
+FAIL bc ld_(xx),rr
+bc 6 ld_rr,xx
+bc push
+1 label
+bc 0 fl1 ld_rr,xx
+bc push
+next
+2 label
+0 flabel
+x' cpu w,
+hl inc_rr
+hl inc_rr
+hl push
+exx
+hl pop
+sp add_hl,rr
+e (hl) ld_r,r
+hl inc_rr
+d (hl) ld_r,r
+de push
+exx
+ex_(sp),hl
+1 lb jr
+
+\ handle effect
+
+native handle ( x h e -- )
+hl push
+tobc
+bc inc_rr
+bc push
+tobc
+bc push
+exx
+bc pop
+hl pop
+a (hl) ld_r,r
+(hl) c ld_r,r
+c a ld_r,r
+hl inc_rr
+a (hl) ld_r,r
+(hl) b ld_r,r
+b a ld_r,r
+hl dec_rr
+exx
+de dec_rr
+de dec_rr
+de push
+de inc_rr
+de inc_rr
+bc ERR_SP ld_rr,(xx)
+bc push
+exx
+bc push
+hl push
+ERR_SP sp ld_(xx),rr
+exx
+hl 0 fl1 ld_rr,xx
+hl push
+tobc
+bc push
+ret
+0 flabel
+x' cpu w,
+hl ERR_SP ld_rr,(xx)
+a and_r
+sp sbc_hl,rr
+0 jr_nz_f
+exx
+hl pop
+de pop
+(hl) e ld_r,r
+hl inc_rr
+(hl) d ld_r,r
+hl pop
+ERR_SP ld_(xx),hl
+de pop
+exx
+hl pop
+next
+0 rlabel
+sp add_hl,rr
+hl inc_rr
+hl inc_rr
+hl inc_rr
+hl inc_rr
+c (hl) ld_r,r
+hl inc_rr
+b (hl) ld_r,r
+hl 6 ld_rr,xx
+bc add_hl,rr
+sp sbc_hl,rr
+ex_(sp),hl
+hl 1 lb ld_rr,xx
+next
+
+\ cut handler
+native cut
+exx
+ERR_SP ld_hl,(xx)
+e (hl) ld_r,r
+hl inc_rr
+d (hl) ld_r,r		\ DE = handler pointer
+hl inc_rr
+c (hl) ld_r,r
+hl inc_rr
+b (hl) ld_r,r
+hl inc_rr		\ BC = previous handler address
+ex_de,hl
+(hl) c ld_r,r
+hl inc_rr
+(hl) b ld_r,r		\ restore previous handler
+ex_de,hl
+e (hl) ld_r,r
+hl inc_rr
+d (hl) ld_r,r
+hl inc_rr
+ex_de,hl		\ HL = previous ERR_SP
+ERR_SP ld_(xx),hl	\ restore previous ERR_SP
+de inc_rr
+hl C negate ld_rr,xx
+de add_hl,rr		\ HL points below the handler frame
+hl push
+scf
+sp sbc_hl,rr
+c l ld_r,r
+b h ld_r,r		\ BC = length of stack below handler frame
+hl pop
+0 jr_z_f
+lddr			\ move stack up
+0 rlabel
+ex_de,hl
+hl inc_rr
+ld_sp,hl
+bc pop			\ discard threading
+exx
+next
+
+\ arithmetic primitives
+
+native +
+tobc
+bc push
+tobc
+ex_(sp),hl
+bc add_hl,rr
+c l ld_r,r
+b h ld_r,r
+hl pop
+frombc
+next
+
+native -
+tobc
+bc push
+tobc
+bc push
+exx
+hl pop
+bc pop
+a and_r
+bc sbc_hl,rr
+hl push
+exx
+bc pop
+frombc
+next
+
+native 1-
+tobc
+bc dec_rr
+frombc
+a b ld_r,r
+c and_r
+1 add_a,x
+next
+
+native 1+
+tobc
+bc inc_rr
+frombc
+a b ld_r,r
+c or_r
+1 sub_x
+next
+
+native cell+
+tobc
+bc inc_rr
+bc inc_rr
+frombc
+next
+
+native cell-
+tobc
+bc dec_rr
+bc dec_rr
+frombc
+next
+
+native cells
+tobc
+c sla
+b rl
+frombc
+next
+
+native u* ( n n -- l h )
+tobc
+bc push
+tobc
+bc push
+exx
+bc pop
+de pop
+hl 0 ld_rr,xx
+a 10 ld_r,x
+0 label
+hl add_hl,rr
+ex_de,hl
+hl adc_hl,rr
+ex_de,hl
+1 jr_nc_f
+bc add_hl,rr
+2 jr_nc_f
+de inc_rr
+1 rlabel
+2 rlabel
+a dec_r
+0 lb jr_nz
+de push
+hl push
+exx
+bc pop
+frombc
+bc pop
+frombc
+next
+
+native /mod ( n n -- n n )
+tobc
+bc push
+tobc
+bc push
+exx
+bc pop
+de pop
+hl 0 ld_rr,xx
+a b ld_r,r
+b 8 ld_r,x
+0 label
+rla
+hl adc_hl,rr
+de sbc_hl,rr
+1 jr_nc_f
+de add_hl,rr
+1 rlabel
+0 lb djnz
+rla
+cpl
+b a ld_r,r
+a c ld_r,r
+c b ld_r,r
+b 8 ld_r,x
+0 label
+rla
+hl adc_hl,rr
+de sbc_hl,rr
+1 jr_nc_f
+de add_hl,rr
+1 rlabel
+0 lb djnz
+rla
+cpl
+b c ld_r,r
+c a ld_r,r
+bc push
+hl push
+exx
+bc pop
+frombc
+bc pop
+frombc
+next
+
+\ bitwise logic primitives
+
+native and ( n n -- n )
+tobc
+de dec_rr
+ld_a,(de)
+b and_r
+ld_(de),a
+de dec_rr
+ld_a,(de)
+c and_r
+0 label
+ld_(de),a
+de inc_rr
+de inc_rr
+next
+
+native or ( n n -- n )
+tobc
+de dec_rr
+ld_a,(de)
+b or_r
+ld_(de),a
+de dec_rr
+ld_a,(de)
+c or_r
+0 lb jr
+
+native xor ( n n -- n )
+tobc
+de dec_rr
+ld_a,(de)
+b xor_r
+ld_(de),a
+de dec_rr
+ld_a,(de)
+c xor_r
+0 lb jr
+
+\ string comparison primitives (perf. crit.)
+
+\ compare two strings for equality
+0 label
+ex_de,hl
+hl dec_rr
+d (hl) ld_r,r
+hl dec_rr
+e (hl) ld_r,r
+hl dec_rr
+b (hl) ld_r,r
+hl dec_rr
+c (hl) ld_r,r
+ex_de,hl
+1 label
+ld_a,(bc)
+bc inc_rr
+(hl) cp_r
+hl inc_rr
+scf
+nz ret_cc
+a or_r
+1 lb jr_nz
+ret
+
+native s= ( a a -( fail )- a )
+vm
+x' over w,
+x' cpu w,
+hl push
+0 lb call
+1 label
+hl pop
+cf fail lb jp_cc
+next
+
+native s<> ( a a -( fail )- a )
+vm
+x' over w,
+x' cpu w,
+hl push
+0 lb call
+ccf
+1 lb jr
+
+\ more heap (a.k.a. dictionary) primitives
+
+\ first unallocated address
+native here
+bc DP ld_rr,(xx)
+frombc
+next
+
+\ the first address of the writeable part of the dictionary
+DICTIONARY constant dictionary
+
+\ pointer to first unallocated address
+DP constant dp
+
+\ tail call
+
+postpone word
+
+postpone find
+
+{: endtail
+, word find cell+ , }~fail
+
+x' endtail endtail !
+
+native }~
+a (hl) ld_r,r
+hl inc_rr
+h (hl) ld_r,r
+l a ld_r,r
+ex_(sp),hl
+ret
+
+x' endtail does
+
+\ self references
+
+{: selfref , dup dup here - }~ c,
+
+x' selfref selfref !
+
+native 'self
+c (hl) ld_r,r
+b FF ld_r,x
+hl push
+bc add_hl,rr
+c l ld_r,r
+b h ld_r,r
+hl pop
+hl inc_rr
+frombc
+next
+
+x' selfref does
+
+native }~self
+c (hl) ld_r,r
+b FF ld_r,x
+bc add_hl,rr
+ex_(sp),hl
+ret
+
+$ ~selfref !
+
+{ selfref }~fail does
+
+\ arithmetics
+
+{: * u* }~ drop
+
+{: / /mod }~ nip
+
+{: mod /mod }~ drop
+
+\ comparisons
+
+{: >= over swap - carry? }~ drop
+
+{: <= over - carry? }~ drop
+
+{: > 1+ carry? }~ >=
+
+{: < 1- carry? }~ <= 
+
+\ literal opcodes
+
+\ 8-bit string literal
+$ lits !
+c (hl) ld_r,r
+hl inc_rr
+b 0 ld_r,x
+ex_de,hl
+(hl) e ld_r,r
+hl inc_rr
+(hl) d ld_r,r
+hl inc_rr
+ex_de,hl
+bc add_hl,rr
+next
+
+\ 8-bit numeric literal
+$ lit8 !
+ldi
+a xor_r
+ld_(de),a
+de inc_rr
+next
+
+\ 16-bit numeric literal
+$ lit16 !
+ldi
+ldi
+next
+
+\ disjunctions
+
+native |
+vm
+FAIL 1- xliteral
+x' }~ w,
+x' handle w,
+
+{: }~| | }~ }
+
+x' endcomp does
+
+{: 'id| 'id }~|
+
+{: 'id}~| 'id| }~ }
+
+x' endcomp does
+
+\ literal constructors
+
+native {{
+vm
+lits @ xliteral
+x' , w,
+0 xliteral
+x' }~ w,
+x' c, w,
+
+native vm,
+vm
+vm_rst C7 or xliteral
+x' }~ w,
+x' c, w,
+
+native dat,
+vm
+dat_rst C7 or xliteral
+x' }~ w,
+x' c, w,
+
+native frombc,
+vm
+push_rst C7 or xliteral
+x' }~ w,
+x' c, w,
+
+native next,
+vm
+E9DD xliteral
+x' }~ w,
+x' , w,
+
+{: }} dup here swap - swap 1- }~ c!
+
+\ numeric literal
+native literal
+vm
+x{{
+	vm
+	FF xliteral
+	x' <= w,
+	lit8 @ xliteral
+	x' , w,
+	x' }~ w,
+	x' c, w,
+x}}
+x{{
+	vm
+	lit16 @ xliteral
+	x' , w,
+	x' }~ w,
+	x' , w,
+x}}
+x' }~| w,
+
+{: >lit execute }~ literal
+
+x' >lit >lit !
+
+{: ' word find }~ cell+
+
+x' >lit does
+
+{: ascii word pad }~ c@
+
+x' >lit does
+
+postpone compile
+
+\ quotation
+
+{: quotate {{ execute }~ }}
+
+x' quotate quotate !
+
+{: { here vm, ' compile 'id}~|
+
+x' quotate does
+
+\ quoted string literal
+
+{: bite
+tib @ dup c@ 0<> swap 1+ tib }~ !
+
+{: "
+here bite drop
+{ bite ascii " <>
+{ ascii \ = drop ' bite { A } }~|
+'id|
+c,
+}~self
+{ 0 }~ c,
+}~|
+
+x' quotate does
+
+\ comments
+
+\ skip the rest of the line
+{: \ 0 tib @ }~ c!
+
+x' execute does
+
+\ skip till the closing paren
+{: ( { word pad " )" s<> drop }~self 'id }~|
+
+x' execute does
+
+\ character filters
+
+\ ascii code of space (a.k.a. blank)
+bl constant bl
+
+\ check whitespace
+{: ws ( c -( fail )- c )
+bl }~ <=
+
+\ check printable
+{: printable ( c -( fail )- c )
+ascii ! >= ascii ~ }~ <=
+
+\ decimal digit
+{: ddigit ( c -( fail )- c )
+ascii 0 >= ascii 9 }~ <=
+
+\ lowercase letter
+{: lower ( c -( fail )- c )
+ascii a >= ascii z }~ <=
+
+\ uppercase letter
+{: upper ( c -( fail )- c )
+ascii A >= ascii Z }~ <=
+
+\ letter
+{: letter ( c -( fail )- c )
+' lower ' upper }~|
+
+\ alphanumeric
+{: alphanum ( c -( fail )- c )
+' ddigit ' letter }~|
+
+\ character mappers
+
+\ capitalize
+{: >upper ( c -- c )
+{ lower DF }~ and
+'id}~|
+
+\ un-capitalize
+{: >lower ( c -- c )
+{ upper 20 }~ or
+'id}~|
+
+\ numerals
+
+BASE constant base
+
+\ set hexadecimal base
+{: hex ( -( base )- )
+10 base }~ c!
+
+\ set decimal base
+{: decimal ( -( decimal )- )
+A base }~ c!
+
+\ digit to integer conversion
+{: digit>int ( c -( fail )- n )
+alphanum
+ascii 0 -
+carry?
+{ 9 }~ <=
+{ 7 }~ -
+|
+base c@ }~ <
+
+\ auxiliary numeral conversion
+{: >number ( a n -- n )
+base c@ * over c@ digit>int + swap 1+ dup c@
+{ ws drop }~ drop
+{ drop swap }~ >number
+}~|
+
+\ string numeral to integer conversion
+{: s>number ( a -- n )
+0 }~ >number
+
+\ more string functions
+
+\ non-empty filter
+{: nonempty ( a -( fail )- a )
+dup c@ 0<> }~ drop
+
+\ string length
+{: length ( a -- n )
+0 swap
+{ nonempty 1+ swap 1+ swap }~self
+' drop
+}~|
+
+\ discard leading whitespace
+{: wsskip ( a -- a )
+{ dup c@ 0<> ws drop 1+ }~self
+'id}~|
+
+\ dictionary (a.k.a. heap) functions
+
+\ put a string on the heap
+{: s, ( a -( heap )- )
+{ dup c@ 0<> c, 1+ }~self
+' drop
+}~|
+
+\ allocate a given number of bytes
+{: allot ( n -( heap )- )
+dp @ + dp }~ !
+
+\ traverse linked list
+{: traverse& ( a -( fail & )- a )
+@ 0<> 'self & dup }~ cell+
+
+\ vocabulary functions
+
+\ skip word name
+{: skipstr ( a -- a )
+dup length + }~ 1+
+
+\ vocabulary in which words are searched
+CONTEXT constant context
+
+\ vocabulary in which words are created
+CURRENT constant current
+
+\ extend a list
+{: link ( a -( heap )- a )
+here swap }~ ,
+
+\ last word in the current vocabulary
+{: last ( -- a )
+current @ }~ @
+
+\ make current vocabulary the same as the context vocabulary
+{: definitions
+context @ current }~ !
+
+\ create new word returning the payload address
+{: create ( -( heap )- )
+last link current @ ! word pad s, 0 c, ' , , }~ dat,
+
+\ create a new variable with an initial value
+{: variable ( n -( heap )- )
+create }~ ,
+
+\ redefine last word
+{: redefine ( -( heap )- )
+last cell+ skipstr cell+ dp }~ !
+
+\ create constant
+{: constant ( n -( heap )- )
+create redefine 1 \ LD BC,xx
+c, , frombc, }~ next,
+
+\ create effect
+{: effect ( x -( heap )- )
+create redefine C3 \ JP xx
+c, }~ ,
+
+\ create vocabulary
+{: vocabulary ( -( heap )- )
+here last ,
+create redefine 
+vm, literal ' context , ' }~ , ' ! }~ ,
+
+\ postpone colon definition
+{: postpone ( -( heap )- )
+'id }~ effect
+
+\ search vocabulary
+{: search ( a -( pad fail )- a )
+traverse& pad s= cut }~ nip
+
+\ find word in context vocabulary
+{:: find ( -( pad fail )- a )
+context @ search }~ skipstr
+
+\ create colon definition
+native {: ( -( heap )- )
+vm
+x' create w,
+x' redefine w,
+x' { w,
+x' }~ w,
+x' drop w,
+
+\ postponed colon definition
+native {:: ( -( heap )- )
+vm
+x' { w,
+x' current w,
+x' @ w,
+x' search w,
+x' skipstr w,
+x' cell+ w, 
+x' 1+ w,
+x' }~ w,
+x' ! w,
+
+\ change compile mode behavior
+{: does ( x -( heap )- )
+last cell+ skipstr }~ !
+
+\ make most recently defined word immediate
+{: immediate ( -( heap )- )
+' execute }~ does
+
+\ compile tail call
+{: tailcomp
+' }~ , }~ ,
+
+\ output functions
+
+\ emit one space
+{: space ( -( emit )- )
+bl }~ emit
+
+\ emit a newline (a.k.a. carriage return)
+{: cr ( -( emit )- )
+A }~ emit
+
+\ emit a string
+{: type ( a -( emit )- )
+{ dup c@ 0<> emit 1+ }~self
+'id|
+}~ drop
+
+\ emit all context words
+{: words ( -( emit )- )
+{ context @ traverse& type space }~fail
+' cr }~|
+
+\ interpreter functions
+
+\ interpreter
+{: interpret
+word
+{ find cell+ ' execute { cut }~fail }~|
+{ { pad }~ s>number { pad type "  undefined" type }~ cr }~|
+| }~self
+
+\ unnamed macro
+
+{: [ ' interpret 'id}~|
+
+x' execute does
+
+{: ] }~fail
+
+x' }~fail does		\ TODO: not allowed in compile mode
+
+\ numeral functions
+
+\ convert integer to digit
+{: >digit ( n -- c )
+{ 9 <= ascii 0 }
+{ [ ascii A A - xliteral ] }
+| }~ +
+
+\ emit positive number w/o trailing space
+{: .nz ( n -( emit )- )
+{ 0<> base c@ /mod .nz >digit }~ emit
+' drop
+}~|
+
+\ emit number w/ trailing space
+{: . ( n -( emit )- )
+{ 0= ascii 0 emit }~ drop
+' .nz
+| }~ space
+
+\ input functions
+
+\ get next word from the input buffer
+{:: word ( -( tib pad fail )- )
+tib @ wsskip
+pad
+{ over c@ printable over c! pad
+[ PAD_LEN xliteral ] + < 1+ swap 1+ swap }~self
+{ 0 swap c! tib }~ !
+}~|
+
+\ compiler
+
+{:: compile
+word
+{ find dup cell+ swap }~ @
+{ pad s>number ' literal }
+| execute
+}~self
+
+\ ok effect
+{ "  ok" type }~ cr
+
+effect ok
+
+
+\ empty word
+{:
+ok }~ input
+
+$
+vm
+x' drop w,
+x' }~ w,
+x' input w,
+
+does
+
+\ seed loop
+{: seedl
+input
+' interpret
+{ "  fail" type }~ cr
+|
+}~self
+
+\ output object code
+{: output
+' seedl 'id ' ok }~ handle
+
+\ seed vocabulary
+native seed
+bc SEED ld_rr,xx
+CONTEXT bc ld_(xx),rr
+next
+
+\ debugging
+
+\ forget a word and what was defined after it.
+{: forget
+word current @ context @ = search dictionary >=
+cell- dup @ current @ ! dp }~ !
+
+\ output data stack content
+native .s
+hl push
+hl STK_BOT ld_rr,xx
+0 label
+a and_r
+de sbc_hl,rr
+de add_hl,rr
+1 jr_nz_f
+hl pop
+vm
+x' }~ w,
+x' cr w,
+1 rlabel
+ldi
+ldi
+vm
+x' . w,
+x' cpu w,
+0 lb jr
+
+\ initialization
+
+start flabel
+a A ld_r,x
+BASE ld_(xx),a
+hl DICTIONARY ld_rr,xx
+DP ld_(xx),hl
+hl xlast ld_rr,xx
+SEED ld_(xx),hl
+de STK_BOT ld_rr,xx
+sp STK_TOP ld_rr,xx
+ix, hl vm_l lb ld_rr,xx
+vm
+x' seed w,
+x' definitions w,
+x' }~ w,
+x' seedl w,
+
+target dump
+
+bye
