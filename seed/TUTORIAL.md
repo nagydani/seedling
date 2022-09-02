@@ -149,13 +149,12 @@ just `drop`s two elements. It could have been written as
 `{ drop drop }`, but using tails is more efficient.
 
 Finally, the definition of `times` ends with the word 
-`}~|`, which is, again, just two words contracted into 
-one, because they are used so often together: `}~ |`. 
-Now, you already know `}~`, `|` pronounced "*or*" and 
-called "*disjunction*" will be discussed a bit later. 
-For now, it is sufficient to say that it takes two 
-computations, which are given as quotations in this 
-example.
+`}~|`, which is just two words contracted into one, 
+because they are used so often together: `}~ |`. Now, 
+you already know `}~`, `|` pronounced "*or*" and called 
+"*disjunction*" will be discussed a bit later. For now, 
+it is sufficient to say that it takes two computations, 
+which are given as quotations in this example.
 
 Now let us look inside the first quotation. It begins with the 
 word `0<>`, which is synonymous to `0 <>`, but it is used 
