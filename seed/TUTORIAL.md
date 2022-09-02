@@ -386,9 +386,10 @@ Now, let's try it:
 " THE quick brown FOX jumps over THE lazy DOG." typevowels
 ```
 
-The output, as expected, is `EuioOuoeEaO`. What if we want 
-to filter for either vowels or blanks? We just use 
-disjunction:
+The output, as expected, is `EuioOuoeEaO`. What if we 
+want to filter for either vowels or whitespace? We just 
+use disjunction with a filter that filters for 
+whitespace (`ws`):
 
 ```
 {: typevowelwords ( a -( emit )- )
