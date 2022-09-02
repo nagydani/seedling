@@ -348,7 +348,7 @@ and leave one value on the stack that is purely a function
 of the argument. Mappers always succeed.
 
 Let us now construct our own filter, using a generator 
-and a mapper. Suppose, we want to filter for vowels. We 
+and a mapper! Suppose, we want to filter for vowels. We 
 need a word that leaves vowels unchanged and fails on 
 everything else. The easiest way to do so is to generate 
 all vowels and check the argument against them:
@@ -386,4 +386,24 @@ Now, let's try it:
 " THE quick brown FOX jumps over THE lazy DOG." typevowels
 ```
 
-The output, as expected, is `EuioOuoeEaO`.
+The output, as expected, is `EuioOuoeEaO`. What if we want 
+to filter for either vowels or blanks? We just use 
+disjunction:
+
+```
+{: typevowelwords ( a -( emit )- )
+{ scan& ' vowel ' ws | emit }~fail
+'id}~|
+
+" THE quick brown FOX jumps over THE lazy DOG." typevowelwords
+```
+
+The output is `E ui o O u oe E a O`. In general, if we 
+want to combine filters to create a new filter that lets 
+through what either lets through, we use disjunction. To 
+combine filters so that only what passes both passes, we 
+just put them after one another (for efficiency, use the 
+one that is less likely to succeed first). In Seed, function 
+composition is this simple.
+
+
