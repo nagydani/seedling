@@ -205,3 +205,185 @@ wrong. In a later lesson, we are going to fix it to do
 the correct thing and let the entire disjunction fail. 
 This simple version of repetition works only with 
 computations that never fail and it never fails itself.
+
+The following word implements the so called `while` 
+combinator. Similarly to disjunction, it takes two 
+executable arguments, a predicate and a subject. 
+However, it works differently: It executes the subject, 
+if the predicate succeeds and if the subject also 
+succeeds, it starts over. If the predicate fails, the 
+combinator succeeds. If the subject fails, the 
+combinator fails. In other words, it keeps executing the 
+subject *while* the predicate succeeds.
+
+```
+{: while ( x x -( fail )- )
+>r dup >r
+{ r>drop r>drop r>drop } |
+r> r> swap >r dup >r execute r> r> swap }~self
+```
+
+As an exercise, you can work out how this word actually 
+works. The type signature tells the reader that this 
+word takes two executable arguments and may fail. The 
+word `r>drop` just drops the topmost element of the 
+return stack. It is synonymous with `r> drop`, but does 
+not bother with moving data to the data stack only to be 
+discarded from there, so it is more efficient.
+
+To see how it can be used, look at the below example 
+that outputs the beginning of a string up to the first 
+blank:
+
+```
+{: typeword ( a -( emit )- )
+{ ( a -( fail )- a c ) nonempty dup c@ bl }~ <>
+{ ( a c -( emit)- a ) emit }~ 1+
+}~ while
+```
+
+The type signature tells us that this word takes one 
+argument (a reference to a string, in this case) and has 
+the side effect of `emit`ting stuff to the output. I 
+also added type signatures to the predicate and subject 
+quotations. The predicate takes a string reference, can 
+fail and returns a string reference and a character. The 
+subject takes a string reference and a character, can 
+`emit` as a side effect and returns a string reference.
+
+The word `nonempty` fails, if the argument references an 
+empty string. The word `c@` takes a string reference and 
+returns the first character of the string. The word `bl` 
+takes no arguments and returns a blank character. The 
+word `<>` takes two arguments and fails, if the two are 
+equal. If not, it succeeds with returning the first 
+argument. Thus, the subject fails on empty strings and 
+on strings starting with a blank. If it succeeds, it 
+passes the original string and its first character as 
+an argument to the subject.
+
+The subject `emit`s the character and increments the 
+string reference. Note how the subject and the predicate 
+pass arguments around in the data stack: each expects as 
+arguments what the other leaves on the top of the stack.
+
+## Generators, Filters, Mappers
+
+A common task in programming is to iterate through a 
+number of objects and process them one by one. Seed uses 
+*generators* for this purpose. A generator word, by 
+convention ending with the `&` symbol, either leaves 
+the next object on the stack or, if there are no more 
+objects, it fails. When what follows the generator 
+fails, the generator generates the next object (or fails 
+itself).
+
+Let us explore the following very simple generator that 
+generates each successive character from a string:
+
+```
+{: scan& ( a -( & )- c )
+nonempty { 1+ }~ scan& & dup }~ c@
+```
+
+Without going into how it works under the hood, let us see 
+what it does and how to use it:
+
+```
+{: mytype ( a -( emit )- )
+{ scan& emit }~fail
+'id}~|
+```
+
+This example is just an alternative implementation of 
+`type`, using `scan&`. The closing word `'id}~|` is 
+synonymous with `'id }~|`, where `'id` is a reference to 
+an empty computation (the so-called *identity*, hence 
+the name). We use disjunction with identity to turn the 
+failure of the generator into a success of our computation.
+
+Let us modify it to emit only capital letters from the 
+argument string:
+
+```
+{: typecaps ( a -( emit )- )
+{ scan& upper emit }~fail
+'id}~|
+```
+
+Thus,
+
+```
+" THE quick brown FOX jumps over THE lazy DOG." typecaps
+```
+
+would output `THEFOXTHEDOG`. The word `upper` is a 
+so-called *filter* that leaves alone upper-case letters 
+and fails on everything else. By the way, `0<>` from 
+earlier examples is also a filter and so is `nonempty`. 
+In general, anything that either succeeds with arguments 
+passed on unchanged or fails is a filter.
+
+Another thing we might want to do is substituting each 
+element with something else. For instance, we might want 
+to change all letters to upper case:
+
+```
+{: shout ( a -( emit )- )
+{ scan& >upper emit }~fail
+'id}~|
+```
+
+As expected, the *mapper* `>upper` (pronounced 
+"*toupper*") changes lower case letter to upper case and 
+leaves everything else alone unchanged. Try:
+
+```
+" Hello, world!" shout
+```
+
+It should output `HELLO, WORLD!`. In general, mappers 
+are computations that take one argument from the stack 
+and leave one value on the stack that is purely a function 
+of the argument. Mappers always succeed.
+
+Let us now construct our own filter, using a generator 
+and a mapper. Suppose, we want to filter for vowels. We 
+need a word that leaves vowels unchanged and fails on 
+everything else. The easiest way to do so is to generate 
+all vowels and check the argument against them:
+
+```
+{: vowel ( c -( fail )- c )
+" AEIOU" scan& third >upper = cut drop }~ drop
+```
+
+Here we find a few novelties. The word `third` copies 
+the third element from the top of the stack onto the top 
+of the stack. In this example, it brings up the argument 
+of the function. After mapping it to upper case, we 
+check whether it equals the letter just generated. If 
+it doesn't, we generate the next one and check again. If 
+the generator runs its course, the whole computation 
+fails, which is exactly what we want, if the capitalized 
+version of our argument is not among the capital vowels. 
+
+But what if it is, and `=` succeeds? The next word, 
+`cut` "turns off" the current generator, so that we do 
+not search any further; subsequent failures are no 
+longer caught by it. The two elements on the stack above 
+the argument (the rest of the generated string and the 
+current letter generated from it) are dropped so that only 
+the filter's argument remains.
+
+Now, let's try it:
+
+```
+{: typevowels ( a -( emit )- )
+{ scan& vowel emit }~fail
+'id}~|
+
+" THE quick brown FOX jumps over THE lazy DOG." typevowels
+```
+
+The output, as expected, is `EuioOuoeEaO`.
