@@ -212,7 +212,7 @@ vocabulary.
  * [\]](#unnamed-macros)
  * [allot](#heap-effects)
  * [alphanum](#filters)
- * [and](#bitwise-logic-primitives)
+ * [and](#bitwise-primitives)
  * [ascii](#character-literals)
  * [base](#predefined-constants)
  * [bite](#input-functions)
@@ -250,6 +250,7 @@ vocabulary.
  * [here](#heap-effects)
  * [hex](#numeric-literals)
  * [immediate](#other-ways-to-create-and-modify-words)
+ * [invert](#bitwise-primitives)
  * [input](#input-effects)
  * [key](#input-effects)
  * [last](#vocabulary-manipulation-words)
@@ -258,10 +259,11 @@ vocabulary.
  * [link](#heap-effects)
  * [literal](#miscellaneous)
  * [lower](#filters)
+ * [lshift](#bitwise-primitives)
  * [mod](#binary-arithmetic-primitives)
  * [nip](#stack-manipulation)
  * [nonempty](#filters)
- * [or](#bitwise-logic-primitives)
+ * [or](#bitwise-primitives)
  * [output](#miscellaneous)
  * [over](#stack-manipulation)
  * [pad](#predefined-constants)
@@ -270,6 +272,7 @@ vocabulary.
  * [quotate](#other-ways-to-create-and-modify-words)
  * [r>](#stack-manipulation)
  * [r>drop](#stack-manipulation)
+ * [rshift](#bitwise-primitives)
  * [s,](#heap-effects)
  * [s<>](#relations)
  * [s=](#relations)
@@ -291,7 +294,7 @@ vocabulary.
  * [write](#output-effects)
  * [ws](#filters)
  * [wsskip](#mappers)
- * [xor](#bitwise-logic-primitives)
+ * [xor](#bitwise-primitives)
  * [{](#quotations)
  * [{:](#colon-definitions)
  * [{::](#postponed-colon-definitions)
@@ -648,7 +651,7 @@ with the result of some arithmetic operation on them.
 
 All of the above always succeeds.
 
-### Bitwise Logic Primitives
+### Bitwise Primitives
 
  * `or` replaces the top two cells of the data stack by 
    their bitwise or.
@@ -656,6 +659,14 @@ All of the above always succeeds.
    their bitwise and.
  * `xor` replaces the top two cells of the data stack by 
    their bitwise xor.
+ * `invert` inverts every bit of the cell on the top of 
+   the stack.
+ * `lshift` pops the counter off the top of the stack and 
+   shifts the next cell (now on the top) a counter number 
+   of times to the left.
+ * `rshift` pops the counter off the top of the stack and 
+   shifts the next cell (now on the top) a counter number 
+   of times to the right.
 
 All of the above always succeeds.
 
