@@ -180,11 +180,14 @@ create labels
 {: std			FD c, }
 {: shl_rr,s		48 c, C1 c, swap E0 or c, c, }
 {: shr_rr,s		48 c, C1 c, swap E8 or c, c, }
+{: shl_rr,cl		48 c, D3 c, E0 or c, }
+{: shr_rr,cl		48 c, D3 c, E8 or c, }
 {: rep_movsq		F3 c, 48 c, A5 c, }
 {: rep_movsb		F3 c, A4 c, }
 {: cmpsb		A6 c, }
 {: mul_rr		48 c, F7 c, E0 or c, }
 {: div_rr		48 c, F7 c, F0 or c, }
+{: not_rr		48 c, F7 c, D0 or c, }
 
 \ Cross Compilation
 \ The Seed language cannot be directly cross-compiled,
@@ -1244,7 +1247,7 @@ rbx rdx mov_[rr],rr
 rbx 8 add_rr,s
 ret
 
-\ binary bitwise logic primitives
+\ bitwise primitives
 
 native and
 binary
@@ -1259,6 +1262,28 @@ ret
 native xor
 binary
 rax rcx xor_rr,rr
+ret
+
+native invert
+rax not_rr
+ret
+
+3 label
+rax rax xor_rr,rr
+ret
+
+native lshift
+binary
+rcx 3F cmp_rr,s
+3 lb jnc_s
+rax shl_rr,cl
+ret
+
+native rshift
+binary
+rcx 3F cmp_rr,s
+3 lb jnc_s
+rax shr_rr,cl
 ret
 
 \ tail call

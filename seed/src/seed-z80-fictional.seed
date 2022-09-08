@@ -1230,7 +1230,7 @@ bc pop
 frombc
 next
 
-\ bitwise logic primitives
+\ bitwise primitives
 
 native and ( n n -- n )
 tobc
@@ -1268,6 +1268,78 @@ de dec_rr
 ld_a,(de)
 c xor_r
 0 lb jr
+
+native invert ( n -- n )
+de dec_rr
+ld_a,(de)
+cpl
+ld_(de),a
+de dec_rr
+ld_a,(de)
+cpl
+0 lb jr
+
+native lshift ( n n -- n )
+tobc
+a b ld_r,r
+a or_r
+2 jr_nz_f
+a c ld_r,r
+a or_r
+1 jr_z_f
+bc push
+tobc
+bc push
+exx
+hl pop
+bc pop
+b c ld_r,r
+0 label
+hl add_hl,rr
+0 lb djnz
+hl push
+exx
+bc pop
+frombc
+1 rlabel
+next
+
+native rshift ( n n -- n )
+tobc
+a b ld_r,r
+a or_r
+3 jr_nz_f
+a c ld_r,r
+a or_r
+1 jr_z_f
+bc push
+tobc
+bc push
+exx
+hl pop
+bc pop
+b c ld_r,r
+0 label
+h srl
+l rr
+0 lb djnz
+hl push
+exx
+bc pop
+frombc
+1 rlabel
+next
+
+2 rlabel
+3 rlabel
+a xor_r
+de dec_rr
+de dec_rr
+ld_(de),a
+de inc_rr
+ld_(de),a
+de inc_rr
+next
 
 \ string comparison primitives (perf. crit.)
 
