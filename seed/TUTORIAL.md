@@ -88,7 +88,6 @@ that would do this, but we can create our own word `times`:
 {: times ( x n -- )
 { 0<> 1- >r dup >r execute r> r> }~self
 { drop }~ drop }~|
-
 ```
 
 Before we figure out what all this gibberish means, 
@@ -106,19 +105,20 @@ Hello, world!
 Hello, world!
 ```
 
-The word `greet` is enclosed in curly braces, because it 
-makes it a computation. In fact, there is an alternative 
-way to refer to computations corresponding to single 
-words, the tick mark `'`. Try this:
+The word `greet` is enclosed in curly braces to turn
+it into a quoted computation. There is also a shorthand
+for quoting single word computations, namely the tick
+mark `'`. Try this:
 
 ```
 ' greet 3 times
 ```
 
-It does the same. The difference is that in the latter 
-case the computer does not need to create and store a new 
-program (called "quotation"), it merely refers to the 
-computation represented by the word `greet`.
+The output is the same, but there's a slight difference
+under the hood: in the latter case the computer does not
+need to create and store a new anonymous program (a so
+called "quotation"), it merely refers to the program
+already stored under the word `greet`.
 
 Now, let us delve into the internals of `times`!
 
@@ -166,13 +166,14 @@ a very important concept in Seed, we shall discuss it in
 more detail.
 
 But for now, assume that the number was not equal to 
-zero. The next word is `1-` (again, synonymous with `1 
--`), which decrements it by one. Then comes `>r`, which 
+zero. The next word is `1-` (again, synonymous with `1 -`),
+which decrements it by one. Then comes `>r`, which
 takes an element off the top of the stack and places it 
 on the top of another stack, called *return stack* 
 (hence the `r`). In this example, we just use it to move 
 things out of the way. Next comes `dup` which *dup*licates 
-the topmost element on the stack. The copy is immediately 
+the topmost element on the stack (which is a reference to
+the computation in this case). The copy is immediately
 moved over to the return stack by the following `>r`. What 
 remains on the stack is the executable computation, which 
 we immediately `execute`. Finally, we move the two arguments 
