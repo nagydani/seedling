@@ -23,7 +23,7 @@ hex
 }~|
 
 \ extract least significant 8 bits
-{: lsb		100 /mod swap }
+{: lsb		dup 8 rshift swap FF and }
 
 \ Heap manipulation words for the assembler
 \ note, that it should work on both little-endian and
@@ -42,10 +42,10 @@ hex
 {: a,		w, 1 w, 0 d, }
 
 \ 16-bit little-endian fetch
-{: w@		dup c@ swap 1+ c@ 100 * or }
+{: w@		dup c@ swap 1+ c@ 8 lshift or }
 
 \ 16-bit little-endian store
-{: w!		dup >r 1+ >r 100 /mod r> c! r> c! }
+{: w!		dup >r 1+ >r lsb swap r> c! r> c! }
 
 \ dump the tail of the heap for outputting the result
 {: dump		here over - write drop }
