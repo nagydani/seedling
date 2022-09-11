@@ -18,17 +18,20 @@ output \ this must be the first line
 
 hex
 
+\ split off least significant byte
+{: 100/mod	dup FF and swap 8 rshift }
+
 \ 16-bit negation
 {: negate	10000 swap - }
 
 \ 16-bit little-endian comma
-{: w,		100 /mod swap c, c, }
+{: w,		100/mod swap c, c, }
 
 \ 16-bit little-endian fetch
-{: w@		dup c@ swap 1+ c@ 100 * or }
+{: w@		dup c@ swap 1+ c@ 8 lshift or }
 
 \ 16-bit little-endian store
-{: w!		dup >r 1+ >r 100 /mod r> c! r> c! }
+{: w!		dup >r 1+ >r 100/mod r> c! r> c! }
 
 \ dump the tail of the heap
 {: dump		here over - write }
@@ -1407,7 +1410,7 @@ postpone word
 postpone find
 
 {: endtail
-, word find cell+ , }~fail
+, word find drop , }~fail
 
 x' endtail endtail !
 
@@ -1579,7 +1582,7 @@ x' }~| w,
 
 x' >lit >lit !
 
-{: ' word find }~ cell+
+{: ' word find }~ drop
 
 x' >lit does
 
@@ -1802,7 +1805,7 @@ traverse& pad s= cut }~ nip
 
 \ find word in context vocabulary
 {:: find ( -( pad fail )- a )
-context @ search }~ skipstr
+context @ search skipstr dup cell+ swap }~ @
 
 \ create colon definition
 native {: ( -( heap )- )
@@ -1864,7 +1867,7 @@ A }~ emit
 \ interpreter
 {: interpret
 word
-{ find cell+ ' execute { cut }~fail }~|
+{ find drop { cut }~fail }~|
 { { pad }~ s>number { pad type "  undefined" type }~ cr }~|
 | }~self
 
@@ -1913,7 +1916,7 @@ pad
 
 {:: compile
 word
-{ find dup cell+ swap }~ @
+' find
 { pad s>number ' literal }
 | execute
 }~self

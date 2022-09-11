@@ -1295,7 +1295,7 @@ postpone find
 native }~
 2 lb jmp \ not permitted in interpret mode
 
-{ drop word find @ endcomp } does
+{ drop word find drop endcomp } does
 
 \ prelude compiler (no prelude in Linux amd64)
 {: vm, }
@@ -1315,7 +1315,7 @@ x' drop does
 
 x' >lit does
 
-{: ' word find }~ @
+{: ' word find }~ drop
 
 x' >lit does
 
@@ -1581,7 +1581,7 @@ traverse& cell+ cell+ pad s= cut cell- cell- }~ nip
 
 \ find word in context vocabulary
 {:: find ( -( pad fail )- a )
-context @ }~ search
+context @ search dup @ swap cell+ }~ @
 
 \ create colon definition
 {: {: ( -( heap )- )
@@ -1592,7 +1592,7 @@ here ' compile 'id|
 
 \ postponed colon definition
 {: {::
-word find @ \ address of jmp instruction
+word find drop \ address of jmp instruction
 1+ \ address of jmp relative address
 dup
 4 + \ address of jmp anchor
@@ -1632,7 +1632,7 @@ bl }~ emit
 \ interpreter
 {: interpret
 word
-{ find @ ' execute { cut }~fail }~|
+{ find drop { cut }~fail }~|
 { { pad }~ s>number { pad type "  undefined" type }~ cr }~|
 | }~self
 
@@ -1681,7 +1681,7 @@ pad
 
 {:: compile
 word
-{ find dup cell+ @ swap @ }~ swap
+' find
 { pad s>number ' literal }
 | execute
 }~ compile  \ TODO: why }~self doesn't work?

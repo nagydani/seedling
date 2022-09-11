@@ -861,6 +861,12 @@ the handler is deregistered.
 
 ### Vocabulary Manipulation Words
 
+The word `find` searches the context vocabulary for the 
+word in the `pad`. If it is not found, the computation 
+fails. If it is found, then references to the interpret 
+and compile mode behaviors are placed on the stack, in
+this order.
+
 The following two words only make sense in interpret mode.
 
  * `vocabulary` creates a new vocabulary adding its name
