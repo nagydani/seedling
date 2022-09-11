@@ -66,9 +66,9 @@ code is not portable anyway.
 
 ## The Seed Language
 
-The Seed language is heavily inspired by Forth, therefore many
-of its features and conventions will be familiar to 
-those who already know Forth. However, this 
+The Seed language is heavily inspired by Forth, 
+therefore many of its features and conventions will be 
+familiar to those who already know Forth. However, this 
 specification makes no further references to Forth; 
 knowing Forth is not required to understand it.
 
@@ -94,8 +94,8 @@ all other words must be ultimately defined in terms of
 these.
 
 Computations in Seed may *succeed* or *fail* (see below 
-for more details), however, all toplevel computations in Seed
-source must succeed.
+for more details), however, all toplevel computations in 
+Seed source must succeed.
 
 The behavior of Seed in case of encountering undefined 
 words or failing computations is undefined. Sensible 
@@ -121,15 +121,15 @@ after success without affecting the return stack. Tail
 calls in Seed are explicitly indicated, as described 
 later.
 
-A possible effect of a computation is *failure*, in
+A possible effect of a computation is *failure*, in 
 which case both stacks are reset to their positions at 
-the time of the registration of the most recent *failure
-handler* (which is a computation itself), the failure
-handler is deregistered (making the previous failure handler
-active), and then executed. Conditional failure is the only
-means of conditional branching in Seed. Unconditional 
-failure is always a tail call, as the computation cannot 
-succeed, once it failed.
+the time of the registration of the most recent *failure 
+handler* (which is a computation itself), the failure 
+handler is deregistered (making the previous failure 
+handler active), and then executed. Conditional failure 
+is the only means of conditional branching in Seed. 
+Unconditional failure is always a tail call, as the 
+computation cannot succeed, once it failed.
 
 In addition to the two stacks, a third memory area is
 available to Seed programs called *heap* or *dictionary*

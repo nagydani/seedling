@@ -114,10 +114,10 @@ mark `'`. Try this:
 ' greet 3 times
 ```
 
-The output is the same, but there's a slight difference
-under the hood: in the latter case the computer does not
-need to create and store a new anonymous program (a so
-called "quotation"), it merely refers to the program
+The output is the same, but there is a slight difference 
+under the hood: in the latter case the computer does not 
+need to create and store a new anonymous program (a so 
+called "quotation"), it merely refers to the program 
 already stored under the word `greet`.
 
 Now, let us delve into the internals of `times`!
@@ -156,31 +156,32 @@ you already know `}~`, `|` pronounced "*or*" and called
 it is sufficient to say that it takes two computations, 
 which are given as quotations in this example.
 
-Now let us look inside the first quotation. It begins with the 
-word `0<>`, which is synonymous to `0 <>`, but it is used 
-so frequently, that it is worth having in a single word. 
-It checks whether the number on the top of the stack 
-equals zero. If no, the computation continues. If, however,
-it does equal zero, the computation *fails*. Failure is 
-a very important concept in Seed, we shall discuss it in 
-more detail.
+Now let us look inside the first quotation. It begins 
+with the word `0<>`, which is synonymous to `0 <>`, but 
+it is used so frequently, that it is worth having in a 
+single word. It checks whether the number on the top of 
+the stack equals zero. If no, the computation continues. 
+If, however, it does equal zero, the computation 
+*fails*. Failure is a very important concept in Seed, we 
+shall discuss it in more detail.
 
 But for now, assume that the number was not equal to 
-zero. The next word is `1-` (again, synonymous with `1 -`),
-which decrements it by one. Then comes `>r`, which
+zero. The next word is `1-` (again, synonymous with `1 
+-`), which decrements it by one. Then comes `>r`, which 
 takes an element off the top of the stack and places it 
 on the top of another stack, called *return stack* 
 (hence the `r`). In this example, we just use it to move 
-things out of the way. Next comes `dup` which *dup*licates 
-the topmost element on the stack (which is a reference to
-the computation in this case). The copy is immediately
-moved over to the return stack by the following `>r`. What 
-remains on the stack is the executable computation, which 
-we immediately `execute`. Finally, we move the two arguments 
-back from the return stack to our normal stack (called 
-*data stack*) and start over. So, it goes 'round and 'round 
-decrementing the number and executing the computation 
-until the number reaches 0.
+things out of the way. Next comes `dup` which 
+*dup*licates the topmost element on the stack (which is 
+a reference to the computation in this case). The copy 
+is immediately moved over to the return stack by the 
+following `>r`. What remains on the stack is the 
+executable computation, which we immediately `execute`. 
+Finally, we move the two arguments back from the return 
+stack to our normal stack (called *data stack*) and 
+start over. So, it goes 'round and 'round decrementing 
+the number and executing the computation until the 
+number reaches 0.
 
 Now, it is time to explain disjunction. Its two 
 arguments are called *predicate* and *subject*. It first 
@@ -405,8 +406,8 @@ want to combine filters to create a new filter that lets
 through what either lets through, we use disjunction. To 
 combine filters so that only what passes both passes, we 
 just put them after one another (for efficiency, use the 
-one that is less likely to succeed first). In Seed, function 
-composition is this simple.
+one that is less likely to succeed first). In Seed, 
+function composition is this simple.
 
 Now that we have seen how to use our `scan&` generator, we 
 can actually look into how it works in order to be able to 
