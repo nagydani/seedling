@@ -2,16 +2,17 @@
 
 ## Abstract
 
-The Seed is a basic abstraction above the computer 
-hardware and the operating system (if there is one; some 
+The Seed is a minimalist abstraction above the computer
+hardware and possibly an operating system (some
 Seeds may run on the "bare metal"). It is a program 
 implementing the Seed language. The *Seed language* is a 
 low-level programming language whose objective is to 
-compile other Seeds and the Sprout (a higher-level 
+compile other Seeds and the [Sprout](plan/stages.md#sprout)
+(a higher-level
 language with similar syntax, but richer semantics) as 
 well as hardware drivers for it.
 
-All Seeds are written in Seed language, and thus can 
+All Seeds are written in the Seed language, and thus can
 compile each other. Every computer architecture requires 
 its own Seed. Porting the entire Seed/Sprout/Seedling 
 stack onto a new architecture only requires writing a 
@@ -50,8 +51,7 @@ kilobytes each). Thus, a computer running Seed and
 compiling the smallest of Seeds must have at least a 
 dozen or so kilobytes of free RAM after booting Seed. 
 Compiling a smaller Seed without a computer using only 
-pen and paper is also feasible, albeit extremely 
-tedious.
+pen and paper is also feasible, albeit rather tedious.
 
 Importantly, the *Seed source* needs not fit into the 
 memory, so it can (and should!) be richly commented to 
@@ -66,7 +66,7 @@ code is not portable anyway.
 
 ## The Seed Language
 
-The Seed language is heavily inspired by Forth, so many 
+The Seed language is heavily inspired by Forth, therefore many
 of its features and conventions will be familiar to 
 those who already know Forth. However, this 
 specification makes no further references to Forth; 
@@ -94,7 +94,7 @@ all other words must be ultimately defined in terms of
 these.
 
 Computations in Seed may *succeed* or *fail* (see below 
-for more details), however, all computations in Seed 
+for more details), however, all toplevel computations in Seed
 source must succeed.
 
 The behavior of Seed in case of encountering undefined 
@@ -121,23 +121,23 @@ after success without affecting the return stack. Tail
 calls in Seed are explicitly indicated, as described 
 later.
 
-A possible effect of some computations is *failure* in 
+A possible effect of a computation is *failure*, in
 which case both stacks are reset to their positions at 
-the time of the registration of the *failure handler* (a 
-computation itself) and the failure handler is 
-deregistered (making the previous failure handler 
-active) and executed. Conditional failure is the only 
+the time of the registration of the most recent *failure
+handler* (which is a computation itself), the failure
+handler is deregistered (making the previous failure handler
+active), and then executed. Conditional failure is the only
 means of conditional branching in Seed. Unconditional 
 failure is always a tail call, as the computation cannot 
 succeed, once it failed.
 
-In addition to the two stacks, a memory area called 
-*heap* or *dictionary* (the two are used synonymously in 
-the context of Seed) is available to Seed programs, 
-which may be allocated as needed. Definitions of newly 
-created words go here as well as any data that the Seed 
-program may use. Note that Seed has no facilities for 
-freeing up heap space. The heap forms a continuous 
+In addition to the two stacks, a third memory area is
+available to Seed programs called *heap* or *dictionary*
+(the two are used synonymously in the context of Seed).
+New entries can be allocated dynamically, and there are
+no facilities for freeing up heap space. Definitions of
+newly created words go here as well as any data that the
+Seed program may want to use. The heap forms a continuous
 memory area with addresses starting at some arbitrary 
 number. Heap references must fit into one cell.
 
