@@ -1819,13 +1819,15 @@ x' drop w,
 \ postponed colon definition
 native {:: ( -( heap )- )
 vm
-x' { w,
+x' word w,
 x' current w,
 x' @ w,
 x' search w,
 x' skipstr w,
 x' cell+ w, 
 x' 1+ w,
+x' { w,
+x' swap w,
 x' }~ w,
 x' ! w,
 

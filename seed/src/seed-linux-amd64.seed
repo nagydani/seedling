@@ -1573,7 +1573,7 @@ literal
 \ postpone colon definition
 {: postpone
 create redefine
-'id }~ tailcomp
+'id tailcomp 3 }~ allot \ WTF? TODO: investigate
 
 \ search vocabulary
 {: search ( a -( pad fail )- a )
