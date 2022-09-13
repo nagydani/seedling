@@ -1633,7 +1633,7 @@ last cell+ }~ !
 \ scratch frame functions
 
 \ end address of the current frame
-{: fend ( -( fbot )- a )
+{: ftop ( -( fbot )- a )
 fbot dup cell- @ }~ +
 
 \ previous frame base address
@@ -1641,7 +1641,7 @@ fbot dup cell- @ }~ +
 fbot 28 - @ }~ 0<>
 
 \ end address of the previous frame
-{: pfend ( -( fbot fail )- a )
+{: pftop ( -( fbot fail )- a )
 pfbot dup cell- @ }~ +
 
 \ I/O functions

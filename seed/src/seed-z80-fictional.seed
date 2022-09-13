@@ -470,10 +470,11 @@ execute
 1008 constant CONTEXT
 100A constant CURRENT
 100C constant SEED
-100E constant BASE
-101F constant PAD
+100E constant FRAME
+1010 constant BASE
+1011 constant PAD
   20 constant PAD_LEN
-103F constant DICTIONARY
+1031 constant DICTIONARY
 
 \ memory layout
 C000 constant STK_BOT
@@ -1503,6 +1504,40 @@ ldi
 ldi
 next
 
+\ execute computation with scratch space
+native frame
+tobc
+bc push
+exx
+hl pop
+hl add_hl,rr
+ex_de,hl
+hl 0 ld_rr,xx
+sp add_hl,rr
+de sbc_hl,rr
+ld_sp,hl
+de push
+hl push
+exx
+bc pop
+frombc
+vm
+FRAME 1- xliteral
+x' handle w,
+x' cpu w,
+exx
+hl pop
+sp add_hl,rr
+ld_sp,hl
+exx
+next
+
+\ fetch scratch space base address
+native fbot
+bc FRAME ld_rr,(xx)
+frombc
+next
+
 \ disjunctions
 
 native |
@@ -1843,6 +1878,20 @@ last cell+ skipstr }~ !
 {: tailcomp
 ' }~ , }~ ,
 
+\ frame functions
+
+\ end address of the current frame
+{: ftop ( -( fbot )- a )
+fbot dup cell- @ }~ +
+
+\ previous frame base address
+{: pfbot ( -( fbot fail )- a )
+fbot C - @ }~ 0<>
+
+\ end address of the previous frame
+{: pftop ( -( fbot fail )- a )
+pfbot dup cell- @ }~ +
+
 \ output functions
 
 \ emit one space
@@ -1994,6 +2043,8 @@ a A ld_r,x
 BASE ld_(xx),a
 hl DICTIONARY ld_rr,xx
 DP ld_(xx),hl
+hl 0 ld_rr,xx
+FRAME ld_(xx),hl
 hl xlast ld_rr,xx
 SEED ld_(xx),hl
 de STK_BOT ld_rr,xx
