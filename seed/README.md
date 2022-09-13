@@ -245,7 +245,10 @@ vocabulary.
  * [endcomp](#other-ways-to-create-and-modify-words)
  * [endtail](#other-ways-to-create-and-modify-words)
  * [execute](#miscellaneous)
+ * [fbot](#frame-handling)
  * [find](#vocabulary-manipulation-words)
+ * [frame](#frame-handling)
+ * [ftop](#frame-handling)
  * [handle](#effect-handling)
  * [here](#heap-effects)
  * [hex](#numeric-literals)
@@ -267,6 +270,8 @@ vocabulary.
  * [output](#miscellaneous)
  * [over](#stack-manipulation)
  * [pad](#predefined-constants)
+ * [pfbot](#frame-handling)
+ * [pftop](#frame-handling)
  * [postpone](#postponed-colon-definitions)
  * [printable](#filters)
  * [quotate](#other-ways-to-create-and-modify-words)
@@ -858,6 +863,39 @@ executed with the second substituted for the effect and then
 the handler is deregistered.
 
 *TODO: a good example*
+
+### Frame Handling
+
+Another special effect is working memory use. The word 
+`frame` takes two arguments form the top of the stack 
+(from bottom to top): a computation that uses working 
+memory and the amount of working memory in cells. The 
+memory frame is allocated, then the computation executed 
+and finally, the memory frame is reclaimed.
+
+To the computation that uses working memory the 
+following words are available:
+
+ * `fbot` puts a reference to the base of the frame onto 
+   the top of the stack.
+ * `ftop` puts a reference to the top of the frame onto 
+   the top of the stack. Note that this reference is only 
+   for comparison, accessing it is an error.
+ * `pfbot` puts a reference to the base of the previous 
+   frame, if there is one, onto the top of the stack. 
+   Otherwise, it fails.
+ * `pftop` puts a reference to the top of the previous 
+   frame, if there is one, onto the top of the stack. 
+   Otherwise, it fails. Note that this reference is only 
+   for comparison, accessing it is an error.
+
+Example:
+```
+{ { pfbot . } 10 frame fbot . } 10 frame
+```
+
+Outputs the same address twice. It is the base reference 
+of the outer frame.
 
 ### Vocabulary Manipulation Words
 
