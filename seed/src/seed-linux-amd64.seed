@@ -416,14 +416,15 @@ drop
 18028 constant CONTEXT
 18030 constant CURRENT
 18038 constant DICTIONARY
-18040 constant BASE
-18041 constant EMIT_BUF
-18042 constant PAD
+18040 constant PAGE
+18048 constant BASE
+18049 constant EMIT_BUF
+1804A constant PAD
    20 constant PAD_LEN
-18062 constant TIB_BUF
+1806A constant TIB_BUF
   100 constant TIB_BUF_LEN
 
-18168 constant EFFECTS
+18170 constant EFFECTS
 
 \ effect pointer for cross-compiling
 EFFECTS variable effects
@@ -1143,6 +1144,26 @@ ERR_SP rcx mov_[aa],rr	\ restore ERR_SP
 rsp 8 add_rr,s		\ discard data stack pointer
 ret
 
+\ execute computation with scratch space
+native scratch
+binary
+rcx 3 shl_rr,s
+rsp rcx sub_rr,rr \ allocate page
+fromrax
+rax rsp mov_rr,rr \ page base on data stack
+rcx push
+rdx PAGE mov_rr,aa
+3 lb call
+rcx pop
+rsp rcx add_rr,rr \ deallocate page
+ret
+
+\ fetch page base address
+native page
+fromrax
+rax PAGE mov_rr,[aa]
+ret
+
 \ disjunction combinator
 native |
 rdx FAIL mov_rr,aa
@@ -1608,6 +1629,20 @@ last cell+ }~ !
 \ make most recently definted word immediate
 {: immediate ( -( heap )- )
 ' execute }~ does
+
+\ scratch page functions
+
+\ end address of the current page
+{: end ( -( page )- a )
+page dup cell- @ }~ +
+
+\ previous page base address
+{: page' ( -( page fail )- a )
+page 28 - @ }~ 0<>
+
+\ end address of the previous page
+{: end' ( -( page fail )- a )
+page' dup cell- @ }~ +
 
 \ I/O functions
 
