@@ -7,7 +7,7 @@ customary to begin with making the computer greet the
 world. In Seed, this looks as follows:
 
 ```
-" Hello, world!" type cr
+" Hello, world!" s. cr
 ```
 
 If you enter the above line, you will see the following 
@@ -35,7 +35,7 @@ of Seed:
    with ` ok`. The leading space is there to separate it 
    from outputs that do not end with a new line.
 
-In the example above the word `type` outputs its sole 
+In the example above the word `s.` outputs its sole 
 argument, while the word `cr` (short for "carriage return")
 begins a new line.
 
@@ -43,7 +43,7 @@ However, this is not yet a program, just a command. To make
 it a program, enclose it in curly braces:
 
 ```
-{ " Hello, world!" type cr }
+{ " Hello, world!" s. cr }
 ```
 
 If you type this, seemingly nothing happens, but if you 
@@ -53,7 +53,7 @@ We can also create new words using existing words. Let
 us give the name `greet` to our program:
 
 ```
-{: greet " Hello, world!" type cr }
+{: greet " Hello, world!" s. cr }
 ```
 
 From now on, we just need to say `greet` for the 
@@ -139,7 +139,7 @@ a computation with another -- named -- computation by
 using the `}~` word (pronounced "*tail*") followed by the 
 name of the computation. As an exercise, you can try to 
 guess what the `greeet` word defined as follows does, 
-without trying it out: `{: greeet " Hello world!" type 
+without trying it out: `{: greeet " Hello world!" s. 
 cr }~ greeet`. How could you express it differently?
 
 Then comes another quotation: `{ drop }~ drop` the word 
@@ -238,7 +238,7 @@ that outputs the beginning of a string up to the first
 blank:
 
 ```
-{: typeword ( a -( emit )- )
+{: s.word ( a -( emit )- )
 { ( a -( fail )- a c ) nonempty dup c@ bl }~ <>
 { ( a c -( emit)- a ) emit }~ 1+
 }~ while
@@ -292,13 +292,13 @@ Without going into how it works under the hood, let us see
 what it does and how to use it:
 
 ```
-{: mytype ( a -( emit )- )
+{: mys. ( a -( emit )- )
 { scan& emit }~fail
 'id}~|
 ```
 
 This example is just an alternative implementation of 
-`type`, using `scan&`. The closing word `'id}~|` is 
+`s.`, using `scan&`. The closing word `'id}~|` is 
 synonymous with `'id }~|`, where `'id` is a reference to 
 an empty computation (the so-called *identity*, hence 
 the name). We use disjunction with identity to turn the 
@@ -308,7 +308,7 @@ Let us modify it to emit only capital letters from the
 argument string:
 
 ```
-{: typecaps ( a -( emit )- )
+{: s.caps ( a -( emit )- )
 { scan& upper emit }~fail
 'id}~|
 ```
@@ -316,7 +316,7 @@ argument string:
 Thus,
 
 ```
-" THE quick brown FOX jumps over THE lazy DOG." typecaps
+" THE quick brown FOX jumps over THE lazy DOG." s.caps
 ```
 
 would output `THEFOXTHEDOG`. The word `upper` is a 
@@ -381,11 +381,11 @@ the filter's argument remains.
 Now, let's try it:
 
 ```
-{: typevowels ( a -( emit )- )
+{: s.vowels ( a -( emit )- )
 { scan& vowel emit }~fail
 'id}~|
 
-" THE quick brown FOX jumps over THE lazy DOG." typevowels
+" THE quick brown FOX jumps over THE lazy DOG." s.vowels
 ```
 
 The output, as expected, is `EuioOuoeEaO`. What if we 
@@ -394,11 +394,11 @@ use disjunction with a filter that filters for
 whitespace (`ws`):
 
 ```
-{: typevowelwords ( a -( emit )- )
+{: s.vowelwords ( a -( emit )- )
 { scan& ' vowel ' ws | emit }~fail
 'id}~|
 
-" THE quick brown FOX jumps over THE lazy DOG." typevowelwords
+" THE quick brown FOX jumps over THE lazy DOG." s.vowelwords
 ```
 
 The output is `E ui o O u oe E a O`. In general, if we 

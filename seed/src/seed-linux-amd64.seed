@@ -1754,7 +1754,7 @@ pfbot dup cell- @ }~ +
 
 \ I/O functions
 
-{: type
+{: s.
 dup length write }~ drop
 
 \ emit new line (a.k.a. carriage return)
@@ -1767,7 +1767,7 @@ bl }~ emit
 
 \ emit all context words
 {: words
-{ context @ traverse& cell+ cell+ type space }~fail
+{ context @ traverse& cell+ cell+ s. space }~fail
 ' cr }~| 
 
 \ interpreter functions
@@ -1776,7 +1776,7 @@ bl }~ emit
 {: interpret
 word
 { find drop { cut }~fail }~|
-{ { pad }~ s>number { pad type "  undefined" type }~ cr }~|
+{ { pad }~ s>number { pad s. "  undefined" s. }~ cr }~|
 | }~self
 
 \ unnamed macro
@@ -1835,7 +1835,7 @@ word
 
 \ ok effect
 {: stdok
-"  ok" type }~ cr
+"  ok" s. }~ cr
 
 effect ok
 
@@ -1885,7 +1885,7 @@ x' cr jmp
 {: seedl
 input
 ' interpret
-{ "  fail" type }~ cr
+{ "  fail" s. }~ cr
 |
 }~self
 

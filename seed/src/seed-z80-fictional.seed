@@ -2002,14 +2002,14 @@ bl }~ emit
 A }~ emit
 
 \ emit a string
-{: type ( a -( emit )- )
+{: s. ( a -( emit )- )
 { dup c@ 0<> emit 1+ }~self
 'id|
 }~ drop
 
 \ emit all context words
 {: words ( -( emit )- )
-{ context @ traverse& type space }~fail
+{ context @ traverse& s. space }~fail
 ' cr }~|
 
 \ interpreter functions
@@ -2018,7 +2018,7 @@ A }~ emit
 {: interpret
 word
 { find drop { cut }~fail }~|
-{ { pad }~ s>number { pad type "  undefined" type }~ cr }~|
+{ { pad }~ s>number { pad s. "  undefined" s. }~ cr }~|
 | }~self
 
 \ unnamed macro
@@ -2076,7 +2076,7 @@ word
 }~self
 
 \ ok effect
-{ "  ok" type }~ cr
+{ "  ok" s. }~ cr
 
 effect ok
 
@@ -2097,7 +2097,7 @@ does
 {: seedl
 input
 ' interpret
-{ "  fail" type }~ cr
+{ "  fail" s. }~ cr
 |
 }~self
 

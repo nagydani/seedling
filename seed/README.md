@@ -191,8 +191,9 @@ vocabulary.
  * [-](#binary-arithmetic-primitives)
  * [.](#output-functions)
  * [/](#binary-arithmetic-primitives)
- * [/mod](#binary-arithmetic-primitives)
+ * [0<](#filters)
  * [0<>](#filters)
+ * [0>=](#filters)
  * [0=](#filters)
  * [1+](#mappers)
  * [1-](#mappers)
@@ -239,6 +240,7 @@ vocabulary.
  * [does](#other-ways-to-create-and-modify-words)
  * [dp](#predefined-constants)
  * [drop](#stack-manipulation)
+ * [du/mod](#binary-arithmetic-primitives)
  * [dup](#stack-manipulation)
  * [effect](#effect-handling)
  * [emit](#output-effects)
@@ -253,7 +255,7 @@ vocabulary.
  * [here](#heap-effects)
  * [hex](#numeric-literals)
  * [immediate](#other-ways-to-create-and-modify-words)
- * [invert](#bitwise-primitives)
+ * [invert](#mappers)
  * [input](#input-effects)
  * [key](#input-effects)
  * [last](#vocabulary-manipulation-words)
@@ -264,6 +266,7 @@ vocabulary.
  * [lower](#filters)
  * [lshift](#bitwise-primitives)
  * [mod](#binary-arithmetic-primitives)
+ * [negate](#mappers)
  * [nip](#stack-manipulation)
  * [nonempty](#filters)
  * [or](#bitwise-primitives)
@@ -278,6 +281,7 @@ vocabulary.
  * [r>](#stack-manipulation)
  * [r>drop](#stack-manipulation)
  * [rshift](#bitwise-primitives)
+ * [s.](#output-functions)
  * [s,](#heap-effects)
  * [s<>](#relations)
  * [s=](#relations)
@@ -290,8 +294,9 @@ vocabulary.
  * [third](#stack-manipulation)
  * [tib](#predefined-constants)
  * [traverse&](#miscellaneous)
- * [type](#output-functions)
  * [u*](#binary-arithmetic-primitives)
+ * [u/](#binary-arithmetic-primitives)
+ * [u/mod](#binary-arithmetic-primitives)
  * [upper](#filters)
  * [variable](#other-ways-to-create-and-modify-words)
  * [vocabulary](#vocabulary-manipulation-words)
@@ -547,7 +552,7 @@ All of the above always succeeds.
 
 ### Output Functions
 
-The functions below use the `emit` effect.
+The functions below use the `emit` or `write` effect.
 
  * `.` outputs a numeral string in the current base 
    corresponding to the value popped from the data stack
@@ -555,7 +560,7 @@ The functions below use the `emit` effect.
  * `space` outputs a whitespace.
  * `cr` outputs a line 
     ending of the underlying platform.
- * `type` outputs a zero-terminated string (without the 
+ * `s.` outputs a zero-terminated string (without the 
     trailing zero) popping the reference from the data 
     stack.
 
@@ -647,12 +652,20 @@ with the result of some arithmetic operation on them.
  * `u*` (pronounced *"u-star"*) takes two cells from 
    the top of the data stack and replaces them by the 
    lower and the upper cells of their product. Unsigned.
- * `/mod` (pronounced *"slash-mod"*) takes two cells 
+ * `du/mod` (pronounced *"du-slash-mod"*) takes three cells 
    from the top of the data stack and replaces them by 
-   the reminder and the quotient after division. Unsigned.
- * `*` (pronounced *"star"*) implements `u* drop`.
- * `/` (pronounced *"slash"*) implements `/mod nip`.
- * `mod` implements `/mod drop`.
+   the reminder and the quotient after divding the first two
+   as a double integer by the third (on the top of the stack). Unsigned.
+ * `u/mod` (pronounced *"u-slash-mod"*) takes two cells 
+   from the top of the data stack and replaces them by 
+   the reminder and the quotient after division. Unsigned,
+   implements `0 swap du/mod`
+ * `*` (pronounced *"star"*) multiplication, implements `u* drop`.
+ * `/` (pronounced *"slash"*) signed division, rounds towards negative
+   infinity.
+ * `u/` (pronounced *"u-slash"*) unsigned division, implements `u/mod nip`.
+ * `mod` signed modulus, if not zero, same sign as divisor.
+ * `umod` unsigned modulus, implements `u/mod drop`.
 
 All of the above always succeeds.
 
@@ -664,14 +677,15 @@ All of the above always succeeds.
    their bitwise and.
  * `xor` replaces the top two cells of the data stack by 
    their bitwise xor.
- * `invert` inverts every bit of the cell on the top of 
-   the stack.
  * `lshift` pops the counter off the top of the stack and 
    shifts the next cell (now on the top) a counter number 
    of times to the left.
  * `rshift` pops the counter off the top of the stack and 
    shifts the next cell (now on the top) a counter number 
-   of times to the right.
+   of times to the right, zeroing the leftmost bit.
+ * `arshift` pops the counter off the top of the stack and 
+   shifts the next cell (now on the top) a counter number 
+   of times to the right, keeping the leftmost bit intact.
 
 All of the above always succeeds.
 
@@ -684,7 +698,11 @@ succeeding or fail.
  * `0=` (pronounced *"zero-equal"*) succeeds for zero
    values.
  * `0<>` (pronounced *"zero-unequal"*) succeeds for 
-   non-zero.
+   non-zero values.
+ * '0>=' (pronounced *"non-negative"*) succeeds for
+   non-negative values.
+ * '0<' (pronounced *"negative"*) succeeds for negative
+   values.
  * `nonempty` succeeds for non-empty strings.
  * `ddigit` succeeds for ASCII codes of decimal digits.
  * `upper` succeeds for ASCII codes of upper-case letters.
@@ -720,6 +738,8 @@ stack as pure functions. They always succeed.
  * `wsskip` (pronounced *"whitespace-skip"*) changes the 
    reference to a zero-terminated string to one without 
    leading whitespace characters.
+ * `negate` negates a signed integer.
+ * `invert` inverts every bit of the cell.
 
 ### Relations
 
@@ -735,15 +755,23 @@ concatenative programming languages sounds somewhat like
 Yoda from Star Wars. We'll just reinforce this pattern 
 here.
 
- * `<` (pronounced *"less-is"*) compares two cells as 
-   unsigned integers.
- * `<=` (pronounced *"less-is-or-equals"*) compares two 
-   cells as unsigned integers.
- * `<>` (pronounced *"equals-not"*) compares two cells
  * `=` (pronounced *"equals"*) compares two cells
+ * `<>` (pronounced *"equals-not"*) compares two cells
+ * `<` (pronounced *"less-is"*) compares two cells as 
+   signed integers.
+ * `<=` (pronounced *"less-is-or-equals"*) compares two 
+   cells as signed integers.
  * `>` (pronounced *"greater-is"*) compares two cells as 
-   unsigned integers
+   signed integers
  * `>=` (pronounced *"greater-is-or-equals"*) compares 
+   two cells as signed integers.
+ * `u<` (pronounced *"less-is"*) compares two cells as 
+   unsigned integers.
+ * `u<=` (pronounced *"less-is-or-equals"*) compares two 
+   cells as unsigned integers.
+ * `u>` (pronounced *"greater-is"*) compares two cells as 
+   unsigned integers
+ * `u>=` (pronounced *"greater-is-or-equals"*) compares 
    two cells as unsigned integers.
  * `s<>` (pronounced *"ess-equals-not"*) compares two 
    strings referenced by the two cells on the top of the 
