@@ -22,7 +22,7 @@ hex
 {: 100u/mod	dup FF and swap 8 rshift }
 
 \ 16-bit negation
-{: negate	10000 swap - }
+{: wnegate	10000 swap - }
 
 \ 16-bit little-endian comma
 {: w,		100u/mod swap c, c, }
@@ -350,7 +350,7 @@ s,
 0 variable lits
 
 {: xliteral ( x -( heap )- )
-{ FF <= lit8 @ w, }~ c, { lit16 @ w, }~ w, }~|
+{ dup FF and = lit8 @ w, }~ c, { lit16 @ w, }~ w, }~|
 
 {: x{{ ( -( heap )- a )
 lits @ w, 0 c, }~ here
@@ -788,7 +788,7 @@ next
 
 native dup
 hl push
-hl 2 negate ld_rr,xx
+hl 2 wnegate ld_rr,xx
 0 label
 de add_hl,rr
 ldi
@@ -798,12 +798,12 @@ next
 
 native over
 hl push
-hl 4 negate ld_rr,xx
+hl 4 wnegate ld_rr,xx
 0 lb jr
 
 native third
 hl push
-hl 6 negate ld_rr,xx
+hl 6 wnegate ld_rr,xx
 0 lb jr
 
 native >r
@@ -1069,7 +1069,7 @@ hl inc_rr
 ex_de,hl		\ HL = previous ERR_SP
 ERR_SP ld_(xx),hl	\ restore previous ERR_SP
 de inc_rr
-hl C negate ld_rr,xx
+hl C wnegate ld_rr,xx
 de add_hl,rr		\ HL points below the handler frame
 hl push
 scf
@@ -1630,7 +1630,7 @@ vm
 x{{
 	vm
 	FF xliteral
-	x' <= w,
+	x' u<= w,
 	lit8 @ xliteral
 	x' , w,
 	x' }~ w,
