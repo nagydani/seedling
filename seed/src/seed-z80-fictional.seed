@@ -1466,13 +1466,39 @@ $ ~selfref !
 
 \ comparisons
 
-{: >= over swap - carry? }~ drop
+{: u>= over swap - carry? }~ drop
 
-{: <= over - carry? }~ drop
+{: u<= over - carry? }~ drop
 
-{: > 1+ carry? }~ >=
+{: u> 1+ carry? }~ >=
 
-{: < 1- carry? }~ <= 
+{: u< 1- carry? }~ <= 
+
+0 label
+de dec_rr
+ex_de,hl
+7 (hl) bit
+ex_de,hl
+de inc_rr
+ret
+
+native 0>=
+0 lb call
+nz fail lb jp_cc
+next
+
+native 0<
+0 lb call
+z fail lb jp_cc
+next
+
+{: >= over swap - 0>= }~ drop
+
+{: > over - 0< }~ drop
+
+{: <= over - 0>= }~ drop
+
+{: < over swap - 0< }~ drop
 
 \ literal opcodes
 
