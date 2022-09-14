@@ -1755,22 +1755,26 @@ A base }~ c!
 {: digit>int ( c -( fail )- n )
 alphanum
 ascii 0 -
-carry?
+0>=
 { 9 }~ <=
 { 7 }~ -
 |
 base c@ }~ <
 
 \ auxiliary numeral conversion
-{: (number) ( a n -- n )
-base c@ * over c@ digit>int + swap 1+ dup c@
-{ ws drop }~ drop
-{ drop swap }~ (number)
-}~|
+{: (number) ( a n -( fail )- n )
+over c@ digit>int
+{ >r base c@ * r> + swap
+{ 1+ dup c@ ascii _ = drop }~self 'id| 
+swap over c@ digit>int }~self
+'id|
+drop
+over c@ ws drop
+}~ nip
 
 \ string numeral to integer conversion
-{: s>number ( a -- n )
-{ dup @ ascii - <> drop 0 }~ (number)
+{: s>number ( a -( fail )- n )
+{ dup c@ ascii - <> drop 0 ' (number) { cut }~fail }~|
 { 1+ 0 (number) }~ negate
 }~|
 
