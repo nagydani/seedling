@@ -1701,23 +1701,23 @@ bl constant bl
 
 \ check whitespace
 {: ws ( c -( fail )- c )
-bl }~ <=
+bl }~ u<=
 
 \ check printable
 {: printable ( c -( fail )- c )
-ascii ! >= ascii ~ }~ <=
+ascii ! u>= ascii ~ }~ u<=
 
 \ decimal digit
 {: ddigit ( c -( fail )- c )
-ascii 0 >= ascii 9 }~ <=
+ascii 0 u>= ascii 9 }~ u<=
 
 \ lowercase letter
 {: lower ( c -( fail )- c )
-ascii a >= ascii z }~ <=
+ascii a u>= ascii z }~ u<=
 
 \ uppercase letter
 {: upper ( c -( fail )- c )
-ascii A >= ascii Z }~ <=
+ascii A u>= ascii Z }~ u<=
 
 \ letter
 {: letter ( c -( fail )- c )
@@ -1755,11 +1755,11 @@ A base }~ c!
 {: digit>int ( c -( fail )- n )
 alphanum
 ascii 0 -
-0>=
-{ 9 }~ <=
+carry?
+{ 9 }~ u<=
 { 7 }~ -
 |
-base c@ }~ <
+base c@ }~ u<
 
 \ auxiliary numeral conversion
 {: (number) ( a n -( fail )- n )
