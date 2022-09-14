@@ -1472,9 +1472,9 @@ $ ~selfref !
 
 {: u<= over - carry? }~ drop
 
-{: u> 1+ carry? }~ >=
+{: u> 1+ carry? }~ u>=
 
-{: u< 1- carry? }~ <= 
+{: u< 1- carry? }~ u<= 
 
 0 label
 de dec_rr
