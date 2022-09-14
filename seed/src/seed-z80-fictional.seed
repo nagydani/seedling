@@ -1762,15 +1762,17 @@ carry?
 base c@ }~ <
 
 \ auxiliary numeral conversion
-{: >number ( a n -- n )
+{: (number) ( a n -- n )
 base c@ * over c@ digit>int + swap 1+ dup c@
 { ws drop }~ drop
-{ drop swap }~ >number
+{ drop swap }~ (number)
 }~|
 
 \ string numeral to integer conversion
 {: s>number ( a -- n )
-0 }~ >number
+{ dup @ ascii - <> drop 0 }~ (number)
+{ 1+ 0 (number) }~ negate
+}~|
 
 \ more string functions
 
