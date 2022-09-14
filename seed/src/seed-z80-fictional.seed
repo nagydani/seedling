@@ -1347,6 +1347,44 @@ ld_(de),a
 de inc_rr
 next
 
+native arshift ( n n -- n )
+tobc
+a b ld_r,r
+a or_r
+3 jr_nz_f
+a c ld_r,r
+a or_r
+1 jr_z_f
+bc push
+tobc
+bc push
+exx
+hl pop
+bc pop
+b c ld_r,r
+0 label
+h sra
+l rr
+0 lb djnz
+hl push
+exx
+bc pop
+frombc
+1 rlabel
+next
+
+3 rlabel
+de dec_rr
+ld_a,(de)
+a add_a,r
+a sbc_a,r
+de dec_rr
+ld_(de),a
+de inc_rr
+ld_(de),a
+de inc_rr
+next
+
 \ string comparison primitives (perf. crit.)
 
 \ compare two strings for equality
