@@ -110,38 +110,42 @@ create labels
 \ short relative jump
 {: srel		$ 1+ - c, }
 
+\ multiply by 8
+{: 8*		3 lshift }
+
 \ Opcodes
 
 {: mov_rr,x		swap B8 + c, d, }
 {: mov_rr,aa		swap B8 + c, w, 1 w, }
 {: mov_rr,xx		swap 48 c, B8 + c, q, }
-{: mov_rr,rr		48 c, 89 c, 8 * + C0 or c, }
-{: mov_rl,rl		88 c, 8 * + C0 or c, }
-{: mov_er,er		89 c, 8 * + C0 or c, }
+{: mov_rr,rr		48 c, 89 c, 8* + C0 or c, }
+{: mov_rl,rl		88 c, 8* + C0 or c, }
+{: mov_er,er		89 c, 8* + C0 or c, }
 {: mov_byte_[rr],x      C6 c, swap c, c, }
-{: mov_[rr],rr		48 c, 89 c, 8 * + c, }
-{: mov_[rr],er		89 c, 8 * + c, }
-{: mov_er,[rr]		8B c, swap 8 * + c, }
-{: mov_[rr],rl		88 c, 8 * + c, }
-{: mov_rl,[rr]		8A c, swap 8 * + c, }
-{: mov_rr,[rr]		48 c, 8B c, swap 8 * + c, }
-{: mov_[aa],rr		48 c, 89 c, 8 * 4 + c, 25 c, w, 1 w, }
-{: mov_[aa],rl		88 c, 8 * 4 + c, 25 c, w, 1 w, }
-{: mov_rl,[aa]		8A c, swap 8 * 4 + c, 25 c, w, 1 w, }
-{: mov_rr,[aa]		48 c, 8B c, swap 8 * 4 + c, 25 c, w, 1 w, }
+{: mov_[rr],rr		48 c, 89 c, 8* + c, }
+{: mov_[rr],er		89 c, 8* + c, }
+{: mov_er,[rr]		8B c, swap 8* + c, }
+{: mov_[rr],rl		88 c, 8* + c, }
+{: mov_rl,[rr]		8A c, swap 8* + c, }
+{: mov_rr,[rr]		48 c, 8B c, swap 8* + c, }
+{: mov_[aa],rr		48 c, 89 c, 8* 4 + c, 25 c, w, 1 w, }
+{: mov_[aa],rl		88 c, 8* 4 + c, 25 c, w, 1 w, }
+{: mov_rl,[aa]		8A c, swap 8* 4 + c, 25 c, w, 1 w, }
+{: mov_rr,[aa]		48 c, 8B c, swap 8* 4 + c, 25 c, w, 1 w, }
 {: syscall		50F w, }
-{: add_rr,rr		48 c, 01 c, 8 * + C0 or c, }
+{: add_rr,rr		48 c, 01 c, 8* + C0 or c, }
 {: add_rr,s		48 c, 83 c, swap C0 + c, c, }
-{: add_rr,[aa]		48 c, 03 c, swap 8 * 4 + c, 25 c, w, 1 w, }
+{: add_rr,[aa]		48 c, 03 c, swap 8* 4 + c, 25 c, w, 1 w, }
 {: sub_rr,s		48 c, 83 c, swap E8 + c, c, }
-{: sub_rr,rr		48 c, 29 c, 8 * + C0 or c, }
+{: sub_rr,rr		48 c, 29 c, 8* + C0 or c, }
+{: sbb_rr,rr		48 c, 19 c, 8* + C0 or c, }
 {: cmp_rr,s		48 c, 83 c, swap F8 + c, c, }
-{: cmp_rr,rr		48 c, 39 c, 8 * + C0 or c, }
-{: cmp_rr,[rr]		48 c, 3B c, swap 8 * + c, }
-{: cmp_rl,[rr]		3A c, swap 8 * + c, }
-{: and_rr,rr		48 c, 21 c, 8 * + C0 or c, }
-{: or_rr,rr		48 c, 09 c, 8 * + C0 or c, }
-{: xor_rr,rr		48 c, 31 c, 8 * + C0 or c, }
+{: cmp_rr,rr		48 c, 39 c, 8* + C0 or c, }
+{: cmp_rr,[rr]		48 c, 3B c, swap 8* + c, }
+{: cmp_rl,[rr]		3A c, swap 8* + c, }
+{: and_rr,rr		48 c, 21 c, 8* + C0 or c, }
+{: or_rr,rr		48 c, 09 c, 8* + C0 or c, }
+{: xor_rr,rr		48 c, 31 c, 8* + C0 or c, }
 {: call			E8 c, rel }
 {: call_f		E8 c, jrf }
 {: call_rr		FF c, D0 or c, }
@@ -169,6 +173,12 @@ create labels
 {: jnz			0F c, 85 c, rel }
 {: jbe			0F c, 86 c, rel }
 {: ja			0F c, 87 c, rel }
+{: js			0F c, 88 c, rel }
+{: jns			0F c, 89 c, rel }
+{: jl			0F c, 8C c, rel }
+{: jge			0F c, 8D c, rel }
+{: jle			0F c, 8E c, rel }
+{: jg			0F c, 8F c, rel }
 {: ret			C3 c, }
 {: push			50 + c, }
 {: pop			58 + c, }
@@ -182,12 +192,16 @@ create labels
 {: shr_rr,s		48 c, C1 c, swap E8 or c, c, }
 {: shl_rr,cl		48 c, D3 c, E0 or c, }
 {: shr_rr,cl		48 c, D3 c, E8 or c, }
+{: sar_rr,cl		48 c, D3 c, F8 or c, }
+{: rcr_rr,1		48 c, D1 c, D8 or c, }
 {: rep_movsq		F3 c, 48 c, A5 c, }
 {: rep_movsb		F3 c, A4 c, }
 {: cmpsb		A6 c, }
 {: mul_rr		48 c, F7 c, E0 or c, }
 {: div_rr		48 c, F7 c, F0 or c, }
+{: idiv_rr		48 c, F7 c, F8 or c, }
 {: not_rr		48 c, F7 c, D0 or c, }
+{: neg_rr		48 c, F7 c, D8 or c, }
 
 \ Cross Compilation
 \ The Seed language cannot be directly cross-compiled,
@@ -799,6 +813,16 @@ rax rax or_rr,rr
 2 lb jz
 ret
 
+native 0>=
+rax rax or_rr,rr
+2 lb js
+ret
+
+native 0<
+rax rax or_rr,rr
+2 lb jns
+ret
+
 \ relations
 
 native =
@@ -811,25 +835,46 @@ binary_cmp
 2 lb jz
 ret
 
-native >
+native u>
 binary_cmp
 2 lb jbe
 ret
 
-native >=
+native u>=
 binary_cmp
 2 lb jb
 ret
 
-native <
+native u<
 binary_cmp
 2 lb jae
 ret
 
-native <=
+native u<=
 binary_cmp
 2 lb ja
 ret
+
+native >
+binary_cmp
+2 lb jle
+ret
+
+native >=
+binary_cmp
+2 lb jl
+ret
+
+native <
+binary_cmp
+2 lb jge
+ret
+
+native <=
+binary_cmp
+2 lb jg
+ret
+
 
 \ compare strings for equality
 3 label
@@ -1260,13 +1305,35 @@ fromrax
 rax rdx mov_rr,rr
 ret
 
-native /mod ( n n -- n n )
+native u/mod ( n n -- n n )
 binary
 rdx rdx xor_rr,rr
 rcx div_rr
 rbx rdx mov_[rr],rr
 rbx 8 add_rr,s
 ret
+
+native du/mod ( n n n -- n n )
+rcx rax mov_rr,rr
+rdx rbx mov_rr,[rr]
+rbx 8 sub_rr,s
+rax rbx mov_rr,[rr]
+rbx 8 sub_rr,s
+rcx div_rr
+rbx rdx mov_[rr],rr
+rbx 8 add_rr,s
+ret
+
+native /mod ( n n -- n n )
+binary
+rax rax add_rr,rr
+rdx rdx sbb_rr,rr
+rax rcr_rr,1
+rcx idiv_rr
+rbx rdx mov_[rr],rr
+rbx 8 add_rr,s
+ret
+
 
 \ bitwise primitives
 
@@ -1289,6 +1356,10 @@ native invert
 rax not_rr
 ret
 
+native negate
+rax neg_rr
+ret
+
 3 label
 rax rax xor_rr,rr
 ret
@@ -1305,6 +1376,18 @@ binary
 rcx 3F cmp_rr,s
 3 lb jnc_s
 rax shr_rr,cl
+ret
+
+3 label
+rax rax add_rr,rr
+rax rax sbb_rr,rr
+ret
+
+native arshift
+binary
+rcx 3F cmp_rr,s
+3 lb jnc_s
+rax sar_rr,cl
 ret
 
 \ tail call
@@ -1412,23 +1495,23 @@ bl constant bl
 
 \ check whitespace
 {: ws
-bl }~ <=
+bl }~ u<=
 
 \ check printable
 {: printable
-ascii ! >= ascii ~ }~ <=
+ascii ! u>= ascii ~ }~ u<=
 
 \ decimal digit
 {: ddigit
-ascii 0 >= ascii 9 }~ <=
+ascii 0 u>= ascii 9 }~ u<=
 
 \ lowercase letter
 {: lower
-ascii a >= ascii z }~ <=
+ascii a u>= ascii z }~ u<=
 
 \ uppercase letter
 {: upper
-ascii A >= ascii Z }~ <=
+ascii A u>= ascii Z }~ u<=
 
 \ letter
 {: letter
@@ -1454,6 +1537,10 @@ ascii A >= ascii Z }~ <=
 
 {: * u* }~ drop
 
+{: u/ u/mod }~ nip
+
+{: umod u/mod }~ drop
+
 {: / /mod }~ nip
 
 {: mod /mod }~ drop
@@ -1475,21 +1562,27 @@ A base }~ c!
 alphanum
 ascii 0 -
 carry?
-{ 9 }~ <=
+{ 9 }~ u<=
 { 7 }~ -
 |
 base c@ }~ <
 
 \ auxiliary numeral conversion
-{: >number
-base c@ * over c@ digit>int + swap 1+ dup c@
-{ ws drop }~ drop
-{ drop swap }~ >number
-}~|
+{: (number) ( a n -( fail )- n )
+over c@ digit>int
+{ >r base c@ * r> + swap
+{ 1+ dup c@ ascii _ = drop }~self 'id| 
+swap over c@ digit>int }~self
+'id|
+drop
+over c@ ws drop
+}~ nip
 
 \ string numeral to integer conversion
-{: s>number
-0 }~ >number
+{: s>number ( a -( fail )- n )
+{ dup c@ ascii - <> drop 0 ' (number) { cut }~fail }~|
+{ 1+ 0 (number) }~ negate
+}~|
 
 \ string functions
 
@@ -1690,16 +1783,20 @@ x' }~fail does   \  TODO: not allowed in compile mode
 | }~ +
 
 \ emit positive number w/o trailing space
-{: .nz
-{ 0<> base c@ /mod .nz >digit }~ emit
+{: (.) ( n -( emit )- )
+{ 0<> base c@ u/mod (.) >digit }~ emit
 ' drop
 }~|
 
-\ emit number w/ trailing space
-{: .
+\ emit unsigned number w/ trailing space
+{: u. ( n -( emit )- )
 { 0= ascii 0 emit }~ drop
-' .nz
+' (.)
 | }~ space
+
+\ emit signed number w/ trailing space
+{: . ( n -( emit )- )
+' 0>= { ascii - emit }~ negate | }~ u.
 
 \ input functions
 
