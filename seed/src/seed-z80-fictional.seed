@@ -463,18 +463,18 @@ execute
 28 constant push_rst
 
 \ system variables
-1000 constant DP
-1002 constant TIB
-1004 constant FAIL
-1006 constant ERR_SP
-1008 constant CONTEXT
-100A constant CURRENT
-100C constant SEED
-100E constant FRAME
-1010 constant BASE
-1011 constant PAD
+2000 constant DP
+2002 constant TIB
+2004 constant FAIL
+2006 constant ERR_SP
+2008 constant CONTEXT
+200A constant CURRENT
+200C constant SEED
+200E constant FRAME
+2010 constant BASE
+2011 constant PAD
   20 constant PAD_LEN
-1031 constant DICTIONARY
+2031 constant DICTIONARY
 
 \ memory layout
 C000 constant STK_BOT
@@ -1464,6 +1464,8 @@ $ ~selfref !
 
 {: mod /mod }~ drop
 
+{: negate invert }~ 1+
+
 \ comparisons
 
 {: u>= over swap - carry? }~ drop
@@ -1967,16 +1969,20 @@ x' }~fail does		\ TODO: not allowed in compile mode
 | }~ +
 
 \ emit positive number w/o trailing space
-{: .nz ( n -( emit )- )
-{ 0<> base c@ /mod .nz >digit }~ emit
+{: (.) ( n -( emit )- )
+{ 0<> base c@ /mod (.) >digit }~ emit
 ' drop
 }~|
 
-\ emit number w/ trailing space
-{: . ( n -( emit )- )
+\ emit unsigned number w/ trailing space
+{: u. ( n -( emit )- )
 { 0= ascii 0 emit }~ drop
-' .nz
+' (.)
 | }~ space
+
+\ emit signed number w/ trailing space
+{: . ( n -( emit )- )
+' 0>= { ascii - emit }~ negate | }~ u.
 
 \ input functions
 
