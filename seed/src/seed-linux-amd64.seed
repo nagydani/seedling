@@ -161,10 +161,14 @@ create labels
 {: jnz_s		75 c, srel }
 {: jbe_s		76 c, srel }
 {: ja_s			77 c, srel }
+{: js_s			78 c, srel }
+{: js_s			79 c, srel }
 {: jc_fs		72 c, jrfs }
 {: jnc_fs		73 c, jrfs }
 {: jz_fs		74 c, jrfs }
 {: jnz_fs		75 c, jrfs }
+{: js_fs		78 c, jrfs }
+{: jns_fs		79 c, jrfs }
 {: jc			0F c, 82 c, rel }
 {: jb			}~ jc
 {: jnc			0F c, 83 c, rel }
@@ -1330,6 +1334,17 @@ rax rax add_rr,rr
 rdx rdx sbb_rr,rr
 rax rcr_rr,1
 rcx idiv_rr
+rdx rdx or_rr,rr
+3 jz_fs
+rdx rcx xor_rr,rr
+4 jns_fs
+rdx rcx xor_rr,rr
+rdx rcx add_rr,rr
+rax 1 sub_rr,s
+rdx rcx xor_rr,rr
+4 rslabel
+rdx rcx xor_rr,rr
+3 rslabel
 rbx rdx mov_[rr],rr
 rbx 8 add_rr,s
 ret
