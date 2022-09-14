@@ -1741,8 +1741,10 @@ x' execute does
 
 {: /
 swap
-{ 0>= swap { 0>= }~ u/ { negate u/ }~ negate }~|
-{ negate swap { 0>= u/ }~ negate { negate }~ u/ }~|
+{ 0>= swap { 0>= }~ u/ { negate u/mod swap 
+  { 0= }~ drop { drop }~ 1+ | }~ negate }~|
+{ negate swap { 0>= u/mod swap
+  { 0= }~drop { drop }~ 1+ | }~ negate { negate }~ u/ }~|
 }~|
 
 {: mod
