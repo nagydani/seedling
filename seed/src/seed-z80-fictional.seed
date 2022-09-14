@@ -19,19 +19,19 @@ output \ this must be the first line
 hex
 
 \ split off least significant byte
-{: 100/mod	dup FF and swap 8 rshift }
+{: 100u/mod	dup FF and swap 8 rshift }
 
 \ 16-bit negation
 {: negate	10000 swap - }
 
 \ 16-bit little-endian comma
-{: w,		100/mod swap c, c, }
+{: w,		100u/mod swap c, c, }
 
 \ 16-bit little-endian fetch
 {: w@		dup c@ swap 1+ c@ 8 lshift or }
 
 \ 16-bit little-endian store
-{: w!		dup >r 1+ >r 100/mod r> c! r> c! }
+{: w!		dup >r 1+ >r 100u/mod r> c! r> c! }
 
 \ dump the tail of the heap
 {: dump		here over - write }
@@ -1188,15 +1188,17 @@ bc pop
 frombc
 next
 
-native /mod ( n n -- n n )
+native du/mod ( n n n -- n n )
+tobc
+bc push
 tobc
 bc push
 tobc
 bc push
 exx
 bc pop
+hl pop
 de pop
-hl 0 ld_rr,xx
 a b ld_r,r
 b 8 ld_r,x
 0 label
@@ -1456,15 +1458,35 @@ $ ~selfref !
 
 { selfref }~fail does
 
-\ arithmetics
+\ literal opcodes
 
-{: * u* }~ drop
+\ 8-bit string literal
+$ lits !
+c (hl) ld_r,r
+hl inc_rr
+b 0 ld_r,x
+ex_de,hl
+(hl) e ld_r,r
+hl inc_rr
+(hl) d ld_r,r
+hl inc_rr
+ex_de,hl
+bc add_hl,rr
+next
 
-{: / /mod }~ nip
+\ 8-bit numeric literal
+$ lit8 !
+ldi
+a xor_r
+ld_(de),a
+de inc_rr
+next
 
-{: mod /mod }~ drop
-
-{: negate invert }~ 1+
+\ 16-bit numeric literal
+$ lit16 !
+ldi
+ldi
+next
 
 \ comparisons
 
@@ -1502,35 +1524,17 @@ next
 
 {: < over swap - 0< }~ drop
 
-\ literal opcodes
+\ arithmetics
 
-\ 8-bit string literal
-$ lits !
-c (hl) ld_r,r
-hl inc_rr
-b 0 ld_r,x
-ex_de,hl
-(hl) e ld_r,r
-hl inc_rr
-(hl) d ld_r,r
-hl inc_rr
-ex_de,hl
-bc add_hl,rr
-next
+{: negate invert }~ 1+
 
-\ 8-bit numeric literal
-$ lit8 !
-ldi
-a xor_r
-ld_(de),a
-de inc_rr
-next
+{: * u* }~ drop
 
-\ 16-bit numeric literal
-$ lit16 !
-ldi
-ldi
-next
+{: u/mod >r 0 r> }~ du/mod
+
+{: u/ u/mod }~ nip
+
+{: umod u/mod }~ drop
 
 \ execute computation with scratch space
 native frame
@@ -1693,6 +1697,27 @@ x' execute does
 {: ( { word pad " )" s<> drop }~self 'id }~|
 
 x' execute does
+
+
+\ more arithmetics
+
+{: /
+swap
+{ 0>= swap { 0>= }~ u/ { negate u/ }~ negate }~|
+{ negate swap { 0>= u/ }~ negate { negate }~ u/ }~|
+}~|
+
+{: mod
+{ 0>= swap
+  { 0>= swap }~ umod
+  { negate swap dup >r umod r>
+    { over 0<> drop swap }~ - ' drop }~|
+}~|
+{ negate swap
+  { 0>= swap dup >r umod r> { over 0<> drop }~ - ' drop }~|
+  { negate swap umod }~ negate
+}~|
+}~|
 
 \ character filters
 
@@ -1976,7 +2001,7 @@ x' }~fail does		\ TODO: not allowed in compile mode
 
 \ emit positive number w/o trailing space
 {: (.) ( n -( emit )- )
-{ 0<> base c@ /mod (.) >digit }~ emit
+{ 0<> base c@ u/mod (.) >digit }~ emit
 ' drop
 }~|
 
