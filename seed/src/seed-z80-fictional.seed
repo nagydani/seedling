@@ -294,7 +294,6 @@ create labels
 
 \ END of assembler
 
-
 \ Seed cross-compiler for Z80-based targets
 
 \ pointer to cross-compiled vocabulary
@@ -462,18 +461,15 @@ execute
 28 constant push_rst
 
 \ system variables
-2000 constant DP
-2002 constant TIB
-2004 constant FAIL
-2006 constant ERR_SP
-2008 constant CONTEXT
-200A constant CURRENT
-200C constant SEED
-200E constant FRAME
-2010 constant BASE
-2011 constant PAD
+1000 constant DP
+1002 constant TIB
+1004 constant FAIL
+1006 constant ERR_SP
+1008 constant SEED
+100A constant BASE
+100B constant PAD
   20 constant PAD_LEN
-2031 constant DICTIONARY
+102B constant DICTIONARY
 
 \ memory layout
 C000 constant STK_BOT
@@ -1187,16 +1183,14 @@ bc pop
 frombc
 next
 
-native du/mod ( n n n -- n n )
-tobc
-bc push
+native u/mod ( n n -- n n )
 tobc
 bc push
 tobc
 bc push
 exx
 bc pop
-hl pop
+hl 0 ld_rr,xx
 de pop
 a b ld_r,r
 b 8 ld_r,x
@@ -1339,44 +1333,6 @@ next
 3 rlabel
 a xor_r
 de dec_rr
-de dec_rr
-ld_(de),a
-de inc_rr
-ld_(de),a
-de inc_rr
-next
-
-native arshift ( n n -- n )
-tobc
-a b ld_r,r
-a or_r
-3 jr_nz_f
-a c ld_r,r
-a or_r
-1 jr_z_f
-bc push
-tobc
-bc push
-exx
-hl pop
-bc pop
-b c ld_r,r
-0 label
-h sra
-l rr
-0 lb djnz
-hl push
-exx
-bc pop
-frombc
-1 rlabel
-next
-
-3 rlabel
-de dec_rr
-ld_a,(de)
-a add_a,r
-a sbc_a,r
 de dec_rr
 ld_(de),a
 de inc_rr
@@ -1535,77 +1491,15 @@ next
 
 {: u< 1- carry? }~ u<= 
 
-0 label
-de dec_rr
-ex_de,hl
-7 (hl) bit
-ex_de,hl
-de inc_rr
-ret
-
-native 0>=
-0 lb call
-nz fail lb jp_cc
-next
-
-native 0<
-0 lb call
-z fail lb jp_cc
-next
-
-{: >= over swap - 0>= }~ drop
-
-{: > over - 0< }~ drop
-
-{: <= over - 0>= }~ drop
-
-{: < over swap - 0< }~ drop
-
 \ arithmetics
 
 {: negate invert }~ 1+
 
 {: * u* }~ drop
 
-{: u/mod >r 0 r> }~ du/mod
-
 {: u/ u/mod }~ nip
 
 {: umod u/mod }~ drop
-
-\ execute computation with scratch space
-native frame
-tobc
-bc push
-exx
-hl pop
-hl add_hl,rr
-ex_de,hl
-hl 0 ld_rr,xx
-sp add_hl,rr
-de sbc_hl,rr
-ld_sp,hl
-de push
-hl push
-exx
-bc pop
-frombc
-vm
-FRAME 1- xliteral
-x' handle w,
-x' cpu w,
-exx
-hl pop
-sp add_hl,rr
-ld_sp,hl
-exx
-next
-
-\ fetch scratch space base address
-native fbot
-bc FRAME ld_rr,(xx)
-frombc
-next
 
 \ disjunctions
 
@@ -1736,28 +1630,6 @@ x' execute does
 x' execute does
 
 
-\ more arithmetics
-
-{: /
-swap
-{ 0>= swap { 0>= }~ u/ { negate u/mod swap 
-  { 0= }~ drop { drop }~ 1+ | }~ negate }~|
-{ negate swap { 0>= u/mod swap
-  { 0= }~drop { drop }~ 1+ | }~ negate { negate }~ u/ }~|
-}~|
-
-{: mod
-{ 0>= swap
-  { 0>= swap }~ umod
-  { negate swap dup >r umod r>
-    { over 0<> drop swap }~ - ' drop }~|
-}~|
-{ negate swap
-  { 0>= swap dup >r umod r> { over 0<> drop }~ - ' drop }~|
-  { negate swap umod }~ negate
-}~|
-}~|
-
 \ character filters
 
 \ ascii code of space (a.k.a. blank)
@@ -1791,18 +1663,6 @@ ascii A u>= ascii Z }~ u<=
 {: alphanum ( c -( fail )- c )
 ' ddigit ' letter }~|
 
-\ character mappers
-
-\ capitalize
-{: >upper ( c -- c )
-{ lower DF }~ and
-'id}~|
-
-\ un-capitalize
-{: >lower ( c -- c )
-{ upper 20 }~ or
-'id}~|
-
 \ numerals
 
 BASE constant base
@@ -1825,22 +1685,15 @@ carry?
 |
 base c@ }~ u<
 
-\ auxiliary numeral conversion
 {: (number) ( a n -( fail )- n )
-over c@ digit>int
-{ >r base c@ * r> + swap
-{ 1+ dup c@ ascii _ = drop }~self 'id| 
-swap over c@ digit>int }~self
+{ over c@ digit>int >r base c@ * r> + swap 1+ swap }~self
 'id|
-drop
 over c@ ws drop
 }~ nip
 
-\ string numeral to integer conversion
+\ string numeral to unsigned integer conversion
 {: s>number ( a -( fail )- n )
-{ dup c@ ascii - <> drop 0 ' (number) { cut }~fail }~|
-{ 1+ 0 (number) }~ negate
-}~|
+0 }~ (number)
 
 \ more string functions
 
@@ -1882,11 +1735,8 @@ dp @ + dp }~ !
 {: skipstr ( a -- a )
 dup length + }~ 1+
 
-\ vocabulary in which words are searched
-CONTEXT constant context
-
-\ vocabulary in which words are created
-CURRENT constant current
+\ vocabulary
+SEED constant current
 
 \ extend a list
 {: link ( a -( heap )- a )
@@ -1894,15 +1744,11 @@ here swap }~ ,
 
 \ last word in the current vocabulary
 {: last ( -- a )
-current @ }~ @
-
-\ make current vocabulary the same as the context vocabulary
-{: definitions
-context @ current }~ !
+current }~ @
 
 \ create new word returning the payload address
 {: create ( -( heap )- )
-last link current @ ! word pad s, 0 c, ' , , }~ dat,
+last link current ! word pad s, 0 c, ' , , }~ dat,
 
 \ create a new variable with an initial value
 {: variable ( n -( heap )- )
@@ -1922,12 +1768,6 @@ c, , frombc, }~ next,
 create redefine C3 \ JP xx
 c, }~ ,
 
-\ create vocabulary
-{: vocabulary ( -( heap )- )
-here last ,
-create redefine 
-vm, literal ' context , ' }~ , ' ! }~ ,
-
 \ postpone colon definition
 {: postpone ( -( heap )- )
 'id }~ effect
@@ -1936,9 +1776,9 @@ vm, literal ' context , ' }~ , ' ! }~ ,
 {: search ( a -( pad fail )- a )
 traverse& pad s= cut }~ nip
 
-\ find word in context vocabulary
+\ find word in current vocabulary
 {:: find ( -( pad fail )- a )
-context @ search skipstr dup cell+ swap }~ @
+current search skipstr dup cell+ swap }~ @
 
 \ create colon definition
 native {: ( -( heap )- )
@@ -1976,20 +1816,6 @@ last cell+ skipstr }~ !
 {: tailcomp
 ' }~ , }~ ,
 
-\ frame functions
-
-\ end address of the current frame
-{: ftop ( -( fbot )- a )
-fbot dup cell- @ }~ +
-
-\ previous frame base address
-{: pfbot ( -( fbot fail )- a )
-fbot C - @ }~ 0<>
-
-\ end address of the previous frame
-{: pftop ( -( fbot fail )- a )
-pfbot dup cell- @ }~ +
-
 \ output functions
 
 \ emit one space
@@ -2006,9 +1832,9 @@ A }~ emit
 'id|
 }~ drop
 
-\ emit all context words
+\ emit all current words
 {: words ( -( emit )- )
-{ context @ traverse& s. space }~fail
+{ current traverse& s. space }~fail
 ' cr }~|
 
 \ interpreter functions
@@ -2034,7 +1860,7 @@ x' }~fail does		\ TODO: not allowed in compile mode
 
 \ convert integer to digit
 {: >digit ( n -- c )
-{ 9 <= ascii 0 }
+{ 9 u<= ascii 0 }
 { [ ascii A A - xliteral ] }
 | }~ +
 
@@ -2045,14 +1871,10 @@ x' }~fail does		\ TODO: not allowed in compile mode
 }~|
 
 \ emit unsigned number w/ trailing space
-{: u. ( n -( emit )- )
+{: . ( n -( emit )- )
 { 0= ascii 0 emit }~ drop
 ' (.)
 | }~ space
-
-\ emit signed number w/ trailing space
-{: . ( n -( emit )- )
-' 0>= { ascii - emit }~ negate | }~ u.
 
 \ input functions
 
@@ -2061,7 +1883,7 @@ x' }~fail does		\ TODO: not allowed in compile mode
 tib @ wsskip
 pad
 { over c@ printable over c! pad
-[ PAD_LEN xliteral ] + < 1+ swap 1+ swap }~self
+[ PAD_LEN xliteral ] + u< 1+ swap 1+ swap }~self
 { 0 swap c! tib }~ !
 }~|
 
@@ -2104,18 +1926,12 @@ input
 {: output
 ' seedl 'id ' ok }~ handle
 
-\ seed vocabulary
-native seed
-bc SEED ld_rr,xx
-CONTEXT bc ld_(xx),rr
-next
-
 \ debugging
 
 \ forget a word and what was defined after it.
 {: forget
-word current @ context @ = search dictionary >=
-cell- dup @ current @ ! dp }~ !
+word current search dictionary u>=
+cell- dup @ current ! dp }~ !
 
 \ output data stack content
 native .s
@@ -2145,18 +1961,12 @@ a A ld_r,x
 BASE ld_(xx),a
 hl DICTIONARY ld_rr,xx
 DP ld_(xx),hl
-hl 0 ld_rr,xx
-FRAME ld_(xx),hl
 hl xlast ld_rr,xx
 SEED ld_(xx),hl
 de STK_BOT ld_rr,xx
 sp STK_TOP ld_rr,xx
 ix, hl vm_l lb ld_rr,xx
-vm
-x' seed w,
-x' definitions w,
-x' }~ w,
-x' seedl w,
+x' seedl jp
 
 target dump
 
