@@ -530,6 +530,7 @@ here
 ' drop
 }~|
 
+
 \ Beginning of cross-compilation
 create ELF
 
@@ -1162,26 +1163,6 @@ ERR_SP rcx mov_[aa],rr	\ restore ERR_SP
 rsp 8 add_rr,s		\ discard data stack pointer
 ret
 
-\ execute computation with scratch space
-native frame
-binary
-rcx 3 shl_rr,s
-rsp rcx sub_rr,rr \ allocate frame
-fromrax
-rax rsp mov_rr,rr \ frame base on data stack
-rcx push
-rdx FRAME mov_rr,aa
-3 lb call
-rcx pop
-rsp rcx add_rr,rr \ deallocate frame
-ret
-
-\ fetch frame bottom address
-native fbot
-fromrax
-rax FRAME mov_rr,[aa]
-ret
-
 \ disjunction combinator
 native |
 rdx FAIL mov_rr,aa
@@ -1286,39 +1267,6 @@ rbx rdx mov_[rr],rr
 rbx 8 add_rr,s
 ret
 
-native du/mod ( n n n -- n n )
-rcx rax mov_rr,rr
-rdx rbx mov_rr,[rr]
-rbx 8 sub_rr,s
-rax rbx mov_rr,[rr]
-rbx 8 sub_rr,s
-rcx div_rr
-rbx rdx mov_[rr],rr
-rbx 8 add_rr,s
-ret
-
-native /mod ( n n -- n n )
-binary
-rax rax add_rr,rr
-rdx rdx sbb_rr,rr
-rax rcr_rr,1
-rcx idiv_rr
-rdx rdx or_rr,rr
-3 jz_fs
-rdx rcx xor_rr,rr
-4 jns_fs
-rdx rcx xor_rr,rr
-rdx rcx add_rr,rr
-rax 1 sub_rr,s
-rdx rcx xor_rr,rr
-4 rslabel
-rdx rcx xor_rr,rr
-3 rslabel
-rbx rdx mov_[rr],rr
-rbx 8 add_rr,s
-ret
-
-
 \ bitwise primitives
 
 native and
@@ -1340,10 +1288,6 @@ native invert
 rax not_rr
 ret
 
-native negate
-rax neg_rr
-ret
-
 3 label
 rax rax xor_rr,rr
 ret
@@ -1360,18 +1304,6 @@ binary
 rcx 3F cmp_rr,s
 3 lb jnc_s
 rax shr_rr,cl
-ret
-
-3 label
-rax rax add_rr,rr
-rax rax sbb_rr,rr
-ret
-
-native arshift
-binary
-rcx 3F cmp_rr,s
-3 lb jnc_s
-rax sar_rr,cl
 ret
 
 \ tail call
@@ -1505,18 +1437,6 @@ ascii A u>= ascii Z }~ u<=
 {: alphanum
 ' ddigit ' letter }~|
 
-\ character mappers
-
-\ capitalize
-{: >upper
-{ lower DF }~ and
-'id}~|
-
-\ un-capitalize
-{: >lower
-{ upper 20 }~ or
-'id}~|
-
 \ arithmetics
 
 {: * u* }~ drop
@@ -1545,24 +1465,18 @@ carry?
 { 9 }~ u<=
 { 7 }~ -
 |
-base c@ }~ <
+base c@ }~ u<
 
 \ auxiliary numeral conversion
 {: (number) ( a n -( fail )- n )
-over c@ digit>int
-{ >r base c@ * r> + swap
-{ 1+ dup c@ ascii _ = drop }~self 'id| 
-swap over c@ digit>int }~self
+{ over c@ digit>int >r base c@ * r> + swap 1+ swap }~self
 'id|
-drop
 over c@ ws drop
 }~ nip
 
-\ string numeral to integer conversion
+\ string numeral to unsigned integer conversion
 {: s>number ( a -( fail )- n )
-{ dup c@ ascii - <> drop 0 ' (number) { cut }~fail }~|
-{ 1+ 0 (number) }~ negate
-}~|
+0 }~ (number)
 
 \ string functions
 
@@ -1702,20 +1616,6 @@ last cell+ }~ !
 \ make most recently definted word immediate
 {: immediate ( -( heap )- )
 ' execute }~ does
-
-\ scratch frame functions
-
-\ end address of the current frame
-{: ftop ( -( fbot )- a )
-fbot dup cell- @ }~ +
-
-\ previous frame base address
-{: pfbot ( -( fbot fail )- a )
-fbot 28 - @ }~ 0<>
-
-\ end address of the previous frame
-{: pftop ( -( fbot fail )- a )
-pfbot dup cell- @ }~ +
 
 \ I/O functions
 
