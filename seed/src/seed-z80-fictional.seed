@@ -300,6 +300,10 @@ create labels
 \ pointer to cross-compiled vocabulary
 create xcurrent 0 w,
 
+\ skip word name
+{: skipstr ( a -- a )
+dup length + }~ 1+
+
 {: xlink ( a -- a )
 $ swap }~ w,
 
