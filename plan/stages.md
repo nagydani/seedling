@@ -21,7 +21,6 @@ Porting/bootstrapping Seedling to a new architecture consists of
 ### Properties
 
  * concatenative, stack-based
- * single stack (typically, the machine stack)
  * no type system
  * no run-time error checking beyond that explicitly programmed
  * useful as a macro assembler of arbitrary sequences of bytes
@@ -30,35 +29,29 @@ Porting/bootstrapping Seedling to a new architecture consists of
  * cross-compile capability
  * minimal host requirements
  * rudimentary meta-programming in itself
- * interactive REPL
+ * interactive shell
 
 ### Data types (not checked)
 
 #### Fixed-size unsigned integer (cell)
 
- * Number type for arithmetics
+ * Unsigned integer type for arithmetics
    * Code with numbers not fitting into 16 bits considered not portable
  * Execution token
  * Address for strings of bytes (a.k.a. *c-addr*)
- * On-stack representation of a character
+ * On-stack representation of a 7-bit ASCII character
 
 #### String of bytes
 
  * Textual interpretation only defined for 7-bit ASCII
- * On-stack representation: two cells, address of first byte followed by length (on top)
- * Counted string: architecture-dependent character count followed by the bytes
+ * Zero-terminated, like in C
 
 ### Memory Model
 
- * One *stack* (usually the machine stack) for both return addresses and data
- * Loaded *wordlists* with immutable word addresses
- * Linear, appendable *workspace*
+ * Two *stacks*, one for return addresses and one for function arguments and values
+ * One *dictionary* with immutable word addresses and other data
 
 All three are extensible and shrinkable only in a LIFO fashion, no GC, no memory fragmentation.
-
-Memory area *wordlists* always contains valid data, only fully compiled words can be 
-transfered from *workspace* to *wordlists* and only complete words can be reclaimed from 
-*wordlists*.
 
 ## Sprout
 
