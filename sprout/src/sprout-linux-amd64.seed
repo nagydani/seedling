@@ -1580,7 +1580,7 @@ carry?
 { 9 }~ u<=
 { 7 }~ -
 |
-base c@ }~ <
+base c@ }~ u<
 
 \ auxiliary numeral conversion
 {: (number) ( a n -( fail )- n )
@@ -1859,7 +1859,7 @@ ret
 {: forget
 word
 current @ context @ =
-search dictionary >=
+search dictionary u>=
 cell- dup @ current @ ! dp }~ !
 
 \ output data stack content

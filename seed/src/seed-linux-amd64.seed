@@ -817,16 +817,6 @@ rax rax or_rr,rr
 2 lb jz
 ret
 
-native 0>=
-rax rax or_rr,rr
-2 lb js
-ret
-
-native 0<
-rax rax or_rr,rr
-2 lb jns
-ret
-
 \ relations
 
 native =
@@ -858,27 +848,6 @@ native u<=
 binary_cmp
 2 lb ja
 ret
-
-native >
-binary_cmp
-2 lb jle
-ret
-
-native >=
-binary_cmp
-2 lb jl
-ret
-
-native <
-binary_cmp
-2 lb jge
-ret
-
-native <=
-binary_cmp
-2 lb jg
-ret
-
 
 \ compare strings for equality
 3 label
@@ -1556,10 +1525,6 @@ ascii A u>= ascii Z }~ u<=
 
 {: umod u/mod }~ drop
 
-{: / /mod }~ nip
-
-{: mod /mod }~ drop
-
 \ numerals
 
 BASE address base
@@ -1804,14 +1769,10 @@ x' }~fail does   \  TODO: not allowed in compile mode
 }~|
 
 \ emit unsigned number w/ trailing space
-{: u. ( n -( emit )- )
+{: . ( n -( emit )- )
 { 0= ascii 0 emit }~ drop
 ' (.)
 | }~ space
-
-\ emit signed number w/ trailing space
-{: . ( n -( emit )- )
-' 0>= { ascii - emit }~ negate | }~ u.
 
 \ input functions
 
@@ -1859,7 +1820,7 @@ ret
 {: forget
 word
 current @ context @ =
-search dictionary >=
+search dictionary u>=
 cell- dup @ current @ ! dp }~ !
 
 \ output data stack content
