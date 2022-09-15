@@ -33,6 +33,7 @@ correctness of Seed compilation.
 
  * [Requirements](#requirements)
  * [The Seed Language](#the-seed-language)
+ * [Seed Execution](#seed-execution)
  * [Word Reference](#word-reference)
 
 ## Requirements
@@ -76,6 +77,26 @@ underscores are allowed.
 
 Every seed *must* implement the words listed in this 
 document, but may implement more for convenience.
+
+## Seed Execution
+
+Seed starts in *interpret mode*, reading a line from
+the input, iterating through its words and executing the
+corresponding computation (called *interpret mode
+behavior*) for each one. In the beginning only the words
+specified in this document are allowed in Sprout source;
+all other words must be ultimately defined in terms of
+these.
+
+Computations in Seed may *succeed* or *fail* (see below
+for more details), however, all toplevel computations in
+Seed source must succeed.
+
+The behavior of Seed in case of encountering undefined
+words or failing computations is undefined. Sensible
+behavior for interactive use may be outputting error
+messages and/or restarting, but it is not required.
+
 
 ## Word Reference
 

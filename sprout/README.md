@@ -1,33 +1,36 @@
-# The Seed
+# The Sprout
 
 ## Abstract
 
-The Seed is a minimalist abstraction above the computer
-hardware and possibly an operating system (some
-Seeds may run on the "bare metal"). It is a program 
-implementing the Seed language. The *Seed language* is a 
-low-level programming language whose objective is to 
-compile other Seeds and the [Sprout](plan/stages.md#sprout)
-(a higher-level
-language with similar syntax, but richer semantics) as 
-well as hardware drivers for it.
+The Sprout is a minimalist abstraction above the 
+computer hardware and possibly an operating system (some 
+Sprouts may run on the "bare metal"). It is a program 
+implementing the Sprout language. The *Sprout language* 
+is a low-level programming language whose objective is 
+to compile other Sprouts and 
+[Seedling](plan/stages.md#seedling) (a higher-level 
+language with similar syntax, but much richer semantics) 
+as well as hardware drivers for it. It is also possible 
+to compile Seeds with Sprout, as the former is a proper 
+subset of the latter.
 
-All Seeds are written in the Seed language, and thus can
-compile each other. Every computer architecture requires 
-its own Seed. Porting the entire Seed/Sprout/Seedling 
-stack onto a new architecture only requires writing a 
-new Seed for the target architecture and compiling it 
-with any existing Seed. The rest is done using the new 
-Seed. In practice, it is probably easiest to modify a 
-similar Seed rather than writing it from scratch using 
-this specification.
+All Sprouts are written in the Sprout language, and thus 
+can compile each other. Every computer architecture 
+requires its own Sprout. Porting the entire 
+Seed/Sprout/Seedling stack onto a new architecture only 
+requires writing a new Seed and a new Sprout for the 
+target architecture and compiling it with any existing 
+Seed. The rest is done using the new Sprout. In 
+practice, it is probably easiest to modify a similar 
+Sprout rather than writing it from scratch using this 
+specification.
 
 ## Contents
 
  * [Requirements](#requirements)
- * [The Seed Language](#the-seed-language)
+ * [The Sprout Language](#the-sprout-language)
    * [Parsing](#parsing)
-   * [Seed Execution](#seed-execution)
+   * [Sprout Execution](#sprout-execution)
    * [Computational Model](#computational-model)
    * [Compilation](#compilation)
    * [Vocabularies](#vocabularies)
@@ -35,38 +38,39 @@ this specification.
 
 ## Requirements
 
-The system on which Seed can run must have at least a 
+The system on which Sprout can run must have at least a 
 sequential input steam through which source code is read 
 and a sequential output stream through which the object 
-code is written. For example, Seeds for Unix-like 
+code is written. For example, Sprouts for Unix-like 
 operating systems read from stdin and write to stdout. A 
-Seed for some embedded device might use its serial 
+Sprout for some embedded device might use its serial 
 console port.
 
-The Seed object code (typically a few kilobytes) and the 
-Seed stacks (typically less than a kilobyte) must fit 
-into the RAM accessible to the Seed, as well as the 
-assembler and the cross-compiler (typically a few 
-kilobytes each). Thus, a computer running Seed and 
-compiling the smallest of Seeds must have at least a 
-dozen or so kilobytes of free RAM after booting Seed. 
-Compiling a smaller Seed without a computer using only 
-pen and paper is also feasible, albeit rather tedious.
+The Sprout object code (typically less than a dozen 
+kilobytes) and the Sprout stacks (typically less than a 
+kilobyte) must fit into the RAM accessible to the 
+Sprout, as well as the assembler and the cross-compiler 
+(typically a few kilobytes each). Thus, a computer 
+running Sprout and compiling the smallest of Sprouts 
+must have at least sixteen or so kilobytes of free RAM 
+after booting Sprout.
 
-Importantly, the *Seed source* needs not fit into the 
+Importantly, the *Sprout source* needs not fit into the 
 memory, so it can (and should!) be richly commented to 
 aid understanding and modification. The source for each 
-Seed is a single 7-bit ASCII file with lines not 
-exceeding 64 characters.
+Sprout is a single UTF-8 file with lines not exceeding 
+64 characters. Characters other than 7-bit ASCII are 
+only allowed in comments, and character or string 
+literals.
 
-Seeds should provide facilities for executing machine code 
+Sprouts should provide facilities for executing machine code 
 and/or calls to the host operating system (if there is one), 
-but these need not be standardized across Seeds as that 
+but these need not be standardized across Sprouts as that 
 code is not portable anyway.
 
-## The Seed Language
+## The Sprout Language
 
-The Seed language is heavily inspired by Forth, 
+The Sprout language is heavily inspired by Forth, 
 therefore many of its features and conventions will be 
 familiar to those who already know Forth. However, this 
 specification makes no further references to Forth; 
@@ -74,40 +78,35 @@ knowing Forth is not required to understand it.
 
 ### Parsing
 
-Seed sources consist of *lines* (not exceeding 64 
+Sprout sources consist of *lines* (not exceeding 64 
 characters) terminated by either `LF` or `CR LF` 
 sequences. Lines consist of *words* delimited by one or 
 more *whitespace* (blanks, ASCII code 32). Words consist 
 of *printable ASCII* characters in the range between ! 
 and ~ (inclusive) and must be at most 30 characters 
-long. Seed is case-sensitive, thus `Foo`, `FOO` and 
+long. Sprout is case-sensitive, thus `Foo`, `FOO` and 
 `foo` are three different words.
 
-### Seed Execution
+### Sprout Execution
 
-Seed starts in *interpret mode*, reading a line from 
+Sprout starts in *interpret mode*, reading a line from 
 the input, iterating through its words and executing the 
 corresponding computation (called *interpret mode 
 behavior*) for each one. In the beginning only the words 
-specified in this document are allowed in Seed source; 
+specified in this document are allowed in Sprout source; 
 all other words must be ultimately defined in terms of 
 these.
 
-Computations in Seed may *succeed* or *fail* (see below 
+Computations in Sprout may *succeed* or *fail* (see below 
 for more details), however, all toplevel computations in 
-Seed source must succeed.
-
-The behavior of Seed in case of encountering undefined 
-words or failing computations is undefined. Sensible 
-behavior for interactive use may be outputting error 
-messages and/or restarting, but it is not required.
+Sprout source must succeed.
 
 ### Computational model
 
-Seed has two stacks, called *data stack* (or just *the 
+Sprout has two stacks, called *data stack* (or just *the 
 stack* for short) and *return stack*. Both stacks have 
 entries consisting of *cells* of equal size. The minimum 
-cell size for Seed is 16 bits. *Pure* computations only 
+cell size for Sprout is 16 bits. *Pure* computations only 
 affect the data stack and *succeed*. *Impure* 
 computations may have side effects. Calls (except *tail 
 calls*, see below) to other computations place an entry 
@@ -118,7 +117,7 @@ continued.
 Computations may reference other computations or 
 themselves in *tail calls* which is how they continue 
 after success without affecting the return stack. Tail 
-calls in Seed are explicitly indicated, as described 
+calls in Sprout are explicitly indicated, as described 
 later.
 
 A possible effect of a computation is *failure*, in 
@@ -127,24 +126,30 @@ the time of the registration of the most recent *failure
 handler* (which is a computation itself), the failure 
 handler is deregistered (making the previous failure 
 handler active), and then executed. Conditional failure 
-is the only means of conditional branching in Seed. 
+is the only means of conditional branching in Sprout. 
 Unconditional failure is always a tail call, as the 
 computation cannot succeed, once it failed.
 
-In addition to the two stacks, a third memory area is
-available to Seed programs called *heap* or *dictionary*
-(the two are used synonymously in the context of Seed).
-New entries can be allocated dynamically, and there are
-no facilities for freeing up heap space. Definitions of
-newly created words go here as well as any data that the
-Seed program may want to use. The heap forms a continuous
-memory area with addresses starting at some arbitrary 
-number. Heap references must fit into one cell.
+In addition to the two stacks, a third memory area is 
+available to Sprout programs called *heap* or 
+*dictionary* (the two are used synonymously in the 
+context of Sprout). New entries can be allocated 
+dynamically, and dictionary space can only be freed up 
+in a LIFO fashion, similarly to stacks. Definitions of 
+newly created words go here as well as any additional 
+data that the Sprout program may want to use. The heap 
+forms a continuous memory area with addresses starting 
+at some arbitrary number. Heap references must fit into 
+one cell.
+
+For temporarily allocated memory, computations in Sprout 
+can use memory *frames*, which are de-allocated when the 
+computation succeeds or fails.
 
 ### Compilation
 
 In addition to their *interpreter mode behavior* 
-described above, words in Seed have a *compile mode 
+described above, words in Sprout have a *compile mode 
 behavior*: a computation that receives a reference to 
 their interpret mode behavior as its argument on the 
 stack when compiling *quotations* or *colon definitions*.
@@ -160,11 +165,11 @@ compilation.
 
 ### Vocabularies
 
-Seed can handle multiple vocabularies (namespaces). It 
+Sprout can handle multiple vocabularies (namespaces). It 
 is searching for words in the *context vocabulary* and 
 adds new definitions to the *current vocabulary*. In the 
 beginning, both the context and the current vocabulary is 
-the initial vocabulary named `seed`. Each new word added 
+the initial vocabulary named `sprout`. Each new word added 
 to it is immediately usable.
 
 A newly created vocabulary already contains all the 
@@ -287,9 +292,9 @@ vocabulary.
  * [s=](#relations)
  * [s>number](#miscellaneous)
  * [search](#vocabulary-manipulation-words)
- * [seed](#vocabulary-manipulation-words)
- * [seedl](#miscellaneous)
  * [space](#output-functions)
+ * [sprout](#vocabulary-manipulation-words)
+ * [sproutl](#miscellaneous)
  * [swap](#stack-manipulation)
  * [third](#stack-manipulation)
  * [tib](#predefined-constants)
@@ -297,7 +302,12 @@ vocabulary.
  * [u*](#binary-arithmetic-primitives)
  * [u/](#binary-arithmetic-primitives)
  * [u/mod](#binary-arithmetic-primitives)
+ * [u8bite](#input-functions)
+ * [u8emit](#output-functions)
+ * [u8length](#mappers)
+ * [u8key](#input-functions)
  * [upper](#filters)
+ * [utf8](#character-literals)
  * [variable](#other-ways-to-create-and-modify-words)
  * [vocabulary](#vocabulary-manipulation-words)
  * [word](#input-functions)
@@ -328,15 +338,19 @@ checkers can actually use them.
 
 ### Numeric Literals
 
-Numeric literals are sequences of digits in the current 
-base. Seed starts in base ten, but this can be changed. 
-Digits from zero to nine are denoted by 0 to 9, whereas 
-digits from ten to thirty-five are denoted by A to Z. 
-Bases greater than thirty-six or smaller than two are 
-not supported. Using digits greater or equal to the 
-current base is not allowed.
+Integer literals are sequences of digits in the current 
+base, preceded by a minus sign `-` for negative values, 
+and optionally interspersed with `_` (underscore) 
+characters, which are ignored. At least one digit must 
+precede the first underscore. Sprout starts in base ten, 
+but this can be changed. Digits from zero to nine are 
+denoted by 0 to 9, whereas digits from ten to 
+thirty-five are denoted by A to Z. Bases greater than 
+thirty-six or smaller than two are not supported. Using 
+digits greater or equal to the current base is not 
+allowed.
 
-Numeric literals place their *value* onto the data stack 
+Integer literals place their *value* onto the data stack 
 as a single cell. If the numeral value described by the 
 literal is greater than what would fit into a cell then 
 the reminder after division by 2 to the power of the 
@@ -344,6 +358,21 @@ cell size is placed onto the stack. So, for example the
 numeric literal 10000 in the current base of sixteen 
 would place zero on the data stack, if the cell size is 
 sixteen bits.
+
+Floating point literals begin with an optional `-` 
+(minus sign) for negative values followed by a sequence 
+of digits interspersed with optional underscores 
+similarly to integer literals, but it must contain a 
+fractional dot anywhere between before the first digit 
+and after the last digit of the sequence. The sequence 
+is optionally followed by the letter `e` or `E` and an 
+integer literal indicating a multiplier of the current 
+base raised to an integer power.
+
+Floating point literals place a fixed number of cells 
+(the actual number is architecture-dependent but is 
+typically one or two) on the data stack, representing 
+the floating-point value of the literal.
 
 The words `hex` and `decimal` change the current base to 
 sixteen and ten, respectively.
@@ -357,10 +386,18 @@ best avoided.
 
 ### Character Literals
 
-Character literals start with the word `ascii` and put 
-the ASCII code of the first character of the following 
-word onto the data stack. Thus, `ascii A` would put 
-decimal 65 on the stack, and so would `ascii Alpha`. 
+Character literals start with the word `utf8` and put 
+the unicode codepoint of the first non-whitespace 
+character encoded in UTF-8 onto the stack. Thus, `utf8 
+A` would put decimal 65 on the stack and `utf8 €` would 
+put decimal 8364 on the stack. The UTF-8 character must 
+be followed by whitespace or line ending.
+
+For compatibility with Seed, character literals in 
+Sprout can also be written using the word `ascii` 
+followed by a word, whose first character's ASCII code 
+is placed on the top of the stack. Thus, `ascii A` would 
+put decimal 65 on the stack and so would `ascii Alpha`. 
 However, to avoid confusion, the latter use is 
 discouraged.
 
@@ -384,10 +421,10 @@ address is placed on the data stack.
 
 Example:
 ```
-" Hello world!"
+" Hello, world!"
 ```
 
-Places the reference to `Hello world!` on the data 
+Places the reference to `Hello, world!` on the data 
 stack.
 
 ### Computation Literals
@@ -426,7 +463,7 @@ be discussed in other sections.
 
 Example:
 ```
-{ " Hello world!" type }~ cr
+{ " Hello, world!" s. }~ cr
 ```
 
 Places a reference to a computation that outputs 
@@ -445,10 +482,10 @@ compile mode behavior is to compile a call to it.
 
 Example:
 ```
-{: greet " Hello world!" type }~ cr
+{: greet " Hello, world!" s. }~ cr
 ```
 
-Creates a new word `greet` outputting `Hello world!` and 
+Creates a new word `greet` outputting `Hello, world!` and 
 a newline.
 
 ### Postponed Colon Definitions
@@ -542,7 +579,8 @@ in compile-time rather than in run-time.
 ### Output Effects
 
  * `emit` outputs a single byte popping it from the data 
-    stack.
+    stack. If the value is outside of the byte range, the 
+    least significant byte is outputed.
  * `write` outputs a given number of bytes from the 
     heap. Expects a reference to the first byte and the 
     number of bytes on the data stack. Places the bytes 
@@ -555,14 +593,22 @@ All of the above always succeeds.
 The functions below use the `emit` or `write` effect.
 
  * `.` outputs a numeral string in the current base 
-   corresponding to the value popped from the data stack
-   followed by a whitespace.
- * `space` outputs a whitespace.
- * `cr` outputs a line 
-    ending of the underlying platform.
+   corresponding to the signed integer value popped from 
+   the data stack followed by a blank.
+ * `u.` outputs a numeral string in the current base 
+   corresponding to the unsigned integer value popped 
+   from the data stack followed by a blank.
+ * `f.` outputs a numeral string in the current base 
+   corresponding to the floating point value popped from 
+   the data stack followed by a blank.
  * `s.` outputs a zero-terminated string (without the 
     trailing zero) popping the reference from the data 
     stack.
+ * `u8emit` outputs a single unicode codepoint in UTF-8 
+   encoding.
+ * `space` outputs a blank.
+ * `cr` outputs a line ending of the underlying
+    platform.
 
 All of the above always succeeds.
 
@@ -578,7 +624,13 @@ All of the above always succeeds.
 
  * `bite` if the line pointed by `tib` is empty, `bite` 
    fails. Otherwise, it reads the first byte from `tib` 
-   placing it on the data stack and increments `tib`.
+   placing it on the data stack, and increments `tib`.
+ * `u8bite` if the line pointed by `tib` is empty, 
+   `u8bite` fails. Otherwise, it reads the first unicode 
+   codepoint encoded in UTF-8 from `tib` placing it on the 
+   data stack, and increments `tib`.
+ * `u8key` reads a unicode codepoint encoded in UTF-8 from 
+   the input source and places it on the stack.
  * `word` reads the next word from the line buffer pointed 
    by `tib` and places it as a zero-terminated string in 
    the `pad` buffer. At the end of the line, it reads an 
@@ -669,6 +721,8 @@ with the result of some arithmetic operation on them.
 
 All of the above always succeeds.
 
+*TODO: division by zero and division overflow effects*
+
 ### Bitwise Primitives
 
  * `or` replaces the top two cells of the data stack by 
@@ -740,6 +794,11 @@ stack as pure functions. They always succeed.
    leading whitespace characters.
  * `negate` negates a signed integer.
  * `invert` inverts every bit of the cell.
+ * `length` changes a string reference to its length *in 
+   bytes*.
+ * `u8length` changes a string reference to its length 
+   *in characters* encoded in UTF-8.
+
 
 ### Relations
 
@@ -765,13 +824,13 @@ here.
    signed integers
  * `>=` (pronounced *"greater-is-or-equals"*) compares 
    two cells as signed integers.
- * `u<` (pronounced *"less-is"*) compares two cells as 
+ * `u<` (pronounced *"u-less-is"*) compares two cells as 
    unsigned integers.
- * `u<=` (pronounced *"less-is-or-equals"*) compares two 
+ * `u<=` (pronounced *"u-less-is-or-equals"*) compares two 
    cells as unsigned integers.
- * `u>` (pronounced *"greater-is"*) compares two cells as 
+ * `u>` (pronounced *"u-greater-is"*) compares two cells as 
    unsigned integers
- * `u>=` (pronounced *"greater-is-or-equals"*) compares 
+ * `u>=` (pronounced *"u-greater-is-or-equals"*) compares 
    two cells as unsigned integers.
  * `s<>` (pronounced *"ess-equals-not"*) compares two 
    strings referenced by the two cells on the top of the 
@@ -959,21 +1018,21 @@ The following two words only make sense in interpret mode.
 
 ### Miscellaneous
 
- * `bye` releases all resources held by Seed and exits
+ * `bye` releases all resources held by Sprout and exits
  * `carry?` fails, if the previous operation set the 
    carry flag
  * `execute` takes a reference to a computation off the top 
    of the stack and executes it.
  * `literal` takes the cell on the top of the stack and 
    compiles a literal from it. Useful in macros.
- * `output` executes `seedl` with handlers set up in such a
+ * `output` executes `sproutl` with handlers set up in such a
    way that input is read from the rest of the input 
    stream and output is written to wherever object code 
-   is expected. Typically, the first word in a Seed source.
+   is expected. Typically, the first word in a Sprout source.
  * `s>number` takes a string and transforms it into a number 
    on the top of the stack. However, it is not a mapper, 
    because it can fail and depends on the current base.
- * `seedl` is the Seed loop.
+ * `sproutl` is the Sprout loop.
  * `traverse&` is a generator traversing a linked list 
    created by `link`. It generates references to the 
    *head* of each list element and after reaching the end of 

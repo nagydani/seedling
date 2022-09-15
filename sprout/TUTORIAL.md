@@ -1,10 +1,10 @@
-# Seed Tutorial
+# Sprout Tutorial
 
 ## Greetings
 
 When learning a new programming language, it is 
 customary to begin with making the computer greet the 
-world. In Seed, this looks as follows:
+world. In Sprout, this looks as follows:
 
 ```
 " Hello, world!" s. cr
@@ -18,12 +18,12 @@ Hello, world!
 ```
 
 You can immediately notice three important characteristics 
-of Seed:
+of Sprout:
 
  * There is a space between the opening quote of the 
    string literal. This is due to the extremely simple 
-   parsing rules of Seed. We will talk more about them 
-   later. In short, words in Seed are separated by one 
+   parsing rules of Sprout. We will talk more about them 
+   later. In short, words in Sprout are separated by one 
    or more whitespace characters or newlines. And the 
    opening quotation mark is also just a word.
 
@@ -61,7 +61,7 @@ computer to greet the world.
 
 ## Arithmetics
 
-Seed uses reverse Polish notation (or RPN for short): 
+Sprout uses reverse Polish notation (or RPN for short): 
 numbers go on a stack, while operators take their 
 arguments (typically one or two) from the top of the 
 stack and place the result back on the top of the stack.
@@ -81,7 +81,7 @@ them.
 ## Control Structures
 
 What if we want to repeat our greeting multiple times? 
-Well, the original Seed vocabulary does not contain anything 
+Well, the original Sprout vocabulary does not contain anything 
 that would do this, but we can create our own word `times`:
 
 ```
@@ -123,7 +123,7 @@ already stored under the word `greet`.
 Now, let us delve into the internals of `times`!
 
 The stuff in round parentheses is just a comment. It can 
-be omitted as Seed ignores it. In this case, it tells 
+be omitted as Sprout ignores it. In this case, it tells 
 the reader that `times` takes two arguments -- an 
 executable computation and a natural number -- and 
 leaves nothing on the stack. *Note that this so-called 
@@ -162,7 +162,7 @@ it is used so frequently, that it is worth having in a
 single word. It checks whether the number on the top of 
 the stack equals zero. If no, the computation continues. 
 If, however, it does equal zero, the computation 
-*fails*. Failure is a very important concept in Seed, we 
+*fails*. Failure is a very important concept in Sprout, we 
 shall discuss it in more detail.
 
 But for now, assume that the number was not equal to 
@@ -272,7 +272,7 @@ arguments what the other leaves on the top of the stack.
 ## Generators, Filters, Mappers
 
 A common task in programming is to iterate through a 
-number of objects and process them one by one. Seed uses 
+number of objects and process them one by one. Sprout uses 
 *generators* for this purpose. A generator word, by 
 convention ending with the `&` symbol, either leaves 
 the next object on the stack or, if there are no more 
@@ -406,7 +406,7 @@ want to combine filters to create a new filter that lets
 through what either lets through, we use disjunction. To 
 combine filters so that only what passes both passes, we 
 just put them after one another (for efficiency, use the 
-one that is less likely to succeed first). In Seed, 
+one that is less likely to succeed first). In Sprout, 
 function composition is this simple.
 
 Now that we have seen how to use our `scan&` generator, we 
