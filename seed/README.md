@@ -88,15 +88,14 @@ specified in this document are allowed in Sprout source;
 all other words must be ultimately defined in terms of
 these.
 
-Computations in Seed may *succeed* or *fail* (see below
-for more details), however, all toplevel computations in
-Seed source must succeed.
+Computations in Seed may *succeed* or *fail* (see the 
+Sprout documentation for details), however, all toplevel 
+computations in Seed source must succeed.
 
 The behavior of Seed in case of encountering undefined
 words or failing computations is undefined. Sensible
 behavior for interactive use may be outputting error
 messages and/or restarting, but it is not required.
-
 
 ## Word Reference
 
