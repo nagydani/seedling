@@ -84,7 +84,7 @@ create labels
 5 constant l
 6 constant (hl)
 7 constant a
-{: 8*		8 * }
+{: 8*		3 lshift }
 
 \ register pairs
 0 constant bc
