@@ -1,6 +1,6 @@
 output \ this must be on the first line
 
-\ This is the Seed source for amd64 Linux
+\ This is the Sprout source for amd64 Linux
 
 \ Requirements
 \ It can be compiled by any Seed that has at least 16 bit
@@ -208,12 +208,12 @@ create labels
 {: neg_rr		48 c, F7 c, D8 or c, }
 
 \ Cross Compilation
-\ The Seed language cannot be directly cross-compiled,
+\ The Sprout language cannot be directly cross-compiled,
 \ because the compile mode behavior of the newly defined
 \ words cannot be executed on the host architecture.
 \ However, there is only a handful of words with compile
 \ mode behavior that differs from default, so we can
-\ write those behaviors in host Seed and look them up from
+\ write those behaviors in host Sprout and look them up from
 \ an association list.
 
 \ assembler macros
@@ -426,7 +426,7 @@ drop
 {: field here swap ! }
 
 \ system variables
-18000 constant SEED
+18000 constant SPROUT
 18008 constant DP
 18010 constant TIB
 18018 constant FAIL
@@ -879,7 +879,6 @@ binary_cmp
 2 lb jg
 ret
 
-
 \ compare strings for equality
 3 label
 rsi rax mov_rr,rr
@@ -997,7 +996,7 @@ rcx DP add_rr,[aa]
 DP rcx mov_[aa],rr
 ret
 
-\ end Seed execution
+\ end Sprout execution
 
 native bye
 rax 3C mov_rr,x \ Exit program
@@ -1847,9 +1846,9 @@ ok }~ input
 
 does
 
-\ seed vocabulary
-native seed
-rcx SEED mov_rr,aa
+\ sprout vocabulary
+native sprout
+rcx SPROUT mov_rr,aa
 CONTEXT rcx mov_[aa],rr
 ret
 
@@ -1881,8 +1880,8 @@ fromrax
 x' . call
 x' cr jmp
 
-\ Seed loop
-{: seedl
+\ Sprout loop
+{: sproutl
 input
 ' interpret
 { "  fail" s. }~ cr
@@ -1891,7 +1890,7 @@ input
 
 \ output object code
 {: output
-' seedl 'id ' ok }~ handle
+' sproutl 'id ' ok }~ handle
 
 7 rlabel \ the dictionary is ready here
 7 label
@@ -1904,7 +1903,7 @@ DP rax mov_[aa],rr \ initialize dictionary end
 DICTIONARY rax mov_[aa],rr \ and beginning
 rbx effects @ mov_rr,aa \ initialize stack pointer
 rcx xcurrent @ mov_rr,aa \ initial vocabulary
-rdx SEED mov_rr,aa \ seed vocabulary pointer
+rdx SPROUT mov_rr,aa \ sprout vocabulary pointer
 rdx rcx mov_[rr],rr \ initialize it
 CONTEXT rdx mov_[aa],rr \ initialize context vocabulary
 CURRENT rdx mov_[aa],rr \ initialize current vocabulary
@@ -1933,8 +1932,8 @@ EFFECTS 18 + rcx mov_[aa],rr
 rcx x' stdok mov_rr,aa
 EFFECTS 20 + rcx mov_[aa],rr
 
-\ execute seed loop
-x' seedl jmp
+\ execute sprout loop
+x' sproutl jmp
 
 0 q,
 

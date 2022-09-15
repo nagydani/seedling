@@ -1,6 +1,6 @@
 output \ this must be the first line
 
-\ This is the Seed source for a fictional Z80-based computer
+\ This is the Sprout source for a fictional Z80-based computer
 
 \ The fictional computer has the entire Z80 address
 \ space filled with RAM. Reading from port 0 reads a
@@ -14,7 +14,7 @@ output \ this must be the first line
 \ Assembler
 \ This is a full-fledged Z80 assembler that can be used both
 \ for cross-compiling and for writing native computations
-\ on Z80-based Seeds.
+\ on Z80-based Sprouts.
 
 hex
 
@@ -295,7 +295,7 @@ create labels
 \ END of assembler
 
 
-\ Seed cross-compiler for Z80-based targets
+\ Sprout cross-compiler for Z80-based targets
 
 \ pointer to cross-compiled vocabulary
 create xcurrent 0 w,
@@ -2092,8 +2092,8 @@ x' input w,
 
 does
 
-\ seed loop
-{: seedl
+\ sprout loop
+{: sproutl
 input
 ' interpret
 { "  fail" s. }~ cr
@@ -2102,10 +2102,10 @@ input
 
 \ output object code
 {: output
-' seedl 'id ' ok }~ handle
+' sproutl 'id ' ok }~ handle
 
-\ seed vocabulary
-native seed
+\ sprout vocabulary
+native sprout
 bc SEED ld_rr,xx
 CONTEXT bc ld_(xx),rr
 next
@@ -2153,10 +2153,10 @@ de STK_BOT ld_rr,xx
 sp STK_TOP ld_rr,xx
 ix, hl vm_l lb ld_rr,xx
 vm
-x' seed w,
+x' sprout w,
 x' definitions w,
 x' }~ w,
-x' seedl w,
+x' sproutl w,
 
 target dump
 
