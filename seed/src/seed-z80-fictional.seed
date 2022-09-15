@@ -45,7 +45,7 @@ z80 definitions
 0 variable offset
 {: $		here offset @ - }
 {: org		here swap - offset ! }
-{: align	{ dup $ swap mod 0<> drop 0 c, }~self ' drop }~|
+{: align	{ dup $ swap 1- and 0<> drop 0 c, }~self ' drop }~|
 
 \ labels
 
