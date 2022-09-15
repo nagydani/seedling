@@ -432,15 +432,14 @@ drop
 18018 constant FAIL
 18020 constant ERR_SP
 18028 constant DICTIONARY
-18030 constant FRAME
-18038 constant BASE
-18039 constant EMIT_BUF
-1803A constant PAD
+18030 constant BASE
+18031 constant EMIT_BUF
+18032 constant PAD
    20 constant PAD_LEN
-1805A constant TIB_BUF
+18052 constant TIB_BUF
   100 constant TIB_BUF_LEN
 
-18160 constant EFFECTS
+18158 constant EFFECTS
 
 \ effect pointer for cross-compiling
 EFFECTS variable effects
