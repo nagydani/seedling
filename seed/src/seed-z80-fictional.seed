@@ -36,11 +36,6 @@ hex
 \ dump the tail of the heap
 {: dump		here over - write }
 
-\ new vocabulary for assembly instructions
-vocabulary z80
-
-z80 definitions
-
 \ directives
 0 variable offset
 {: $		here offset @ - }
