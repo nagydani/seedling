@@ -431,18 +431,16 @@ drop
 18010 constant TIB
 18018 constant FAIL
 18020 constant ERR_SP
-18028 constant CONTEXT
-18030 constant CURRENT
-18038 constant DICTIONARY
-18040 constant FRAME
-18048 constant BASE
-18049 constant EMIT_BUF
-1804A constant PAD
+18028 constant DICTIONARY
+18030 constant FRAME
+18038 constant BASE
+18039 constant EMIT_BUF
+1803A constant PAD
    20 constant PAD_LEN
-1806A constant TIB_BUF
+1805A constant TIB_BUF
   100 constant TIB_BUF_LEN
 
-18170 constant EFFECTS
+18160 constant EFFECTS
 
 \ effect pointer for cross-compiling
 EFFECTS variable effects
@@ -1520,26 +1518,19 @@ here swap }~ ,
 {: skipstr ( a -- a )
 dup length + }~ 1+
 
-\ vocabulary in which words are searched
-CONTEXT address context
-
 \ vocabulary in which words are created
-CURRENT address current
+SEED address current
 
 \ last word in the current vocabulary
 {: last
-current @ }~ @
-
-\ make current vocabulary the same as the context vocabulary
-{: definitions
-context @ current }~ !
+current }~ @
 
 \ create new word returning the payload address
 {: create
 word
 last
 link
-current @ !
+current !
 here cell+ cell+ pad length + 1+ ,
 ' callcomp ,
 pad s, 0 c,
@@ -1571,13 +1562,6 @@ here 7 +
 FF c, 24 c, 25 c, d,	\ jmp [address]
 }~ ,
 
-\ create vocabulary
-{: vocabulary ( -( heap )- )
-here last ,
-create redefine
-literal
-' context callcomp ' ! }~ tailcomp
-
 \ postpone colon definition
 {: postpone
 create redefine
@@ -1589,7 +1573,7 @@ traverse& cell+ cell+ pad s= cut cell- cell- }~ nip
 
 \ find word in context vocabulary
 {:: find ( -( pad fail )- a )
-context @ search dup @ swap cell+ }~ @
+current search dup @ swap cell+ }~ @
 
 \ create colon definition
 {: {: ( -( heap )- )
@@ -1632,7 +1616,7 @@ bl }~ emit
 
 \ emit all context words
 {: words
-{ context @ traverse& cell+ cell+ s. space }~fail
+{ current traverse& cell+ cell+ s. space }~fail
 ' cr }~| 
 
 \ interpreter functions
@@ -1708,20 +1692,14 @@ ok }~ input
 
 does
 
-\ seed vocabulary
-native seed
-rcx SEED mov_rr,aa
-CONTEXT rcx mov_[aa],rr
-ret
-
 \ debugging
 
 \ forget a word and what was defined after it
 {: forget
 word
-current @ context @ =
+current
 search dictionary u>=
-cell- dup @ current @ ! dp }~ !
+cell- dup @ current ! dp }~ !
 
 \ output data stack content
 native .s
@@ -1767,8 +1745,6 @@ rbx effects @ mov_rr,aa \ initialize stack pointer
 rcx xcurrent @ mov_rr,aa \ initial vocabulary
 rdx SEED mov_rr,aa \ seed vocabulary pointer
 rdx rcx mov_[rr],rr \ initialize it
-CONTEXT rdx mov_[aa],rr \ initialize context vocabulary
-CURRENT rdx mov_[aa],rr \ initialize current vocabulary
 
 6 label
 rbx rax mov_[rr],rr	\ save TOS
