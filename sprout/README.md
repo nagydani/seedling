@@ -365,9 +365,9 @@ of digits interspersed with optional underscores
 similarly to integer literals, but it must contain a 
 fractional dot anywhere between before the first digit 
 and after the last digit of the sequence. The sequence 
-is optionally followed by the letter `e` or `E` and an 
-integer literal indicating a multiplier of the current 
-base raised to an integer power.
+is optionally followed by the letter `e` and an integer 
+literal indicating a multiplier of the current base 
+raised to an integer power.
 
 Floating point literals place a fixed number of cells 
 (the actual number is architecture-dependent but is 

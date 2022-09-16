@@ -206,15 +206,20 @@ create labels
 {: idiv_rr		48 c, F7 c, F8 or c, }
 {: not_rr		48 c, F7 c, D0 or c, }
 {: neg_rr		48 c, F7 c, D8 or c, }
+{: finit		9B c, DB c, E3 c, }
 {: fild_[rr]		DF c, 28 or c, }
 {: fistp_[rr]		DF c, 38 or c, }
+{: fisttp_[rr]		DD c, 08 or c, }
 {: fld_[rr]		DD c, c, }
 {: fstp_[rr]		DD c, 18 or c, }
 {: faddp		DE c, C1 c, }
 {: fsubp		DE c, E9 c, }
+{: fsubrp		DE c, E1 c, }
 {: fmulp		DE c, C9 c, }
 {: fdivp		DE c, F9 c, }
+{: fdivrp		DE c, F1 c, }
 {: fabs			D9 c, E1 c, }
+{: fchs			D9 c, E0 c, }
 {: fucomip		DF c, E9 c, }
 {: fldz			D9 c, EE c, }
 
@@ -1933,10 +1938,10 @@ rbx fild_[rr]
 value_fp
 ret
 
-\ floating point to integer conversion
+\ floating point to integer conversion, rounds towards zero
 native f>i
 unary_fp
-rbx fistp_[rr]
+rbx fisttp_[rr]
 rax rbx mov_rr,[rr]
 ret
 
@@ -1950,7 +1955,7 @@ ret
 \ floating point subtraction
 native f-
 binary_fp
-fsubp
+fsubrp
 value_fp
 ret
 
@@ -1964,7 +1969,7 @@ ret
 \ floating point division
 native f/
 binary_fp
-fdivp
+fdivrp
 value_fp
 ret
 
@@ -1972,6 +1977,13 @@ ret
 native fabs
 unary_fp
 fabs
+value_fp
+ret
+
+\ floating point negate
+native fnegate
+unary_fp
+fchs
 value_fp
 ret
 
@@ -2047,6 +2059,7 @@ input
 7 rlabel \ the dictionary is ready here
 7 label
 
+finit
 rax A mov_rr,x
 BASE rax mov_[aa],rl \ initialize numeral base
 rdi 0 mov_rr,x
