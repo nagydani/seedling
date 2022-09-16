@@ -1738,6 +1738,8 @@ x' execute does
 
 \ more arithmetics
 
+{: abs ' 0>= ' negate }~|
+
 {: /
 swap
 { 0>= swap { 0>= }~ u/ { negate u/mod swap 

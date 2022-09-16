@@ -1289,6 +1289,13 @@ native cells
 rax 3 shl_rr,s
 ret
 
+native abs
+rax rax or_rr,rr
+3 jns_fs
+rax neg_rr
+3 rslabel
+ret
+
 \ binary arithmetic primitives
 
 native +
