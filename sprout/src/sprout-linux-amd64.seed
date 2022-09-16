@@ -1521,6 +1521,10 @@ ret
 
 \ floating point primitives
 
+\ stack manipulation
+alias fdup dup
+alias fswap swap
+
 \ stack zero
 native 0.
 fromrax
@@ -1631,6 +1635,8 @@ x' drop does
 48 c, 89 c, 03 c,
 48 c, 83 c, C3 c, 08 c,
 48 c, B8 c, }~ , 
+
+alias fliteral literal
 
 {: >lit execute }~ literal
 
@@ -1863,8 +1869,8 @@ dup c@ 0<> }~ drop
 'id}~|
 
 \ find a character in a string
-{: index ( a c -( fail )- n )
->r >r 0 r> r>
+{: index ( a c -( fail )- a n )
+>r dup >r 0 r> r>
 { over ' nonempty { cut }~fail |
   c@ <> >r 1+ >r 1+ r> r> }~self
 'id|
@@ -2029,7 +2035,10 @@ bl }~ emit
 {: interpret
 word
 { find drop { cut }~fail }~|
-{ { pad }~ s>number { pad s. "  undefined" s. }~ cr }~|
+{ { { pad ascii . index drop }~ s>float
+    { pad }~ s>number
+  }~| 
+  { pad s. "  undefined" s. }~ cr }~|
 | }~self
 
 \ unnamed macro
@@ -2066,6 +2075,24 @@ x' }~fail does   \  TODO: not allowed in compile mode
 {: . ( n -( emit )- )
 ' 0>= { ascii - emit }~ negate | }~ u.
 
+\ execute n times
+{: times ( x n -- )
+{ 0<> 1- >r dup >r { cut }~fail | r> r> }~self
+{ drop }~ drop
+}~|
+
+
+\ emit floating-point number within range in regular notation
+{: (f.) ( f -( emit )- )
+{ f0>= fdup float>int dup { 0= ascii 0 emit }~ drop ' (.) |
+  ascii . emit int>float f-
+  { base c@ int>float f*
+    fdup float>int dup >digit emit int>float }~ f-
+  10 times }
+{ ascii - emit fnegate }~ (f.)
+}~|
+
+
 \ input functions
 
 \ get next word from the input buffer
@@ -2082,7 +2109,9 @@ pad
 {:: compile
 word
 ' find
-{ pad s>number ' literal }
+{ { pad ascii . index drop s>float ' fliteral }  
+  { pad s>number ' literal }
+}~|
 | execute
 }~ compile  \ TODO: why }~self doesn't work?
 
