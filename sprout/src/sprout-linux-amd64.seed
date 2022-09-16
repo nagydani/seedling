@@ -222,6 +222,7 @@ create labels
 {: fchs			D9 c, E0 c, }
 {: fucomip		DF c, E9 c, }
 {: fldz			D9 c, EE c, }
+{: fld1			D9 c, E8 c, }
 
 \ Cross Compilation
 \ The Sprout language cannot be directly cross-compiled,
@@ -1510,6 +1511,78 @@ rcx 3F cmp_rr,s
 rax sar_rr,cl
 ret
 
+\ floating point primitives
+
+\ stack zero
+native 0.
+fromrax
+fldz
+value_fp
+ret
+
+\ stack one
+native 1.
+fromrax
+fld1
+value_fp
+ret
+
+\ integer to floating point conversion
+native int>float
+rbx rax mov_[rr],rr
+rbx fild_[rr]
+value_fp
+ret
+
+\ floating point to integer conversion, rounds towards zero
+native float>int
+unary_fp
+rbx fisttp_[rr]
+rax rbx mov_rr,[rr]
+ret
+
+\ floating point addition
+native f+
+binary_fp
+faddp
+value_fp
+ret
+
+\ floating point subtraction
+native f-
+binary_fp
+fsubrp
+value_fp
+ret
+
+\ floating point multiplication
+native f*
+binary_fp
+fmulp
+value_fp
+ret
+
+\ floating point division
+native f/
+binary_fp
+fdivrp
+value_fp
+ret
+
+\ floating point absolute value
+native fabs
+unary_fp
+fabs
+value_fp
+ret
+
+\ floating point negate
+native fnegate
+unary_fp
+fchs
+value_fp
+ret
+
 \ tail call
 
 postpone word
@@ -1687,11 +1760,16 @@ carry?
 |
 base c@ }~ u<
 
+\ auxiliary underscore skiping
+{: (_skip) ( a -- a )
+{ 1+ dup c@ ascii _ = drop }~self
+'id}~|
+
 \ auxiliary numeral conversion
 {: (number) ( a n -( fail )- n )
 over c@ digit>int
 { >r base c@ * r> + swap
-{ 1+ dup c@ ascii _ = drop }~self 'id| 
+(_skip) 
 swap over c@ digit>int }~self
 'id|
 drop
@@ -1703,6 +1781,26 @@ over c@ ws drop
 { dup c@ ascii - <> drop 0 ' (number) { cut }~fail }~|
 { 1+ 0 (number) }~ negate
 }~|
+
+\ auxiliary numeral conversion
+{: (float_int) ( a -( fail )- a f ) \ TODO: not portable!
+0.
+{ over c@ digit>int >r
+  base c@ int>float f* r> int>float f+
+  >r (_skip) r> }~self
+'id|
+over c@ ascii . = drop
+>r 1+ r>
+}
+
+{: (float_frac) ( a f -( fail )- a f ) \ TODO: not portable!
+>r >r 1. r> r>
+{ >r >r base c@ int>float f/ r> r>
+  third
+  third c@ digit>int int>float f* f+ 
+  >r (_skip) r> }~self
+'id|
+>r >r drop r> r> }
 
 \ string functions
 
@@ -1721,6 +1819,14 @@ dup c@ 0<> }~ drop
 {: wsskip
 { dup c@ 0<> ws drop 1+ }~self
 'id}~|
+
+\ find a character in a string
+{: index ( a c -( fail )- n )
+>r >r 0 r> r>
+{ over ' nonempty { cut }~fail |
+  c@ <> >r 1+ >r 1+ r> r> }~self
+'id|
+drop }~ drop
 
 \ dictionary (a.k.a. heap) functions
 
@@ -1928,64 +2034,6 @@ pad
 [ PAD_LEN xliteral ] + u< 1+ swap 1+ swap }~self
 { 0 swap c! tib }~ !
 }~|
-
-\ floating point words
-
-\ integer to floating point conversion
-native i>f
-rbx rax mov_[rr],rr
-rbx fild_[rr]
-value_fp
-ret
-
-\ floating point to integer conversion, rounds towards zero
-native f>i
-unary_fp
-rbx fisttp_[rr]
-rax rbx mov_rr,[rr]
-ret
-
-\ floating point addition
-native f+
-binary_fp
-faddp
-value_fp
-ret
-
-\ floating point subtraction
-native f-
-binary_fp
-fsubrp
-value_fp
-ret
-
-\ floating point multiplication
-native f*
-binary_fp
-fmulp
-value_fp
-ret
-
-\ floating point division
-native f/
-binary_fp
-fdivrp
-value_fp
-ret
-
-\ floating point absolute value
-native fabs
-unary_fp
-fabs
-value_fp
-ret
-
-\ floating point negate
-native fnegate
-unary_fp
-fchs
-value_fp
-ret
 
 \ compiler
 
