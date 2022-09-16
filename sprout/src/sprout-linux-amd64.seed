@@ -206,6 +206,17 @@ create labels
 {: idiv_rr		48 c, F7 c, F8 or c, }
 {: not_rr		48 c, F7 c, D0 or c, }
 {: neg_rr		48 c, F7 c, D8 or c, }
+{: fild_[rr]		DF c, 28 or c, }
+{: fistp_[rr]		DF c, 38 or c, }
+{: fld_[rr]		DD c, c, }
+{: fstp_[rr]		DD c, 18 or c, }
+{: faddp		DE c, C1 c, }
+{: fsubp		DE c, E9 c, }
+{: fmulp		DE c, C9 c, }
+{: fdivp		DE c, F9 c, }
+{: fabs			D9 c, E1 c, }
+{: fucomip		DF c, E9 c, }
+{: fldz			D9 c, EE c, }
 
 \ Cross Compilation
 \ The Sprout language cannot be directly cross-compiled,
@@ -236,6 +247,33 @@ torax
 {: binary_cmp
 binary
 rax rcx cmp_rr,rr
+}
+
+{: unary_fp
+rbx rax mov_[rr],rr
+rbx fld_[rr]
+}
+
+{: binary_fp
+unary_fp
+rbx 8 sub_rr,s
+rbx fld_[rr]
+}
+
+{: value_fp
+rbx fstp_[rr]
+rax rbx mov_rr,[rr]
+}
+
+{: binary_fcmp
+binary_fp
+fucomip
+}
+
+{: unary_fcmp
+unary_fp
+fldz
+fucomip
 }
 
 \ pointer to cross-compiled vocabulary
@@ -827,6 +865,26 @@ rax rax or_rr,rr
 2 lb jns
 ret
 
+native f0=
+unary_fcmp
+2 lb jnz
+ret
+
+native f0<>
+unary_fcmp
+2 lb jz
+ret
+
+native f0>=
+unary_fcmp
+2 lb ja
+ret
+
+native f0<
+unary_fcmp
+2 lb jbe
+ret
+
 \ relations
 
 native =
@@ -857,6 +915,42 @@ ret
 native u<=
 binary_cmp
 2 lb ja
+ret
+
+native f>
+binary_fcmp
+2 lb jbe
+rax rbx mov_rr,[rr]
+ret
+
+native f>=
+binary_fcmp
+2 lb jb
+rax rbx mov_rr,[rr]
+ret
+
+native f<
+binary_fcmp
+2 lb jae
+rax rbx mov_rr,[rr]
+ret
+
+native f<=
+binary_fcmp
+2 lb ja
+rax rbx mov_rr,[rr]
+ret
+
+native f=
+binary_fcmp
+2 lb jnz
+rax rbx mov_rr,[rr]
+ret
+
+native f<>
+binary_fcmp
+2 lb jz
+rax rbx mov_rr,[rr]
 ret
 
 native >
@@ -1829,6 +1923,57 @@ pad
 [ PAD_LEN xliteral ] + u< 1+ swap 1+ swap }~self
 { 0 swap c! tib }~ !
 }~|
+
+\ floating point words
+
+\ integer to floating point conversion
+native i>f
+rbx rax mov_[rr],rr
+rbx fild_[rr]
+value_fp
+ret
+
+\ floating point to integer conversion
+native f>i
+unary_fp
+rbx fistp_[rr]
+rax rbx mov_rr,[rr]
+ret
+
+\ floating point addition
+native f+
+binary_fp
+faddp
+value_fp
+ret
+
+\ floating point subtraction
+native f-
+binary_fp
+fsubp
+value_fp
+ret
+
+\ floating point multiplication
+native f*
+binary_fp
+fmulp
+value_fp
+ret
+
+\ floating point division
+native f/
+binary_fp
+fdivp
+value_fp
+ret
+
+\ floating point absolute value
+native fabs
+unary_fp
+fabs
+value_fp
+ret
 
 \ compiler
 
