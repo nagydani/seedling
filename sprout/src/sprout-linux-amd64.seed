@@ -212,6 +212,7 @@ create labels
 {: fisttp_[rr]		DD c, 08 or c, }
 {: fld_[rr]		DD c, c, }
 {: fstp_[rr]		DD c, 18 or c, }
+{: fstp_st1		DD c, D9 c, }
 {: faddp		DE c, C1 c, }
 {: fsubp		DE c, E9 c, }
 {: fsubrp		DE c, E1 c, }
@@ -221,8 +222,15 @@ create labels
 {: fabs			D9 c, E1 c, }
 {: fchs			D9 c, E0 c, }
 {: fucomip		DF c, E9 c, }
+{: fld_st0		D9 c, C0 c, }
+{: fld_st1		D9 c, C1 c, }
 {: fldz			D9 c, EE c, }
 {: fld1			D9 c, E8 c, }
+{: fldl2e		D9 c, EA c, }
+{: fyl2x		D9 c, F1 c, }
+{: fscale		D9 c, FD c, }
+{: f2xm1		D9 c, F0 c, }
+{: fprem		D9 c, F8 c, }
 
 \ Cross Compilation
 \ The Sprout language cannot be directly cross-compiled,
@@ -1583,6 +1591,24 @@ fchs
 value_fp
 ret
 
+\ floating point power
+native f^
+unary_fp
+fld1
+rbx 8 sub_rr,s
+rbx fld_[rr]
+fyl2x
+fmulp
+fld1
+fld_st1
+fprem
+f2xm1
+faddp
+fscale
+fstp_st1
+value_fp
+ret
+
 \ tail call
 
 postpone word
@@ -1766,7 +1792,8 @@ base c@ }~ u<
 'id}~|
 
 \ auxiliary numeral conversion
-{: (number) ( a n -( fail )- n )
+{: (number) ( a -( fail )- n )
+0
 over c@ digit>int
 { >r base c@ * r> + swap
 (_skip) 
@@ -1778,8 +1805,8 @@ over c@ ws drop
 
 \ string numeral to integer conversion
 {: s>number ( a -( fail )- n )
-{ dup c@ ascii - <> drop 0 ' (number) { cut }~fail }~|
-{ 1+ 0 (number) }~ negate
+{ dup c@ ascii - <> drop ' (number) { cut }~fail }~|
+{ 1+ (number) }~ negate
 }~|
 
 \ auxiliary numeral conversion
@@ -1801,6 +1828,21 @@ over c@ ascii . = drop
   >r (_skip) r> }~self
 'id|
 >r >r drop r> r> }
+
+{: (float) ( a -( fail )- f ) \ TODO: not portable!
+(float_int) (float_frac)
+{ over c@ ascii e = drop
+  swap 1+ s>number int>float
+  base c@ int>float swap
+  f^ }~ f*
+{ swap c@ ws }~ drop
+}~|
+
+\ string numeral to floating point conversion
+{: s>float ( a -( fail )- f )
+{ dup c@ ascii - <> drop ' (float) { cut }~fail }~|
+{ 1+ (float) }~ fnegate
+}~|
 
 \ string functions
 
