@@ -207,6 +207,7 @@ create labels
 {: not_rr		48 c, F7 c, D0 or c, }
 {: neg_rr		48 c, F7 c, D8 or c, }
 {: finit		9B c, DB c, E3 c, }
+{: fldcw_[rr]		D9 c, 28 or c, }
 {: fild_[rr]		DF c, 28 or c, }
 {: fistp_[rr]		DF c, 38 or c, }
 {: fisttp_[rr]		DD c, 08 or c, }
@@ -231,6 +232,9 @@ create labels
 {: fscale		D9 c, FD c, }
 {: f2xm1		D9 c, F0 c, }
 {: fprem		D9 c, F8 c, }
+{: fincstp		D9 c, F7 c, }
+{: ffree		DD c, C0 c, }
+{: frndint		D9 c, FC c, }
 
 \ Cross Compilation
 \ The Sprout language cannot be directly cross-compiled,
@@ -282,12 +286,16 @@ rax rbx mov_rr,[rr]
 {: binary_fcmp
 binary_fp
 fucomip
+ffree
+fincstp
 }
 
 {: unary_fcmp
 unary_fp
 fldz
 fucomip
+ffree
+fincstp
 }
 
 \ pointer to cross-compiled vocabulary
@@ -1546,11 +1554,27 @@ rbx fild_[rr]
 value_fp
 ret
 
-\ floating point to integer conversion, rounds towards zero
+\ floating point to integer conversion, rounds towards -inf
 native f>int
 unary_fp
-rbx fisttp_[rr]
+rbx fistp_[rr]
 rax rbx mov_rr,[rr]
+ret
+
+\ integer part of a floating point number
+native fint
+unary_fp
+frndint
+value_fp
+ret
+
+\ fractional part of a floating point number
+native ffrac
+unary_fp
+fld_st0
+frndint
+fsubp
+value_fp
 ret
 
 \ floating point addition
@@ -1610,6 +1634,14 @@ f2xm1
 faddp
 fscale
 fstp_st1
+value_fp
+ret
+
+\ floating point base 2 logarithm
+native flog2
+fld1
+unary_fp
+fyl2x
 value_fp
 ret
 
@@ -1821,6 +1853,8 @@ over c@ ws drop
 
 \ string numeral to integer conversion
 {: s>number ( a -( fail )- n )
+{ dup c@ ascii + = drop 1+ }
+'id|
 { dup c@ ascii - <> drop ' (number) { cut }~fail }~|
 { 1+ (number) }~ negate
 }~|
@@ -2097,20 +2131,27 @@ x' }~fail does   \  TODO: not allowed in compile mode
 { drop }~ drop
 }~|
 
+\ number of significant digits
+{: (digits) ( -( base )- n )
+35 int>f \ mantissa digits
+(fbase) flog2 f/
+f>int 1- }
 
-\ emit floating-point number within range in regular notation
-{: (f.) ( f n -( emit )- ) \ TODO: not portable!
-swap
-{ f0>=
-  (fbase) third negate int>f f^ fhalf f+
-  fdup f>int dup { 0= ascii 0 emit }~ drop ' (.) |
-  ascii . emit int>f f-
-  { (fbase) f*
-    fdup f>int dup >digit emit int>f }~ f-
-  third times drop }~ drop
-{ ascii - emit fnegate swap }~ (f.)
-}~|
-
+\ emit floating point number w/ trailing space
+{: f. ( f -( emit )- )
+fdup flog2 (fbase) flog2 f/ f>int \ exponent
+dup >r \ exponent saved
+int>f (fbase) fswap f^ f/ \ normalization
+r> swap
+(fbase) (digits) negate int>f f^ fhalf f+ \ rounding
+{ (fbase) }~ f< { (fbase) f/ swap 1+ }~ swap |
+fdup f>int >digit emit ascii . emit
+{ ffrac (fbase) f* fdup f>int >digit }~ emit
+(digits) times
+drop
+ascii e emit
+{ 0>= ascii + emit } 'id|
+}~ . 
 
 \ input functions
 
@@ -2194,10 +2235,14 @@ input
 {: output
 ' sproutl 'id ' ok }~ handle
 
+$ 177F w, \ FPU control word, round towards -inf
+
 7 rlabel \ the dictionary is ready here
 7 label
 
 finit
+rbx swap mov_rr,aa \ FPU control word address in rbx
+rbx fldcw_[rr]
 rax A mov_rr,x
 BASE rax mov_[aa],rl \ initialize numeral base
 rdi 0 mov_rr,x
