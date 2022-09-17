@@ -1540,14 +1540,14 @@ value_fp
 ret
 
 \ integer to floating point conversion
-native int>float
+native int>f
 rbx rax mov_[rr],rr
 rbx fild_[rr]
 value_fp
 ret
 
 \ floating point to integer conversion, rounds towards zero
-native float>int
+native f>int
 unary_fp
 rbx fisttp_[rr]
 rax rbx mov_rr,[rr]
@@ -1608,6 +1608,16 @@ fld_st1
 fprem
 f2xm1
 faddp
+fscale
+fstp_st1
+value_fp
+ret
+
+\ halvening
+native fhalf
+fld1
+fchs
+unary_fp
 fscale
 fstp_st1
 value_fp
@@ -1815,31 +1825,37 @@ over c@ ws drop
 { 1+ (number) }~ negate
 }~|
 
+\ floating point base
+{: (fbase) ( -( base )- f )
+base c@ }~ int>f
+
 \ auxiliary numeral conversion
 {: (float_int) ( a -( fail )- a f ) \ TODO: not portable!
 0.
 { over c@ digit>int >r
-  base c@ int>float f* r> int>float f+
+  (fbase) f* r> int>f f+
   >r (_skip) r> }~self
 'id|
 over c@ ascii . = drop
 >r 1+ r>
 }
 
+\ auxiliary numeral conversion
 {: (float_frac) ( a f -( fail )- a f ) \ TODO: not portable!
 >r >r 1. r> r>
-{ >r >r base c@ int>float f/ r> r>
+{ >r >r (fbase) f/ r> r>
   third
-  third c@ digit>int int>float f* f+ 
+  third c@ digit>int int>f f* f+ 
   >r (_skip) r> }~self
 'id|
 >r >r drop r> r> }
 
+\ auxiliary numeral conversion
 {: (float) ( a -( fail )- f ) \ TODO: not portable!
 (float_int) (float_frac)
 { over c@ ascii e = drop
-  swap 1+ s>number int>float
-  base c@ int>float swap
+  swap 1+ s>number int>f
+  (fbase) swap
   f^ }~ f*
 { swap c@ ws }~ drop
 }~|
@@ -1853,18 +1869,18 @@ over c@ ascii . = drop
 \ string functions
 
 \ non-empty filter
-{: nonempty
+{: nonempty ( a -( fail )- a )
 dup c@ 0<> }~ drop
 
 \ string length
-{: length
+{: length ( a -- n )
 0 swap
 { nonempty 1+ swap 1+ swap }~self
 ' drop
 }~|
 
 \ discard leading whitespace
-{: wsskip
+{: wsskip ( a -- a )
 { dup c@ 0<> ws drop 1+ }~self
 'id}~|
 
@@ -2083,13 +2099,16 @@ x' }~fail does   \  TODO: not allowed in compile mode
 
 
 \ emit floating-point number within range in regular notation
-{: (f.) ( f -( emit )- )
-{ f0>= fdup float>int dup { 0= ascii 0 emit }~ drop ' (.) |
-  ascii . emit int>float f-
-  { base c@ int>float f*
-    fdup float>int dup >digit emit int>float }~ f-
-  10 times }
-{ ascii - emit fnegate }~ (f.)
+{: (f.) ( f n -( emit )- ) \ TODO: not portable!
+swap
+{ f0>=
+  (fbase) third negate int>f f^ fhalf f+
+  fdup f>int dup { 0= ascii 0 emit }~ drop ' (.) |
+  ascii . emit int>f f-
+  { (fbase) f*
+    fdup f>int dup >digit emit int>f }~ f-
+  third times drop }~ drop
+{ ascii - emit fnegate swap }~ (f.)
 }~|
 
 
