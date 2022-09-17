@@ -1324,6 +1324,13 @@ ERR_SP rcx mov_[aa],rr	\ restore ERR_SP
 rsp 8 add_rr,s		\ discard data stack pointer
 ret
 
+\ execute computation with exception
+native catch
+binary			\ exception reference in rcx
+rcx 2 add_rr,s
+rdx rcx mov_rr,[rr]	\ handler pointer in rdx
+3 lb jmp
+
 \ execute computation with scratch space
 native frame
 binary
@@ -1961,17 +1968,63 @@ here swap }~ ,
 {: traverse&
 @ 0<> 'self & dup }~ cell+
 
-\ vocabulary functions
-
-\ skip word name
-{: skipstr ( a -- a )
-dup length + }~ 1+
-
 \ vocabulary in which words are searched
 CONTEXT address context
 
 \ vocabulary in which words are created
 CURRENT address current
+
+\ I/O functions
+
+{: s.
+dup length write }~ drop
+
+\ emit new line (a.k.a. carriage return)
+{: cr
+A }~ emit
+
+\ emit space
+{: space
+bl }~ emit
+
+\ emit all non-auxiliary context words
+{: words
+{ context @ traverse& cell+ cell+
+dup c@ ascii ( <> drop
+s. space }~fail
+' cr }~| 
+
+\ interpreter functions
+
+\ undefined word
+{: undef
+pad s. "  undefined" s. }~ cr
+
+\ interpreter
+{: interpret
+word
+{ find drop { cut }~fail }~|
+{ { { pad ascii . index drop }~ s>float
+    { pad }~ s>number
+  }~| 
+  ' undef }~|
+| }~self
+
+\ unnamed macro
+
+{: [ ' interpret 'id}~|
+
+x' execute does
+
+{: ] }~fail
+
+x' }~fail does   \  TODO: not allowed in compile mode
+
+\ vocabulary functions
+
+\ skip word name
+{: skipstr ( a -- a )
+dup length + }~ 1+
 
 \ last word in the current vocabulary
 {: last
@@ -2017,6 +2070,15 @@ create redefine
 here 7 +
 FF c, 24 c, 25 c, d,	\ jmp [address]
 }~ ,
+
+\ create exception
+{: exception ( x -( heap )- )
+create redefine
+here F +
+48 c, B9 c, ,		\ mov rcx, address
+E9 c,			\ jmp
+[ catch @ 4 - xaliteral ] here - d,
+' bye }~ ,
 
 \ create vocabulary
 {: vocabulary ( -( heap )- )
@@ -2081,52 +2143,6 @@ fbot 28 - @ }~ 0<>
 \ end address of the previous frame
 {: pftop ( -( fbot fail )- a )
 pfbot dup cell- @ }~ +
-
-\ I/O functions
-
-{: s.
-dup length write }~ drop
-
-\ emit new line (a.k.a. carriage return)
-{: cr
-A }~ emit
-
-\ emit space
-{: space
-bl }~ emit
-
-\ emit all non-auxiliary context words
-{: words
-{ context @ traverse& cell+ cell+
-dup c@ ascii ( <> drop
-s. space }~fail
-' cr }~| 
-
-\ interpreter functions
-
-\ undefined word
-{: undef
-pad s. "  undefined" s. }~ cr
-
-\ interpreter
-{: interpret
-word
-{ find drop { cut }~fail }~|
-{ { { pad ascii . index drop }~ s>float
-    { pad }~ s>number
-  }~| 
-  ' undef }~|
-| }~self
-
-\ unnamed macro
-
-{: [ ' interpret 'id}~|
-
-x' execute does
-
-{: ] }~fail
-
-x' }~fail does   \  TODO: not allowed in compile mode
 
 \ numeral functions
 
