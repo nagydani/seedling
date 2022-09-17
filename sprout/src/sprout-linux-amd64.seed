@@ -1788,6 +1788,13 @@ ascii A u>= ascii Z }~ u<=
 {: alphanum
 ' ddigit ' letter }~|
 
+\ skip prefix of string for which predicate holds
+{: skip ( a x -- a )
+swap
+{ dup c@ 0<> third execute drop 1+ }~self
+'id|
+}~ nip
+
 \ character mappers
 
 \ capitalize
@@ -1836,8 +1843,7 @@ base c@ }~ u<
 
 \ auxiliary underscore skiping
 {: (_skip) ( a -- a )
-{ 1+ dup c@ ascii _ = drop }~self
-'id}~|
+1+ { ascii _ }~ = }~ skip
 
 \ auxiliary numeral conversion
 {: (number) ( a -( fail )- n )
@@ -1915,8 +1921,7 @@ dup c@ 0<> }~ drop
 
 \ discard leading whitespace
 {: wsskip ( a -- a )
-{ dup c@ 0<> ws drop 1+ }~self
-'id}~|
+' ws }~ skip
 
 \ find a character in a string
 {: index ( a c -( fail )- a n )
@@ -2074,9 +2079,11 @@ A }~ emit
 {: space
 bl }~ emit
 
-\ emit all context words
+\ emit all non-auxiliary context words
 {: words
-{ context @ traverse& cell+ cell+ s. space }~fail
+{ context @ traverse& cell+ cell+
+dup c@ ascii ( <> drop
+s. space }~fail
 ' cr }~| 
 
 \ interpreter functions
