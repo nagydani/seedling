@@ -344,6 +344,9 @@ word xfind' }~ w@
 \ target pointer to execute
 0 variable exec
 
+\ target pointer to catch
+0 variable catch
+
 \ target create
 {: xcreate
 xlast
@@ -852,7 +855,7 @@ native }~fail
 2 rlabel
 2 label
 rcx FAIL mov_rr,aa
-3 label
+$ catch !
 rsp ERR_SP mov_rr,[aa]	\ restore rsp
 rdx pop			\ handler pointer in rdx
 rcx rdx cmp_rr,rr	\ compare with current effect's
@@ -869,6 +872,10 @@ rax rbx mov_rr,[rr]	\ restore TOS
 rcx jmp_rr		\ continue with handler
 
 x' endcomp does
+
+postpone word
+
+postpone find
 
 native carry?
 2 lb jc
@@ -1666,10 +1673,6 @@ ret
 
 \ tail call
 
-postpone word
-
-postpone find
-
 native }~
 2 lb jmp \ not permitted in interpret mode
 
@@ -2060,6 +2063,10 @@ last cell+ }~ !
 \ make most recently definted word immediate
 {: immediate ( -( heap )- )
 ' execute }~ does
+
+\ find address in context vocabulary
+{: name ( x -( fail )- a )
+context @ traverse& third u< cut cell+ cell+ nip }~ nip
 
 \ scratch frame functions
 
