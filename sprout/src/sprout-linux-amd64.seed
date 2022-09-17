@@ -1450,10 +1450,10 @@ ret
 
 native du/mod ( n n n -- n n )
 rcx rax mov_rr,rr
+rbx 8 sub_rr,s
 rdx rbx mov_rr,[rr]
 rbx 8 sub_rr,s
 rax rbx mov_rr,[rr]
-rbx 8 sub_rr,s
 rcx div_rr
 rbx rdx mov_[rr],rr
 rbx 8 add_rr,s
