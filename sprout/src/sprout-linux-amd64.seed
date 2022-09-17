@@ -2097,6 +2097,10 @@ s. space }~fail
 
 \ interpreter functions
 
+\ undefined word
+{: undef
+pad s. "  undefined" s. }~ cr
+
 \ interpreter
 {: interpret
 word
@@ -2104,7 +2108,7 @@ word
 { { { pad ascii . index drop }~ s>float
     { pad }~ s>number
   }~| 
-  { pad s. "  undefined" s. }~ cr }~|
+  ' undef }~|
 | }~self
 
 \ unnamed macro
@@ -2185,11 +2189,13 @@ pad
 {:: compile
 word
 ' find
-{ { pad ascii . index drop s>float ' fliteral }  
-  { pad s>number ' literal }
+{ { { pad ascii . index drop s>float ' fliteral }
+    { pad s>number ' literal }
+  }~|
+  ' undef
 }~|
 | execute
-}~ compile  \ TODO: why }~self doesn't work?
+}~ compile \ TODO: why }~self doesn't work?
 
 \ ok effect
 {: stdok
