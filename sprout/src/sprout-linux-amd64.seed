@@ -325,9 +325,15 @@ pad s= cut }~ nip
 {: xfind ( -( pad fail )- a )
 xcurrent xsearch 10 }~ -
 
+{: undef ( -( pad emit )- )
+pad s. "  undefined" s. cr }~ bye
+
+{: xfind' ( -( pad bye )- a )
+' xfind ' undef }~|
+
 \ target tick
 {: x'
-word xfind }~ w@
+word xfind' }~ w@
 
 \ target pointer to callcomp
 0 variable callcomp
@@ -394,7 +400,7 @@ traverse& third over @ s= cut drop drop nip cell+ cell+ @ }
 \ Compile mode behaviors for ends of computation
 
 " }"		{ drop ret }~fail	xcomps assoc
-" }~"		{ drop word xfind
+" }~"		{ drop word xfind'
 		w@ jmp }~fail		xcomps assoc
 " }~fail"	' tail			xcomps assoc
 " }~|"		' tail			xcomps assoc
@@ -417,7 +423,7 @@ traverse& third over @ s= cut drop drop nip cell+ cell+ @ }
 
 " ascii"	{ drop word pad
 		c@ xliteral }		xcomps assoc
-" '"		{ drop word xfind
+" '"		{ drop word xfind'
 		w@ xaliteral }		xcomps assoc
 " 'self"	{ drop dup
 		offset @ - xaliteral }	xcomps assoc
@@ -448,7 +454,10 @@ while
   { pad xcomps recall }
   { ' call }
 }~|
-{ pad s>number ' xliteral }
+{
+  { pad s>number ' xliteral }
+  ' undef
+}~|
 |
 execute
 }~self
@@ -555,7 +564,7 @@ exec @ }~ does
 {: alias
 xcreate
 word
-xfind
+xfind'
 dup
 w@ \ interpret mode behavior
 swap
@@ -573,7 +582,7 @@ $ ' xcompile 'id}~|
 
 \ postponed colon definition
 {: {::
-word xfind w@ offset @ + \ host address of jmp instruction
+word xfind' w@ offset @ + \ host address of jmp instruction
 1+ \ host address of jmp relative address
 dup
 4 + \ host address of jmp anchor
