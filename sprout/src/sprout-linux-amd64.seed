@@ -864,6 +864,7 @@ native }~fail
 2 label
 rcx FAIL mov_rr,aa
 $ catch !
+3 label
 rsp ERR_SP mov_rr,[aa]	\ restore rsp
 rdx pop			\ handler pointer in rdx
 rcx rdx cmp_rr,rr	\ compare with current effect's
@@ -1467,6 +1468,8 @@ exception 0/
 
 native u/mod ( n n -- n n )
 binary
+rcx rcx or_rr,rr
+x' 0/ jz
 rdx rdx xor_rr,rr
 rcx div_rr
 rbx rdx mov_[rr],rr
@@ -1475,6 +1478,8 @@ ret
 
 native du/mod ( n n n -- n n )
 rcx rax mov_rr,rr
+rcx rcx or_rr,rr
+x' 0/ jz
 rbx 8 sub_rr,s
 rdx rbx mov_rr,[rr]
 rbx 8 sub_rr,s
@@ -1486,6 +1491,8 @@ ret
 
 native /mod ( n n -- n n )
 binary
+rcx rcx or_rr,rr
+x' 0/ jz
 rax rax add_rr,rr
 rdx rdx sbb_rr,rr
 rax rcr_rr,1
@@ -2281,11 +2288,14 @@ x' cr jmp
 
 \ Sprout loop
 {: sproutl
-input
-' interpret
-{ "  fail" s. }~ cr
-|
+{ input
+  ' interpret
+  { "  fail" s. }~ cr
+}~|
+{ " division by 0" s. }~ cr
+' 0/  catch
 }~self
+
 
 \ output object code
 {: output
