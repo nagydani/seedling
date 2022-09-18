@@ -531,10 +531,18 @@ E9 c, 0 d, \ jmp forward
 }
 
 \ effect definition
-{: effect ( -- )
+{: effect
 native
 effects @ dup 8 + effects !
 jmp_[aa]
+}
+
+\ exception definition
+{: exception
+native
+effects @ dup 8 + effects !
+rcx swap mov_rr,aa
+catch @ jmp
 }
 
 \ constant definition
@@ -1327,8 +1335,9 @@ ret
 \ execute computation with exception
 native catch
 binary			\ exception reference in rcx
-rcx 2 add_rr,s
-rdx rcx mov_rr,[rr]	\ handler pointer in rdx
+rcx 1 add_rr,s
+rdx rdx xor_rr,rr
+rdx rcx mov_er,[rr]	\ handler pointer in rdx
 3 lb jmp
 
 \ execute computation with scratch space
@@ -1453,6 +1462,8 @@ rcx mul_rr
 fromrax
 rax rdx mov_rr,rr
 ret
+
+exception 0/
 
 native u/mod ( n n -- n n )
 binary
@@ -2074,8 +2085,8 @@ FF c, 24 c, 25 c, d,	\ jmp [address]
 \ create exception
 {: exception ( x -( heap )- )
 create redefine
-here F +
-48 c, B9 c, ,		\ mov rcx, address
+here A +
+B9 c, d,		\ mov rcx, address
 E9 c,			\ jmp
 [ catch @ 4 - xaliteral ] here - d,
 ' bye }~ ,
@@ -2322,8 +2333,9 @@ rcx x' stdkey mov_rr,aa
 EFFECTS 10 + rcx mov_[aa],rr
 rcx x' stdinput mov_rr,aa
 EFFECTS 18 + rcx mov_[aa],rr
+\ division by zero exception
 rcx x' stdok mov_rr,aa
-EFFECTS 20 + rcx mov_[aa],rr
+EFFECTS 28 + rcx mov_[aa],rr
 
 \ execute sprout loop
 x' sproutl jmp
