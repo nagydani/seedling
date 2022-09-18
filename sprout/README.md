@@ -525,6 +525,9 @@ and the actual definition.
    [below](#effect-handling) for details. It takes a 
    reference to a computation that is the default handler 
    as its argument.
+ * `exception` creates a word that can be used in 
+   computations that are given as the first argument to 
+   `catch`. See [below](#exception-handling) for details. 
 
 All the above words create words whose compile mode behavior 
 is to compile a call to their (above described) interpret 
@@ -942,14 +945,40 @@ The above defined `cutTest` word would output `1 3 `.
 ### Effect Handling
 
 The word `handle` takes three arguments from the top of 
-the stack (from bottom to top): a computation that 
-contains calls to the handled effect, a computation that 
+the stack (from bottom to top): a computation that may 
+contain calls to the handled effect, a computation that 
 is the effect handler and a reference to the effect to 
-handle. The handler is registered, the first computation is 
-executed with the second substituted for the effect and then 
-the handler is deregistered.
+handle. The handler is registered, the first computation 
+is executed with the second substituted for the effect 
+and then the handler is deregistered.
 
 *TODO: a good example*
+
+### Exception Handling
+
+Exceptions are special effects, which terminate the 
+computation due to some exceptional condition. 
+Exceptions are very similar to failures (indeed, failure 
+is a special exception) in that once an exception is 
+raised, there is no return to the computation. They are 
+typically used to signal an error so bad that the 
+computation cannot be completed to success nor failure.
+
+The word `catch` takes three arguments from the top of 
+the stack (from bottom to top): a computation that may 
+raise the handled exception, a computation that is the 
+exception handler and a reference to the exception to 
+handle.
+
+Example:
+```
+{: .quot { / . } { " nonsense " s. } ' 0/ }~ catch
+```
+
+The word `.quot` outputs the quotient after division, but 
+if the divisor is zero, it outputs `nonsense `. It 
+achieves this by catching the built-in exception `0/` 
+which signals division by zero.
 
 ### Frame Handling
 
