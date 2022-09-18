@@ -2258,6 +2258,24 @@ rcx SPROUT mov_rr,aa
 CONTEXT rcx mov_[aa],rr
 ret
 
+\ UTF-8 functions
+
+{: (u8dec) ( x c n -( fail )- c )
+{ 0<> 1- >r 6 lshift >r dup >r execute 3F and
+  r> swap r> swap or r> }~self
+'id|
+drop }~ nip
+
+{: u8decode ( x -( fail )- c )
+dup >r execute r> swap
+{ { { 7F u<= }~ nip
+    { DF u<= 1F and 1 }~ (u8dec)
+  }~|
+  { EF u<= 0F and 2 }~ (u8dec)
+}~|
+{ F7 u<= 07 and 3 }~ (u8dec)
+}~|
+
 \ debugging
 
 \ forget a word and what was defined after it
@@ -2295,7 +2313,6 @@ x' cr jmp
 { " division by 0" s. }~ cr
 ' 0/  catch
 }~self
-
 
 \ output object code
 {: output
