@@ -1466,7 +1466,7 @@ ret
 
 exception 0/
 
-native u/mod ( n n -- n n )
+native u/mod ( n n -( 0/ )- n n )
 binary
 rcx rcx or_rr,rr
 x' 0/ jz
@@ -1476,7 +1476,7 @@ rbx rdx mov_[rr],rr
 rbx 8 add_rr,s
 ret
 
-native du/mod ( n n n -- n n )
+native du/mod ( n n n -( 0/ )- n n )
 rcx rax mov_rr,rr
 rcx rcx or_rr,rr
 x' 0/ jz
@@ -1489,7 +1489,7 @@ rbx rdx mov_[rr],rr
 rbx 8 add_rr,s
 ret
 
-native /mod ( n n -- n n )
+native /mod ( n n -( 0/ )- n n )
 binary
 rcx rcx or_rr,rr
 x' 0/ jz
