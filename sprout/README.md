@@ -190,12 +190,12 @@ vocabulary.
  * ['id}~|](#failure-handling)
  * ['self](#computation-literals)
  * [(](#comments)
- * [*](#binary-arithmetic-primitives)
- * [+](#binary-arithmetic-primitives)
+ * [*](#arithmetic-primitives)
+ * [+](#arithmetic-primitives)
  * [,](#heap-effects)
- * [-](#binary-arithmetic-primitives)
+ * [-](#arithmetic-primitives)
  * [.](#output-functions)
- * [/](#binary-arithmetic-primitives)
+ * [/](#arithmetic-primitives)
  * [0/](#exception-handling)
  * [0<](#filters)
  * [0<>](#filters)
@@ -217,6 +217,7 @@ vocabulary.
  * [\[](#unnamed-macros)
  * [\\](#comments)
  * [\]](#unnamed-macros)
+ * [abs](#mappers)
  * [allot](#heap-effects)
  * [alphanum](#filters)
  * [and](#bitwise-primitives)
@@ -246,31 +247,44 @@ vocabulary.
  * [does](#other-ways-to-create-and-modify-words)
  * [dp](#predefined-constants)
  * [drop](#stack-manipulation)
- * [du/mod](#binary-arithmetic-primitives)
+ * [du/mod](#arithmetic-primitives)
  * [dup](#stack-manipulation)
  * [effect](#effect-handling)
  * [emit](#output-effects)
  * [endcomp](#other-ways-to-create-and-modify-words)
  * [endtail](#other-ways-to-create-and-modify-words)
  * [execute](#miscellaneous)
+ * [f.](#output-functions)
+ * [f*](#arithmetic-primitives)
+ * [f+](#arithmetic-primitives)
+ * [f-](#arithmetic-primitives)
+ * [f/](#arithmetic-primitives)
  * [f<](#relations)
  * [f<=](#relations)
  * [f<>](#relations)
  * [f=](#relations)
  * [f>](#relations)
+ * [f>int](#mappers)
  * [f>=](#relations)
  * [f0<](#filters)
  * [f0<>](#filters)
  * [f0>=](#filters)
  * [f0=](#filters)
+ * [fabs](#mappers)
  * [fbot](#frame-handling)
+ * [ffrac](#mappers)
+ * [fhalf](#mappers)
  * [find](#vocabulary-manipulation-words)
+ * [fint](#mappers)
+ * [flog2](#mappers)
+ * [fnegate](#mappers)
  * [frame](#frame-handling)
  * [ftop](#frame-handling)
  * [handle](#effect-handling)
  * [here](#heap-effects)
  * [hex](#numeric-literals)
  * [immediate](#other-ways-to-create-and-modify-words)
+ * [int>f](#mappers)
  * [invert](#mappers)
  * [input](#input-effects)
  * [key](#input-effects)
@@ -281,7 +295,7 @@ vocabulary.
  * [literal](#miscellaneous)
  * [lower](#filters)
  * [lshift](#bitwise-primitives)
- * [mod](#binary-arithmetic-primitives)
+ * [mod](#arithmetic-primitives)
  * [negate](#mappers)
  * [nip](#stack-manipulation)
  * [nonempty](#filters)
@@ -310,9 +324,9 @@ vocabulary.
  * [third](#stack-manipulation)
  * [tib](#predefined-constants)
  * [traverse&](#miscellaneous)
- * [u*](#binary-arithmetic-primitives)
- * [u/](#binary-arithmetic-primitives)
- * [u/mod](#binary-arithmetic-primitives)
+ * [u*](#arithmetic-primitives)
+ * [u/](#arithmetic-primitives)
+ * [u/mod](#arithmetic-primitives)
  * [u<](#relations)
  * [u<=](#relations)
  * [u>](#relations)
@@ -708,7 +722,7 @@ effect*
 
 All of the above always succeeds.
 
-### Binary Arithmetic primitives
+### Arithmetic Primitives
 
 These functions replace the top two cells of the data stack 
 with the result of some arithmetic operation on them.
@@ -722,24 +736,47 @@ with the result of some arithmetic operation on them.
  * `u*` (pronounced *"u-star"*) takes two cells from 
    the top of the data stack and replaces them by the 
    lower and the upper cells of their product. Unsigned.
- * `du/mod` (pronounced *"du-slash-mod"*) takes three cells 
-   from the top of the data stack and replaces them by 
-   the reminder and the quotient after divding the first two
-   as a double integer by the third (on the top of the stack). Unsigned.
  * `u/mod` (pronounced *"u-slash-mod"*) takes two cells 
    from the top of the data stack and replaces them by 
-   the reminder and the quotient after division. Unsigned,
-   implements `0 swap du/mod`
- * `*` (pronounced *"star"*) multiplication, implements `u* drop`.
- * `/` (pronounced *"slash"*) signed division, rounds towards negative
-   infinity.
- * `u/` (pronounced *"u-slash"*) unsigned division, implements `u/mod nip`.
- * `mod` signed modulus, if not zero, same sign as divisor.
+   the reminder and the quotient after division. 
+   Unsigned, implements `0 swap du/mod`. Raises a '0/' 
+   exception, if the divisor is zero.
+ * `*` (pronounced *"star"*) multiplication, implements 
+   `u* drop`.
+ * `/` (pronounced *"slash"*) signed division, rounds 
+   towards negative infinity. Raises a '0/' exception, 
+   if the divisor is zero.
+ * `u/` (pronounced *"u-slash"*) unsigned 
+   division, implements `u/mod nip`. raises a '0/' exception,
+   if the divisor is zero.
+ * `mod` signed modulus, if not zero, same sign as 
+   divisor. Raises a '0/' exception, if the divisor is zero
  * `umod` unsigned modulus, implements `u/mod drop`.
+   Raises a '0/' exception, if the divisor is zero.
+
+The following function has three argument cells.
+
+ * `du/mod` (pronounced *"du-slash-mod"*) takes three 
+   cells from the top of the data stack and replaces 
+   them by the reminder and the quotient after divding 
+   the first two as a double integer by the third (on 
+   the top of the stack). Unsigned. Raises a '0/' exception,
+   if the divisor is zero.
+
+The following functions take two floating point cells 
+off the top of the stack and replace them by the result 
+of the calculation. Note that floating point cells may be 
+more than one cell, depending on the architecture.
+
+ * `f+` (pronounced *"f-plus"*) floating-point addition.
+ * `f-` (pronounced *"f-minus"*) floating-point subtraction.
+ * `f*` (pronounced *"f-star"*) floating-point multiplication.
+ * `f/` (pronounced *"f-slash"*) floating-point division.
+ * `f^` (pronounced *"f-hat"*) floating-point power.
 
 All of the above always succeeds.
 
-*TODO: division by zero and division overflow effects*
+*TODO: division overflow effect*
 
 ### Bitwise Primitives
 
@@ -786,6 +823,18 @@ succeeding or fail.
  * `printable` succeeds for ASCII codes in the range between
    `!` and `~` (inclusive). 
 
+The filters below work on a floating-point cell which, 
+depending on the architecture, may be one or more cells.
+
+ * `f0=` (pronounced *"f-zero-equal"*) succeeds for zero
+   values.
+ * `f0<>` (pronounced *"f-zero-unequal"*) succeeds for 
+   non-zero values.
+ * 'f0>=' (pronounced *"f-non-negative"*) succeeds for
+   non-negative values.
+ * 'f0<' (pronounced *"f-negative"*) succeeds for negative
+   values.
+
 ### Mappers
 
 Mappers change the value of the topmost cell on the data 
@@ -810,6 +859,7 @@ stack as pure functions. They always succeed.
  * `wsskip` (pronounced *"whitespace-skip"*) changes the 
    reference to a zero-terminated string to one without 
    leading whitespace characters.
+ * `abs` absolute value of a signed integer.
  * `negate` negates a signed integer.
  * `invert` inverts every bit of the cell.
  * `length` changes a string reference to its length *in 
@@ -817,6 +867,21 @@ stack as pure functions. They always succeed.
  * `u8length` changes a string reference to its length 
    *in characters* encoded in UTF-8.
 
+The following mappers work on a floating-point cell, which 
+is one or more cells depending on the architecture:
+
+ * `fhalf` halves the value on the top of the stack.
+ * `flog2` calculates the base 2 logarithm.
+ * `fnegate` changes the sign of the value on the top of 
+   the stack.
+ * `fabs` takes the absolute value.
+ * `fint` rounds to the nearest integer in the direction of
+   negative infinity.
+ * `ffrac` takes the fractional part. Guaranteed to be 
+   between 0.0 (inclusive) and 1.0 (exclusive).
+
+The words `f>int` and `int>f` convert between floating point 
+numbers and signed integers.
 
 ### Relations
 
