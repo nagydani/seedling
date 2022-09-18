@@ -2276,6 +2276,30 @@ dup >r execute r> swap
 { F7 u<= 07 and 3 }~ (u8dec)
 }~|
 
+\ UTF-8 bite
+{: u8bite ( -( tib fail )- c )
+' bite }~ u8decode
+
+\ UTF-8 character literal
+{: utf8 ( -- c )
+tib @ wsskip tib !
+}~ u8bite
+
+x' >lit does
+
+\ UTF-8 key
+{: u8key ( -( key )- c )
+' key }~ u8decode
+
+{: (bite) ( a -- a c )
+dup 1+ swap }~ c@
+
+\ UTF-8 length
+{: u8length
+0 swap
+{ nonempty ' (bite) u8decode drop swap 1+ swap }~self
+'id| }~ drop
+
 \ debugging
 
 \ forget a word and what was defined after it
