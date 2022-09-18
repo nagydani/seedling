@@ -2295,10 +2295,26 @@ x' >lit does
 dup 1+ swap }~ c@
 
 \ UTF-8 length
-{: u8length
+{: u8length ( a -( fail )- n )
 0 swap
 { nonempty ' (bite) u8decode drop swap 1+ swap }~self
 'id| }~ drop
+
+{: (u8emit) ( c -( emit )- )
+3F and 80 or }~ emit
+
+\ UTF-8 emit
+{: u8emit ( c -( emit fail )- )
+{ { { 7F <= }~ emit
+    { 7FF <= dup 6 rshift C0 or emit }~ (u8emit)
+  }~|
+  { FFFF <= dup C rshift E0 or emit dup 
+    6 rshift (u8emit) }~ (u8emit)
+}~|
+{ 10FFFF <= dup 12 rshift F0 or emit dup
+  C rshift (u8emit) dup 6 rshift (u8emit) }~ (u8emit)
+}~|
+
 
 \ debugging
 
