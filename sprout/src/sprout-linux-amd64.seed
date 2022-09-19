@@ -1723,7 +1723,11 @@ alias fliteral literal
 
 x' >lit does
 
-{: ' word find }~ drop
+postpone undef
+
+{: (undef) undef 'id 'id }
+
+{: ' word ' find ' (undef) | }~ drop
 
 x' >lit does
 
@@ -2015,7 +2019,7 @@ s. space }~fail
 \ interpreter functions
 
 \ undefined word
-{: undef
+{:: undef
 pad s. "  undefined" s. }~ cr
 
 \ interpreter
@@ -2233,7 +2237,7 @@ word
 { { { pad ascii . index drop s>float ' fliteral }
     { pad s>number ' literal }
   }~|
-  ' undef
+  { undef 'id }
 }~|
 | execute
 }~ compile \ TODO: why }~self doesn't work?
