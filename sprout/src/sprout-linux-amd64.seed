@@ -1155,8 +1155,9 @@ EMIT_BUF rax mov_[aa],rl
 torax
 rax push
 rbx push
-rax 1 mov_rr,x
 rdi 1 mov_rr,x
+4 label
+rax 1 mov_rr,x
 rsi EMIT_BUF mov_rr,aa
 rdx 1 mov_rr,x
 syscall
@@ -1166,18 +1167,33 @@ rax pop
 2 lb jnz
 ret
 
+native stderremit
+EMIT_BUF rax mov_[aa],rl
+torax
+rax push
+rbx push
+rdi 2 mov_rr,x
+4 lb jmp
+
 effect emit ( -( emit fail )- )
 
 native stdwrite
 binary
 rbx push
+rdi 1 mov_rr,x \ stdout
+4 label
 rsi rax mov_rr,rr \ buffer
 rdx rcx mov_rr,rr \ length
 rax 1 mov_rr,x \ write
-rdi 1 mov_rr,x \ stdout
 syscall
 rbx pop
 ret
+
+native stderrwrite
+binary
+rbx push
+rdi 2 mov_rr,x \ stderr
+4 lb jmp
 
 effect write ( -( write )- )
 
@@ -2018,9 +2034,14 @@ s. space }~fail
 
 \ interpreter functions
 
+{: stderr ( x -( stderrwrite stderremit )- )
+' stderrwrite ' write ' handle
+' stderremit ' emit }~ handle
+
 \ undefined word
 {:: undef
-pad s. "  undefined" s. }~ cr
+{ pad s. "  undefined" s. }~ cr
+}~ stderr
 
 \ interpreter
 {: interpret
@@ -2243,8 +2264,9 @@ word
 }~ compile \ TODO: why }~self doesn't work?
 
 \ ok effect
-{: stdok
-"  ok" s. }~ cr
+{: stderrok
+{ "  ok" s. }~ cr
+}~ stderr
 
 effect ok
 
@@ -2352,9 +2374,9 @@ x' cr jmp
 {: sproutl
 { input
   ' interpret
-  { "  fail" s. }~ cr
+  { { "  fail" s. }~ cr }~ stderr
 }~|
-{ " division by 0" s. }~ cr
+{ { " division by 0" s. }~ cr }~ stderr
 ' 0/  catch
 }~self
 
@@ -2405,7 +2427,7 @@ EFFECTS 10 + rcx mov_[aa],rr
 rcx x' stdinput mov_rr,aa
 EFFECTS 18 + rcx mov_[aa],rr
 \ division by zero exception
-rcx x' stdok mov_rr,aa
+rcx x' stderrok mov_rr,aa
 EFFECTS 28 + rcx mov_[aa],rr
 
 \ execute sprout loop
