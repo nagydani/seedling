@@ -150,6 +150,7 @@ create labels
 {: call_f		E8 c, jrf }
 {: call_rr		FF c, D0 or c, }
 {: jmp			E9 c, rel }
+{: jmp_s		EB c, srel }
 {: jmp_f		E9 c, jrf }
 {: jmp_[aa]		FF c, 24 c, 25 c, w, 1 w, }
 {: jmp_rr		FF c, E0 or c, }
@@ -868,6 +869,17 @@ $ catch !
 3 label
 rsp ERR_SP mov_rr,[aa]	\ restore rsp
 rdx pop			\ handler pointer in rdx
+rdx rdx or_rr,rr	\ check for zero
+4 jnz_fs
+rdx pop			\ finally pointer in rdx
+rcx push		\ save current effect
+rdx call_rr		\ execute finally
+rcx pop			\ restore current effect
+rax pop
+ERR_SP rax mov_[aa],rr	\ restore previous ERR_SP
+3 lb jmp_s
+
+4 rslabel
 rcx rdx cmp_rr,rr	\ compare with current effect's
 rbx pop			\ rbx = previous handler address
 rax rdx mov_rr,[rr]
@@ -1174,7 +1186,7 @@ torax
 rax push
 rbx push
 rdi 2 mov_rr,x
-4 lb jmp
+4 lb jmp_s
 
 effect emit ( -( emit fail )- )
 
@@ -1194,7 +1206,7 @@ native stderrwrite
 binary
 rbx push
 rdi 2 mov_rr,x \ stderr
-4 lb jmp
+4 lb jmp_s
 
 effect write ( -( write )- )
 
@@ -1321,6 +1333,24 @@ $ exec !
 binary
 rcx jmp_rr
 
+\ register computation to be executed finally
+native finally
+binary			\ finally reference in rcx
+rsi pop			\ return address in rsi
+rdx ERR_SP mov_rr,[aa]	\ ERR_SP in rdx
+rdx push
+rcx push
+rcx rcx xor_rr,rr
+rcx push		\ 0 marker for finally frame
+ERR_SP rsp mov_[aa],rr	\ set new ERR_SP
+rsi call_rr		\ call what follows
+rsp ERR_SP mov_rr,[aa]	\ stack fo finally frame
+rcx pop			\ discard marker
+rcx pop			\ finally reference in rcx
+rdx pop			\ previous ERR_SP in rdx
+ERR_SP rdx mov_[aa],rr	\ restore previous ERR_SP
+rcx jmp_rr		\ continue with finally
+
 \ handle effect
 native handle
 binary			\ effect reference in rcx
@@ -1441,7 +1471,7 @@ rsi call_rr		\ call what follows
 rcx pop
 rcx 8 add_rr,s
 rsi rcx mov_rr,[rr]
-3 lb jmp
+3 lb jmp_s
 
 \ arithmetic mappers
 
@@ -2372,7 +2402,7 @@ rax rcx mov_rr,[rr]
 x' . call
 rcx pop
 rcx 8 add_rr,s
-3 lb jmp
+3 lb jmp_s
 4 rslabel
 fromrax
 x' . call
