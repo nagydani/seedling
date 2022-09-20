@@ -507,14 +507,15 @@ drop
 18030 constant CURRENT
 18038 constant DICTIONARY
 18040 constant FRAME
-18048 constant BASE
-18049 constant EMIT_BUF
-1804A constant PAD
+18048 constant ENV
+18050 constant BASE
+18051 constant EMIT_BUF
+18052 constant PAD
    20 constant PAD_LEN
-1806A constant TIB_BUF
+18072 constant TIB_BUF
   100 constant TIB_BUF_LEN
 
-18170 constant EFFECTS
+18178 constant EFFECTS
 
 \ effect pointer for cross-compiling
 EFFECTS variable effects
@@ -1355,6 +1356,17 @@ rcx 1 add_rr,s
 rdx rdx xor_rr,rr
 rdx rcx mov_er,[rr]	\ handler pointer in rdx
 3 lb jmp
+
+\ execute computation with environment
+native reader
+rdx ENV mov_rr,aa
+3 lb jmp
+
+\ fetch environment
+native ask
+fromrax
+rax ENV mov_rr,[aa]
+ret
 
 \ execute computation with scratch space
 native frame
