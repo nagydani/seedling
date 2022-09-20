@@ -2274,10 +2274,15 @@ pad
 { 0 swap c! tib }~ !
 }~|
 
+\ input, ignoring lines beginning with #
+{: (input)
+{ ' input { cut }~fail | tib @ c@ ascii # = drop }~self
+'id}~|
+
 \ compiler
 
 {:: compile
-{ word pad c@ 0= drop ' input { cut }~fail | }~self
+{ word pad c@ 0= drop ' (input) { cut }~fail | }~self
 'id|
 ' find
 { { { pad ascii . index drop s>float ' fliteral }
@@ -2388,7 +2393,7 @@ x' cr jmp
 \ Sprout loop
 {: sproutl
 {
-{ input
+{ (input)
   { interpret ok }
   { { "  fail" s. }~ cr }~ stderr
 }~|
