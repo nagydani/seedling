@@ -2048,19 +2048,15 @@ effect ok
 
 \ interpreter
 {: interpret
-{
 word
-pad
-nonempty
-drop
+{ pad nonempty drop }
+{ r>drop } |
 { find drop { cut }~fail }~|
 { { { pad ascii . index drop }~ s>float
     { pad }~ s>number
   }~| 
   ' undef }~|
 | }~self
-'id|
-}~ ok
 
 \ unnamed macro
 
@@ -2262,7 +2258,8 @@ pad
 \ compiler
 
 {:: compile
-word
+{ word pad c@ 0= drop ' input { cut }~fail | }~self
+'id|
 ' find
 { { { pad ascii . index drop s>float ' fliteral }
     { pad s>number ' literal }
@@ -2373,7 +2370,7 @@ x' cr jmp
 {: sproutl
 {
 { input
-  ' interpret
+  { interpret ok }
   { { "  fail" s. }~ cr }~ stderr
 }~|
 { { " division by 0" s. }~ cr }~ stderr
