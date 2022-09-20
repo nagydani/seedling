@@ -80,7 +80,8 @@ knowing Forth is not required to understand it.
 
 Sprout sources consist of *lines* (not exceeding 64 
 characters) terminated by either `LF` or `CR LF` 
-sequences. Lines consist of *words* delimited by one or 
+sequences. Lines beginning with a hash (`#`) are 
+ignored. Lines consist of *words* delimited by one or 
 more *whitespace* (blanks, ASCII code 32). Words consist 
 of *printable ASCII* characters in the range between ! 
 and ~ (inclusive) and must be at most 30 characters 
