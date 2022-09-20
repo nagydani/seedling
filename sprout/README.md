@@ -222,6 +222,7 @@ vocabulary.
  * [alphanum](#filters)
  * [and](#bitwise-primitives)
  * [ascii](#character-literals)
+ * [ask](#computations-with-environment)
  * [base](#predefined-constants)
  * [bite](#input-functions)
  * [bl](#predefined-constants)
@@ -274,6 +275,7 @@ vocabulary.
  * [fbot](#frame-handling)
  * [ffrac](#mappers)
  * [fhalf](#mappers)
+ * [finally](#miscellaneous)
  * [find](#vocabulary-manipulation-words)
  * [fint](#mappers)
  * [flog2](#mappers)
@@ -310,6 +312,7 @@ vocabulary.
  * [quotate](#other-ways-to-create-and-modify-words)
  * [r>](#stack-manipulation)
  * [r>drop](#stack-manipulation)
+ * [reader](#computations-with-environment)
  * [rshift](#bitwise-primitives)
  * [s.](#output-functions)
  * [s,](#heap-effects)
@@ -1093,6 +1096,26 @@ Example:
 Outputs the same address twice. It is the base reference 
 of the outer frame.
 
+### Computations with Environment
+
+Yet another special effect is accessing a value (the 
+so-called *environment*), possibly from multiple parts 
+of the computation. The word `ask` places the environment 
+onto the stack.
+
+The word `reader` has two arguments (from bottom to top):
+a reference to a computation to be executed with environment 
+and the environment itself.
+
+Example:
+```
+{: demo { ask { 0> 1- ask . }~self 'id}~| swap }~ reader
+```
+
+The above defined word `demo` takes a number off the top 
+of the stack and outputs it as many times as the number 
+itself.
+
 ### Vocabulary Manipulation Words
 
 The word `find` searches the context vocabulary for the 
@@ -1132,6 +1155,13 @@ The following two words only make sense in interpret mode.
    carry flag
  * `execute` takes a reference to a computation off the top 
    of the stack and executes it.
+ * `finally` takes a reference to a computation off the top
+   of the stack and schedules it for execution after the 
+   current computation finishes in either success, failure 
+   or an exception. *Important*: the computation scheduled 
+   by `finally` must leave the stack as it was before its
+   execution. It is typically used for cleanup of resources 
+   such as open files.
  * `literal` takes the cell on the top of the stack and 
    compiles a literal from it. Useful in macros.
  * `output` executes `sproutl` with handlers set up in such a
