@@ -1163,33 +1163,6 @@ PAD address pad
 
 \ I/O effects
 
-native stdemit
-EMIT_BUF rax mov_[aa],rl
-torax
-rax push
-rbx push
-rdi 1 mov_rr,x
-4 label
-rax 1 mov_rr,x
-rsi EMIT_BUF mov_rr,aa
-rdx 1 mov_rr,x
-syscall
-rax 1 cmp_rr,s
-rbx pop
-rax pop
-2 lb jnz
-ret
-
-native stderremit
-EMIT_BUF rax mov_[aa],rl
-torax
-rax push
-rbx push
-rdi 2 mov_rr,x
-4 lb jmp_s
-
-effect emit ( -( emit fail )- )
-
 native stdwrite
 binary
 rbx push
@@ -2055,39 +2028,6 @@ CONTEXT address context
 \ vocabulary in which words are created
 CURRENT address current
 
-\ I/O functions
-
-{: s.
-dup length write }~ drop
-
-\ emit new line (a.k.a. carriage return)
-{: cr
-A }~ emit
-
-\ emit space
-{: space
-bl }~ emit
-
-\ emit all non-auxiliary context words
-{: words
-{ context @ traverse& cell+ cell+
-dup c@ ascii ( <> drop
-s. space }~fail
-' cr }~| 
-
-\ interpreter functions
-
-{: stderr ( x -( stderrwrite stderremit )- )
-' stderrwrite ' write ' handle
-' stderremit ' emit }~ handle
-
-\ undefined word
-{:: undef
-{ pad s. "  undefined" s. }~ cr
-}~ stderr
-
-effect ok
-
 \ interpreter
 {: interpret
 word
@@ -2109,6 +2049,43 @@ x' execute does
 {: ] }~fail
 
 x' }~fail does   \  TODO: not allowed in compile mode
+
+\ I/O functions
+
+{: emit ( c -( write )- )
+[ EMIT_BUF xaliteral ] c!
+[ EMIT_BUF xaliteral ] 1 write
+0<> }~ drop
+
+{: s.
+dup length write }~ drop
+
+\ emit new line (a.k.a. carriage return)
+{: cr
+A }~ emit
+
+\ emit space
+{: space
+bl }~ emit
+
+\ emit all non-auxiliary context words
+{: words
+{ context @ traverse& cell+ cell+
+dup c@ ascii ( <> drop
+s. space }~fail
+' cr }~| 
+
+\ interpreter functions
+
+{: stderr ( x -( stderrwrite )- )
+' stderrwrite ' write }~ handle
+
+\ undefined word
+{:: undef
+{ pad s. "  undefined" s. }~ cr
+}~ stderr
+
+effect ok
 
 \ vocabulary functions
 
@@ -2458,17 +2435,15 @@ rcx push
 ERR_SP rsp mov_[aa],rr	\ set ERR_SP
 
 \ initialize effects
-rcx x' stdemit mov_rr,aa
-EFFECTS rcx mov_[aa],rr
 rcx x' stdwrite mov_rr,aa
-EFFECTS 8 + rcx mov_[aa],rr
+EFFECTS rcx mov_[aa],rr
 rcx x' stdkey mov_rr,aa
-EFFECTS 10 + rcx mov_[aa],rr
+EFFECTS 8 + rcx mov_[aa],rr
 rcx x' stdinput mov_rr,aa
-EFFECTS 18 + rcx mov_[aa],rr
+EFFECTS 10 + rcx mov_[aa],rr
 \ division by zero exception
 rcx x' stderrok mov_rr,aa
-EFFECTS 28 + rcx mov_[aa],rr
+EFFECTS 20 + rcx mov_[aa],rr
 
 \ execute sprout loop
 x' sproutl call
