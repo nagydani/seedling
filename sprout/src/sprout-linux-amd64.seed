@@ -1230,16 +1230,15 @@ rdx 1 mov_rr,x
 syscall
 rsi pop
 rax 1 cmp_rr,s
-4 jnz_fs 
+2 lb jnz 
 rax rsi mov_rl,[rr]
 rax A cmp_rr,s
-5 jz_fs
+4 jz_fs
 rsi inc_rr
 rcx TIB_BUF TIB_BUF_LEN + 1+ mov_rr,aa
 rsi rcx cmp_rr,rr
 3 lb jnz_s
 4 rslabel
-5 rslabel
 rsi 0 mov_byte_[rr],x
 rbx pop
 rax pop
@@ -2045,15 +2044,23 @@ s. space }~fail
 { pad s. "  undefined" s. }~ cr
 }~ stderr
 
+effect ok
+
 \ interpreter
 {: interpret
+{
 word
+pad
+nonempty
+drop
 { find drop { cut }~fail }~|
 { { { pad ascii . index drop }~ s>float
     { pad }~ s>number
   }~| 
   ' undef }~|
 | }~self
+'id|
+}~ ok
 
 \ unnamed macro
 
@@ -2270,16 +2277,6 @@ word
 { "  ok" s. }~ cr
 }~ stderr
 
-effect ok
-
-\ empty word
-{:
-ok }~ input
-
-{ drop }~ input
-
-does
-
 \ sprout vocabulary
 native sprout
 rcx SPROUT mov_rr,aa
@@ -2374,6 +2371,7 @@ x' cr jmp
 
 \ Sprout loop
 {: sproutl
+{
 { input
   ' interpret
   { { "  fail" s. }~ cr }~ stderr
@@ -2381,6 +2379,7 @@ x' cr jmp
 { { " division by 0" s. }~ cr }~ stderr
 ' 0/  catch
 }~self
+'id}~|
 
 \ output object code
 {: output
@@ -2433,7 +2432,8 @@ rcx x' stderrok mov_rr,aa
 EFFECTS 28 + rcx mov_[aa],rr
 
 \ execute sprout loop
-x' sproutl jmp
+x' sproutl call
+x' bye jmp
 
 0 q,
 
