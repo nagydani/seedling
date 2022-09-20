@@ -251,7 +251,7 @@ vocabulary.
  * [du/mod](#arithmetic-primitives)
  * [dup](#stack-manipulation)
  * [effect](#effect-handling)
- * [emit](#output-effects)
+ * [emit](#output-functions)
  * [endcomp](#other-ways-to-create-and-modify-words)
  * [endtail](#other-ways-to-create-and-modify-words)
  * [execute](#miscellaneous)
@@ -613,9 +613,6 @@ in compile-time rather than in run-time.
 
 ### Output Effects
 
- * `emit` outputs a single byte popping it from the data 
-    stack. If the value is outside of the byte range, the 
-    least significant byte is outputed.
  * `write` outputs a given number of bytes from the 
     heap. Expects a reference to the first byte and the 
     number of bytes on the data stack. Places the bytes 
@@ -625,8 +622,11 @@ All of the above always succeeds.
 
 ### Output Functions
 
-The functions below use the `emit` or `write` effect.
+The functions below use the `write` effect.
 
+ * `emit` outputs a single byte popping it from the data 
+    stack. If the value is outside of the byte range, the 
+    least significant byte is outputed.
  * `.` outputs a numeral string in the current base 
    corresponding to the signed integer value popped from 
    the data stack followed by a blank.
