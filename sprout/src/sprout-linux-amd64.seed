@@ -2094,7 +2094,7 @@ bl }~ emit
 \ input using key
 {: keyinput ( -( key tib fail )- )
 [ TIB_BUF xaliteral ] tib !
-{ ' key { cut }~fail |
+{ ' key { 0 tib @ c! cut }~fail |
   A <>
   tib @ [ TIB_BUF TIB_BUF_LEN 1- + xaliteral ] u<
   c! tib @ 1+ tib !
