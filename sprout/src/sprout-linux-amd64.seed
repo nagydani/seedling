@@ -2452,6 +2452,12 @@ x' cr jmp
 {: load ( a -( fail sproutl )- )
 ' output swap }~ readfile
 
+\ execute a sprout file
+{: (sprout) ( a -( sproutl )- )
+' load
+{ { " file not found" s. }~ cr }~ stderr
+| sproutl }~ bye
+
 $ 177F w, \ FPU control word, round towards -inf
 
 7 rlabel \ the dictionary is ready here
@@ -2496,9 +2502,23 @@ EFFECTS 10 + rcx mov_[aa],rr
 rcx x' stderrok mov_rr,aa
 EFFECTS 20 + rcx mov_[aa],rr
 
+\ check arguments
+rcx 20 mov_rr,x
+rcx rsp add_rr,rr
+rcx rcx mov_rr,[rr]
+rcx 2 cmp_rr,s
+7 jnc_fs
+
 \ execute sprout loop
 x' sproutl call
 x' bye jmp
+
+7 rslabel
+fromrax
+rax 30 mov_rr,x
+rax rsp add_rr,rr
+rax rax mov_rr,[rr]
+x' (sprout) jmp
 
 0 q,
 
