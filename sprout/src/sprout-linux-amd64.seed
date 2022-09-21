@@ -1183,19 +1183,17 @@ rdi 2 mov_rr,x \ stderr
 
 effect write ( -( write )- )
 
-native stdkey
-rax push
+\ read a byte from a file descriptor
+native getbyte
+rdi rax mov_rr,rr \ file descriptor
 rbx push
-rax 0 mov_rr,x
-rdi 0 mov_rr,x
+rax 0 mov_rr,x \ sys_read
 rsi EMIT_BUF mov_rr,aa
 rdx 1 mov_rr,x
 syscall
 rax rax or_rr,rr
 rbx pop
-rax pop
 2 lb jz
-fromrax
 rax rax xor_rr,rr
 rax EMIT_BUF mov_rl,[aa]
 ret
@@ -1231,6 +1229,28 @@ rax pop
 ret
 
 effect input
+
+\ open a file for reading
+native (readfile)
+rdi rax mov_rr,rr
+rax 2 mov_rr,x \ sys_open
+rsi rsi xor_rr,rr \ O_RDONLY
+rbx push
+syscall
+rbx pop
+rax rax or_rr,rr
+2 lb js
+ret
+
+\ close a file
+native (closefile)
+rdi rax mov_rr,rr
+rax 3 mov_rr,x \ sys_close
+rbx push
+syscall
+rbx pop
+torax
+ret
 
 \ stack manipulation primitives
 
@@ -2052,6 +2072,9 @@ x' }~fail does   \  TODO: not allowed in compile mode
 
 \ I/O functions
 
+{: stdkey ( -( getbyte )- c )
+0 }~ getbyte
+
 {: emit ( c -( write )- )
 [ EMIT_BUF xaliteral ] c!
 [ EMIT_BUF xaliteral ] 1 write
@@ -2067,6 +2090,26 @@ A }~ emit
 \ emit space
 {: space
 bl }~ emit
+
+\ input using key
+{: keyinput ( -( key tib fail )- )
+[ TIB_BUF xaliteral ] tib !
+{ ' key { cut }~fail |
+  A <>
+  tib @ [ TIB_BUF TIB_BUF_LEN 1- + xaliteral ] u<
+  c! tib @ 1+ tib !
+}~self
+'id|
+0 tib @ c!
+[ TIB_BUF xaliteral ] tib }~ !
+
+\ read from a file
+{: readfile ( x a -( getbyte fail )- )
+(readfile)
+{ { ask }~ (closefile) finally
+  ' keyinput ' input ' handle
+  { ask }~ getbyte ' key }~ handle
+swap }~ reader
 
 \ emit all non-auxiliary context words
 {: words
@@ -2361,7 +2404,6 @@ dup 1+ swap }~ c@
   C rshift (u8emit) dup 6 rshift (u8emit) }~ (u8emit)
 }~|
 
-
 \ debugging
 
 \ forget a word and what was defined after it
@@ -2405,6 +2447,10 @@ x' cr jmp
 \ output object code
 {: output
 ' sproutl 'id ' ok }~ handle
+
+\ process a file as a sprout source
+{: load ( a -( fail sproutl )- )
+' output swap }~ readfile
 
 $ 177F w, \ FPU control word, round towards -inf
 
