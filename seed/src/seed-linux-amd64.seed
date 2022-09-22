@@ -1467,7 +1467,7 @@ carry?
 base c@ }~ u<
 
 \ auxiliary numeral conversion
-{: (number) ( a n -( fail )- n )
+{: _number ( a n -( fail )- n )
 { over c@ digit>int >r base c@ * r> + swap 1+ swap }~self
 'id|
 over c@ ws drop
@@ -1475,7 +1475,7 @@ over c@ ws drop
 
 \ string numeral to unsigned integer conversion
 {: s>number ( a -( fail )- n )
-0 }~ (number)
+0 }~ _number
 
 \ string functions
 
@@ -1648,15 +1648,15 @@ x' }~fail does   \  TODO: not allowed in compile mode
 | }~ +
 
 \ emit positive number w/o trailing space
-{: (.) ( n -( emit )- )
-{ 0<> base c@ u/mod (.) >digit }~ emit
+{: _. ( n -( emit )- )
+{ 0<> base c@ u/mod _. >digit }~ emit
 ' drop
 }~|
 
 \ emit unsigned number w/ trailing space
 {: . ( n -( emit )- )
 { 0= ascii 0 emit }~ drop
-' (.)
+' _.
 | }~ space
 
 \ input functions
