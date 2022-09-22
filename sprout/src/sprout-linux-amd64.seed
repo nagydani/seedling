@@ -1231,7 +1231,7 @@ ret
 effect input
 
 \ open a file for reading
-native (readfile)
+native _readfile
 rdi rax mov_rr,rr
 rax 2 mov_rr,x \ sys_open
 rsi rsi xor_rr,rr \ O_RDONLY
@@ -1243,7 +1243,7 @@ rax rax or_rr,rr
 ret
 
 \ close a file
-native (closefile)
+native _closefile
 rdi rax mov_rr,rr
 rax 3 mov_rr,x \ sys_close
 rbx push
@@ -1413,6 +1413,7 @@ ret
 
 \ disjunction combinator
 native |
+( a ( a -( fail e )- a b ) ( a -( f )- a b ) -( e f )- a b )
 rdx FAIL mov_rr,aa
 3 lb jmp
 
@@ -1775,9 +1776,9 @@ x' >lit does
 
 postpone undef
 
-{: (undef) undef 'id 'id }
+{: _undef undef 'id 'id }
 
-{: ' word ' find ' (undef) | }~ drop
+{: ' word ' find ' _undef | }~ drop
 
 x' >lit does
 
@@ -1935,15 +1936,15 @@ carry?
 base c@ }~ u<
 
 \ auxiliary underscore skiping
-{: (_skip) ( a -- a )
+{: _skip ( a -- a )
 1+ { ascii _ }~ = }~ skip
 
 \ auxiliary numeral conversion
-{: (number) ( a -( fail )- n )
+{: _number ( a -( fail )- n )
 0
 over c@ digit>int
 { >r base c@ * r> + swap
-(_skip) 
+_skip 
 swap over c@ digit>int }~self
 'id|
 drop
@@ -1954,49 +1955,49 @@ over c@ ws drop
 {: s>number ( a -( fail )- n )
 { dup c@ ascii + = drop 1+ }
 'id|
-{ dup c@ ascii - <> drop ' (number) { cut }~fail }~|
-{ 1+ (number) }~ negate
+{ dup c@ ascii - <> drop ' _number { cut }~fail }~|
+{ 1+ _number }~ negate
 }~|
 
 \ floating point base
-{: (fbase) ( -( base )- f )
+{: _fbase ( -( base )- f )
 base c@ }~ int>f
 
 \ auxiliary numeral conversion
-{: (float_int) ( a -( fail )- a f ) \ TODO: not portable!
+{: _float_int ( a -( fail )- a f ) \ TODO: not portable!
 0.
 { over c@ digit>int >r
-  (fbase) f* r> int>f f+
-  >r (_skip) r> }~self
+  _fbase f* r> int>f f+
+  >r _skip r> }~self
 'id|
 over c@ ascii . = drop
 >r 1+ r>
 }
 
 \ auxiliary numeral conversion
-{: (float_frac) ( a f -( fail )- a f ) \ TODO: not portable!
+{: _float_frac ( a f -( fail )- a f ) \ TODO: not portable!
 >r >r 1. r> r>
-{ >r >r (fbase) f/ r> r>
+{ >r >r _fbase f/ r> r>
   third
   third c@ digit>int int>f f* f+ 
-  >r (_skip) r> }~self
+  >r _skip r> }~self
 'id|
 >r >r drop r> r> }
 
 \ auxiliary numeral conversion
-{: (float) ( a -( fail )- f ) \ TODO: not portable!
-(float_int) (float_frac)
+{: _float ( a -( fail )- f ) \ TODO: not portable!
+_float_int _float_frac
 { over c@ ascii e = drop
   swap 1+ s>number int>f
-  (fbase) swap
+  _fbase swap
   f^ }~ f*
 { swap c@ ws }~ drop
 }~|
 
 \ string numeral to floating point conversion
 {: s>float ( a -( fail )- f )
-{ dup c@ ascii - <> drop ' (float) { cut }~fail }~|
-{ 1+ (float) }~ fnegate
+{ dup c@ ascii - <> drop ' _float { cut }~fail }~|
+{ 1+ _float }~ fnegate
 }~|
 
 \ string functions
@@ -2105,8 +2106,8 @@ bl }~ emit
 
 \ read from a file
 {: readfile ( x a -( getbyte fail )- )
-(readfile)
-{ { ask }~ (closefile) finally
+_readfile
+{ { ask }~ _closefile finally
   ' keyinput ' input ' handle
   { ask }~ getbyte ' key }~ handle
 swap }~ reader
@@ -2114,7 +2115,7 @@ swap }~ reader
 \ emit all non-auxiliary context words
 {: words
 { context @ traverse& cell+ cell+
-dup c@ ascii ( <> drop
+dup c@ ascii _ <> drop
 s. space }~fail
 ' cr }~| 
 
@@ -2263,15 +2264,15 @@ pfbot dup cell- @ }~ +
 | }~ +
 
 \ emit positive number w/o trailing space
-{: (.) ( n -( emit )- )
-{ 0<> base c@ u/mod (.) >digit }~ emit
+{: _. ( n -( emit )- )
+{ 0<> base c@ u/mod _. >digit }~ emit
 ' drop
 }~|
 
 \ emit unsigned number w/ trailing space
 {: u. ( n -( emit )- )
 { 0= ascii 0 emit }~ drop
-' (.)
+' _.
 | }~ space
 
 \ emit signed number w/ trailing space
@@ -2285,22 +2286,22 @@ pfbot dup cell- @ }~ +
 }~|
 
 \ number of significant digits
-{: (digits) ( -( base )- n )
+{: _digits ( -( base )- n )
 35 int>f \ mantissa digits
-(fbase) flog2 f/
+_fbase flog2 f/
 f>int 1- }
 
 \ emit floating point number w/ trailing space
 {: f. ( f -( emit )- )
-fdup flog2 (fbase) flog2 f/ f>int \ exponent
+fdup flog2 _fbase flog2 f/ f>int \ exponent
 dup >r \ exponent saved
-int>f (fbase) fswap f^ f/ \ normalization
+int>f _fbase fswap f^ f/ \ normalization
 r> swap
-(fbase) (digits) negate int>f f^ fhalf f+ \ rounding
-{ (fbase) }~ f< { (fbase) f/ swap 1+ }~ swap |
+_fbase _digits negate int>f f^ fhalf f+ \ rounding
+{ _fbase }~ f< { _fbase f/ swap 1+ }~ swap |
 fdup f>int >digit emit ascii . emit
-{ ffrac (fbase) f* fdup f>int >digit }~ emit
-(digits) times
+{ ffrac _fbase f* fdup f>int >digit }~ emit
+_digits times
 drop
 ascii e emit
 { 0>= ascii + emit } 'id|
@@ -2318,14 +2319,14 @@ pad
 }~|
 
 \ input, ignoring lines beginning with #
-{: (input)
+{: _input
 { ' input { cut }~fail | tib @ c@ ascii # = drop }~self
 'id}~|
 
 \ compiler
 
 {:: compile
-{ word pad c@ 0= drop ' (input) { cut }~fail | }~self
+{ word pad c@ 0= drop ' _input { cut }~fail | }~self
 'id|
 ' find
 { { { pad ascii . index drop s>float ' fliteral }
@@ -2349,7 +2350,7 @@ ret
 
 \ UTF-8 functions
 
-{: (u8dec) ( x c n -( fail )- c )
+{: _u8dec ( x c n -( fail )- c )
 { 0<> 1- >r 6 lshift >r dup >r execute 3F and
   r> swap r> swap or r> }~self
 'id|
@@ -2358,11 +2359,11 @@ drop }~ nip
 {: u8decode ( x -( fail )- c )
 dup >r execute r> swap
 { { { 7F u<= }~ nip
-    { DF u<= 1F and 1 }~ (u8dec)
+    { DF u<= 1F and 1 }~ _u8dec
   }~|
-  { EF u<= 0F and 2 }~ (u8dec)
+  { EF u<= 0F and 2 }~ _u8dec
 }~|
-{ F7 u<= 07 and 3 }~ (u8dec)
+{ F7 u<= 07 and 3 }~ _u8dec
 }~|
 
 \ UTF-8 bite
@@ -2380,28 +2381,28 @@ x' >lit does
 {: u8key ( -( key )- c )
 ' key }~ u8decode
 
-{: (bite) ( a -- a c )
+{: _bite ( a -- a c )
 dup 1+ swap }~ c@
 
 \ UTF-8 length
 {: u8length ( a -( fail )- n )
 0 swap
-{ nonempty ' (bite) u8decode drop swap 1+ swap }~self
+{ nonempty ' _bite u8decode drop swap 1+ swap }~self
 'id| }~ drop
 
-{: (u8emit) ( c -( emit )- )
+{: _u8emit ( c -( emit )- )
 3F and 80 or }~ emit
 
 \ UTF-8 emit
 {: u8emit ( c -( emit fail )- )
 { { { 7F <= }~ emit
-    { 7FF <= dup 6 rshift C0 or emit }~ (u8emit)
+    { 7FF <= dup 6 rshift C0 or emit }~ _u8emit
   }~|
   { FFFF <= dup C rshift E0 or emit dup 
-    6 rshift (u8emit) }~ (u8emit)
+    6 rshift _u8emit }~ _u8emit
 }~|
 { 10FFFF <= dup 12 rshift F0 or emit dup
-  C rshift (u8emit) dup 6 rshift (u8emit) }~ (u8emit)
+  C rshift _u8emit dup 6 rshift _u8emit }~ _u8emit
 }~|
 
 \ debugging
@@ -2435,7 +2436,7 @@ x' cr jmp
 \ Sprout loop
 {: sproutl
 {
-{ (input)
+{ _input
   { interpret ok }
   { { "  fail" s. }~ cr }~ stderr
 }~|
@@ -2453,7 +2454,7 @@ x' cr jmp
 ' output swap }~ readfile
 
 \ execute a sprout file
-{: (sprout) ( a -( sproutl )- )
+{: _sprout ( a -( sproutl )- )
 ' load
 { { " file not found" s. }~ cr }~ stderr
 | sproutl }~ bye
@@ -2518,7 +2519,7 @@ fromrax
 rax 30 mov_rr,x
 rax rsp add_rr,rr
 rax rax mov_rr,[rr]
-x' (sprout) jmp
+x' _sprout jmp
 
 0 q,
 

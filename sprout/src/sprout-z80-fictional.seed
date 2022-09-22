@@ -1828,7 +1828,7 @@ carry?
 base c@ }~ u<
 
 \ auxiliary numeral conversion
-{: (number) ( a n -( fail )- n )
+{: _number ( a n -( fail )- n )
 over c@ digit>int
 { >r base c@ * r> + swap
 { 1+ dup c@ ascii _ = drop }~self 'id| 
@@ -1840,8 +1840,8 @@ over c@ ws drop
 
 \ string numeral to integer conversion
 {: s>number ( a -( fail )- n )
-{ dup c@ ascii - <> drop 0 ' (number) { cut }~fail }~|
-{ 1+ 0 (number) }~ negate
+{ dup c@ ascii - <> drop 0 ' _number { cut }~fail }~|
+{ 1+ 0 _number }~ negate
 }~|
 
 \ more string functions
@@ -2010,7 +2010,9 @@ A }~ emit
 
 \ emit all context words
 {: words ( -( emit )- )
-{ context @ traverse& s. space }~fail
+{ context @ traverse&
+dup c@ ascii _ <> drop
+s. space }~fail
 ' cr }~|
 
 \ interpreter functions
@@ -2041,15 +2043,15 @@ x' }~fail does		\ TODO: not allowed in compile mode
 | }~ +
 
 \ emit positive number w/o trailing space
-{: (.) ( n -( emit )- )
-{ 0<> base c@ u/mod (.) >digit }~ emit
+{: _. ( n -( emit )- )
+{ 0<> base c@ u/mod _. >digit }~ emit
 ' drop
 }~|
 
 \ emit unsigned number w/ trailing space
 {: u. ( n -( emit )- )
 { 0= ascii 0 emit }~ drop
-' (.)
+' _.
 | }~ space
 
 \ emit signed number w/ trailing space
