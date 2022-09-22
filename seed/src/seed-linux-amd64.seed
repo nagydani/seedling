@@ -1396,8 +1396,10 @@ x' quotate does
 
 immediate
 
-\ skip till the closing paren
-{: ( { word pad " )" s<> drop }~self 'id}~|
+\ skip till the matching closing paren
+{: ( { word pad " )" s<> " " s<>
+{ " (" }~ s<> ' ( |
+drop }~self 'id}~|
 
 immediate
 
