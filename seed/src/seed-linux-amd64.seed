@@ -1507,6 +1507,7 @@ dup c@ 0<> }~ drop
 
 \ list extension
 {: link
+here 7 + 7 and 7 xor allot
 here swap }~ ,
 
 \ list traversal
