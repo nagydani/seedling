@@ -2037,6 +2037,7 @@ drop }~ drop
 
 \ list extension
 {: link
+here 7 + 7 and 7 xor allot
 here swap }~ ,
 
 \ list traversal
@@ -2231,7 +2232,7 @@ here ' compile 'id|
 
 \ change compile mode behavior
 {: does ( x -( heap )- )
-last cell+ }~ !
+last cell+ cell+ }~ !
 
 \ make most recently definted word immediate
 {: immediate ( -( heap )- )
