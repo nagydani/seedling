@@ -1759,6 +1759,9 @@ native }~
 
 x' drop does
 
+\ return from computation
+{: ret, C3 c, }
+
 \ literal constructors
 
 {: literal
