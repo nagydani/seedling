@@ -323,7 +323,7 @@ swap , , }
 
 \ recall association
 {: recall ( key table -- value )
-traverse& third over @ s= cut drop drop nip cell+ cell+ @ }
+traverse& @ third s= cut drop nip cell+ cell+ @ }
 
 \ compile tail call to self
 {: tail jmp }~fail

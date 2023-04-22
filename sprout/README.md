@@ -996,7 +996,7 @@ Example:
 dup @ link swap ! swap , , }
 
 {: recall ( key list -( heap )- value )
-traverse& third over @ = cut drop drop nip cell+ cell+ @ }
+traverse& @ third s= cut drop nip cell+ cell+ @ }
 ```
 
 In this example, the word `assoc` creates an association 
