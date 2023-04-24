@@ -812,9 +812,9 @@ succeeding or fail.
    values.
  * `0<>` (pronounced *"zero-unequal"*) succeeds for 
    non-zero values.
- * '0>=' (pronounced *"non-negative"*) succeeds for
+ * `0>=` (pronounced *"non-negative"*) succeeds for
    non-negative values.
- * '0<' (pronounced *"negative"*) succeeds for negative
+ * `0<` (pronounced *"negative"*) succeeds for negative
    values.
  * `nonempty` succeeds for non-empty strings.
  * `ddigit` succeeds for ASCII codes of decimal digits.
@@ -834,9 +834,9 @@ depending on the architecture, may be one or more cells.
    values.
  * `f0<>` (pronounced *"f-zero-unequal"*) succeeds for 
    non-zero values.
- * 'f0>=' (pronounced *"f-non-negative"*) succeeds for
+ * `f0>=` (pronounced *"f-non-negative"*) succeeds for
    non-negative values.
- * 'f0<' (pronounced *"f-negative"*) succeeds for negative
+ * `f0<` (pronounced *"f-negative"*) succeeds for negative
    values.
 
 ### Mappers
