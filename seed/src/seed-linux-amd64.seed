@@ -1218,11 +1218,11 @@ rsi rcx mov_rr,[rr]
 \ arithmetic mappers
 
 native 1-
-rax dec_rr
+rax 1 sub_rr,s
 ret
 
 native 1+
-rax inc_rr
+rax 1 add_rr,s
 ret
 
 native cell-
