@@ -14,7 +14,7 @@ as well as hardware drivers for it. It is also possible
 to compile Seeds with Sprout, as the former is a proper 
 subset of the latter.
 
-All Sprouts are written in the Sprout language, and thus 
+All Sprouts are written in the Seed language, and thus 
 can compile each other. Every computer architecture 
 requires its own Sprout. Porting the entire 
 Seed/Sprout/Seedling stack onto a new architecture only 
