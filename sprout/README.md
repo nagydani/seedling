@@ -8,7 +8,7 @@ Sprouts may run on the "bare metal"). It is a program
 implementing the Sprout language. The *Sprout language* 
 is a low-level programming language whose objective is 
 to compile other Sprouts and 
-[Seedling](plan/stages.md#seedling) (a higher-level 
+[Seedling](/plan/stages.md#seedling) (a higher-level 
 language with similar syntax, but much richer semantics) 
 as well as hardware drivers for it. It is also possible 
 to compile Seeds with Sprout, as the former is a proper 
