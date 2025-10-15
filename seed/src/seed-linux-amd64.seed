@@ -967,8 +967,8 @@ ret
 \ end Seed execution
 
 native bye
-rax 3C mov_rr,x \ Exit program
 rdi 0 mov_rr,x
+rax 3C mov_rr,x \ Exit program
 syscall
 
 \ constnats
@@ -982,10 +982,10 @@ EMIT_BUF rax mov_[aa],rl
 torax
 rax push
 rbx push
-rax 1 mov_rr,x
 rdi 1 mov_rr,x
 rsi EMIT_BUF mov_rr,aa
 rdx 1 mov_rr,x
+rax 1 mov_rr,x \ write
 syscall
 rax 1 cmp_rr,s
 rbx pop
@@ -1000,8 +1000,8 @@ binary
 rbx push
 rsi rax mov_rr,rr \ buffer
 rdx rcx mov_rr,rr \ length
-rax 1 mov_rr,x \ write
 rdi 1 mov_rr,x \ stdout
+rax 1 mov_rr,x \ write
 syscall
 rbx pop
 ret
@@ -1011,10 +1011,10 @@ effect write ( -( write )- )
 native stdkey
 rax push
 rbx push
-rax 0 mov_rr,x
 rdi 0 mov_rr,x
 rsi EMIT_BUF mov_rr,aa
 rdx 1 mov_rr,x
+rax 0 mov_rr,x \ read
 syscall
 rax rax or_rr,rr
 rbx pop
@@ -1035,9 +1035,9 @@ rsi TIB_BUF mov_rr,aa
 TIB rsi mov_[aa],rr
 3 label
 rsi push
-rax 0 mov_rr,x
 rdi 0 mov_rr,x
 rdx 1 mov_rr,x
+rax 0 mov_rr,x \ read
 syscall
 rsi pop
 rax 1 cmp_rr,s
