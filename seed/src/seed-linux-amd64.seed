@@ -132,7 +132,6 @@ create labels
 {: mov_[aa],rl		88 c, 8* 4 + c, 25 c, w, 1 w, }
 {: mov_rl,[aa]		8A c, swap 8* 4 + c, 25 c, w, 1 w, }
 {: mov_rr,[aa]		48 c, 8B c, swap 8* 4 + c, 25 c, w, 1 w, }
-{: syscall		50F w, }
 {: add_rr,rr		48 c, 01 c, 8* + C0 or c, }
 {: add_rr,s		48 c, 83 c, swap C0 + c, c, }
 {: add_rr,[aa]		48 c, 03 c, swap 8* 4 + c, 25 c, w, 1 w, }
@@ -206,6 +205,19 @@ create labels
 {: idiv_rr		48 c, F7 c, F8 or c, }
 {: not_rr		48 c, F7 c, D0 or c, }
 {: neg_rr		48 c, F7 c, D8 or c, }
+
+\ syscall
+
+0  constant sys.read
+1  constant sys.write
+A  constant sys.mprotect
+C  constant sys.brk
+3C constant sys.exit
+
+{: syscall ( n -- )
+rax swap mov_rr,x
+50F w,
+}
 
 \ Cross Compilation
 \ The Seed language cannot be directly cross-compiled,
@@ -720,8 +732,7 @@ $ f_EntryPoint @ w!
 7 jmp_f \ jump over the initial dictionary
 
 0 label \ get heap top
-rax C mov_rr,x  \ brk
-syscall
+sys.brk syscall
 ret
 
 1 label \ low-level heap allocation of rcx bytes
@@ -740,8 +751,7 @@ rdi DICTIONARY mov_rr,[aa] \ beginning of heap
 rax rdi sub_rr,rr	\ calculate length of heap
 rsi rax mov_rr,rr	\ move length to rsi
 rdx 7 mov_rr,x		\ PROT_READ + PROT_WRITE + PROT_EXEC
-rax A mov_rr,x		\ mprotect
-syscall
+sys.mprotect syscall
 2 rslabel
 rbx pop
 rax pop
@@ -967,9 +977,8 @@ ret
 \ end Seed execution
 
 native bye
-rax 3C mov_rr,x \ Exit program
 rdi 0 mov_rr,x
-syscall
+sys.exit syscall
 
 \ constnats
 TIB address tib
@@ -982,11 +991,10 @@ EMIT_BUF rax mov_[aa],rl
 torax
 rax push
 rbx push
-rax 1 mov_rr,x
 rdi 1 mov_rr,x
 rsi EMIT_BUF mov_rr,aa
 rdx 1 mov_rr,x
-syscall
+sys.write syscall
 rax 1 cmp_rr,s
 rbx pop
 rax pop
@@ -1000,9 +1008,8 @@ binary
 rbx push
 rsi rax mov_rr,rr \ buffer
 rdx rcx mov_rr,rr \ length
-rax 1 mov_rr,x \ write
 rdi 1 mov_rr,x \ stdout
-syscall
+sys.write syscall
 rbx pop
 ret
 
@@ -1011,11 +1018,10 @@ effect write ( -( write )- )
 native stdkey
 rax push
 rbx push
-rax 0 mov_rr,x
 rdi 0 mov_rr,x
 rsi EMIT_BUF mov_rr,aa
 rdx 1 mov_rr,x
-syscall
+sys.read syscall
 rax rax or_rr,rr
 rbx pop
 rax pop
@@ -1035,10 +1041,9 @@ rsi TIB_BUF mov_rr,aa
 TIB rsi mov_[aa],rr
 3 label
 rsi push
-rax 0 mov_rr,x
 rdi 0 mov_rr,x
 rdx 1 mov_rr,x
-syscall
+sys.read syscall
 rsi pop
 rax 1 cmp_rr,s
 4 jnz_fs 
