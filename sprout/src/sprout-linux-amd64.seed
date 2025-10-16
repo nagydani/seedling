@@ -262,19 +262,19 @@ rax swap mov_rr,x
 
 \ assembler macros
 
-{: torax
+{: tos_load               \ top of data stack -> rax
 rbx 8 sub_rr,s
 rax rbx mov_rr,[rr]
 }
 
-{: fromrax
+{: tos_store              \ rax -> data stack
 rbx rax mov_[rr],rr
 rbx 8 add_rr,s
 }
 
 {: binary
 rcx rax mov_rr,rr
-torax
+tos_load
 }
 
 {: binary_cmp
@@ -380,13 +380,13 @@ $ swap w!
 
 \ target literal
 {: xliteral ( x -( heap )- )
-fromrax
+tos_store
 rax swap mov_rr,xx
 }
 
 \ target address literal
 {: xaliteral ( a -( heap )- )
-fromrax
+tos_store
 rax swap mov_rr,aa
 }
 
@@ -396,7 +396,7 @@ E8 c, 0 d, \ call forward
 
 {: x}} ( a -( heap )- )
 dup here swap - swap 4 - w!
-fromrax
+tos_store
 rax pop
 }
 
@@ -564,7 +564,7 @@ catch @ jmp
 \ constant definition
 {: constant
 native
-fromrax
+tos_store
 rax swap mov_rr,x
 ret
 }
@@ -572,7 +572,7 @@ ret
 \ address definition (because of 16-bit cells)
 {: address
 native
-fromrax
+tos_store
 rax swap mov_rr,aa
 ret
 }
@@ -856,7 +856,7 @@ rax 4 sub_rr,s
 rcx rax mov_[rr],er
 rcx 4 add_rr,s
 DP rcx mov_[aa],rr
-torax
+tos_load
 ret
 
 x' callcomp does
@@ -1048,7 +1048,7 @@ ret
 \ compare strings for equality
 3 label
 rsi rax mov_rr,rr
-torax
+tos_load
 rdi rax mov_rr,rr
 rcx rcx xor_rr,rr
 4 label
@@ -1080,12 +1080,12 @@ ret
 DP address dp
 
 native dictionary
-fromrax
+tos_store
 rax DICTIONARY mov_rr,[aa]
 ret
 
 native here
-fromrax
+tos_store
 rax DP mov_rr,[aa]
 ret
 
@@ -1096,7 +1096,7 @@ rcx DP mov_rr,[aa]
 rcx rax mov_[rr],rr
 rcx 8 add_rr,s
 DP rcx mov_[aa],rr
-torax
+tos_load
 ret
 
 native d,
@@ -1106,7 +1106,7 @@ rcx DP mov_rr,[aa]
 rcx rax mov_[rr],er
 rcx 4 add_rr,s
 DP rcx mov_[aa],rr
-torax
+tos_load
 ret
 
 native c,
@@ -1116,7 +1116,7 @@ rcx DP mov_rr,[aa]
 rcx rax mov_[rr],rl
 rcx inc_rr
 DP rcx mov_[aa],rr
-torax
+tos_load
 ret
 
 native @
@@ -1138,19 +1138,19 @@ ret
 native !
 binary
 rcx rax mov_[rr],rr
-torax
+tos_load
 ret
 
 native d!
 binary
 rcx rax mov_[rr],er
-torax
+tos_load
 ret
 
 native c!
 binary
 rcx rax mov_[rr],rl
-torax
+tos_load
 ret
 
 native allot
@@ -1255,7 +1255,7 @@ rdi rax mov_rr,rr
 rbx push
 sys.close syscall
 rbx pop
-torax
+tos_load
 ret
 
 \ stack manipulation primitives
@@ -1276,7 +1276,7 @@ rbx 8 add_rr,s
 ret
 
 native dup
-fromrax
+tos_store
 ret
 
 native over
@@ -1288,7 +1288,7 @@ ret
 
 native third
 rcx rbx mov_rr,rr
-fromrax
+tos_store
 rcx 10 sub_rr,s
 rax rcx mov_rr,[rr]
 ret
@@ -1300,7 +1300,7 @@ rcx push
 rdx jmp_rr
 
 native r>
-fromrax
+tos_store
 rcx pop
 rax pop
 rcx jmp_rr
@@ -1322,7 +1322,7 @@ does
 
 \ reference to identity
 native 'id
-fromrax
+tos_store
 rax x' } mov_rr,aa
 ret
 
@@ -1393,7 +1393,7 @@ rdx ENV mov_rr,aa
 
 \ fetch environment
 native ask
-fromrax
+tos_store
 rax ENV mov_rr,[aa]
 ret
 
@@ -1402,7 +1402,7 @@ native frame
 binary
 rcx 3 shl_rr,s
 rsp rcx sub_rr,rr \ allocate frame
-fromrax
+tos_store
 rax rsp mov_rr,rr \ frame base on data stack
 rcx push
 rdx FRAME mov_rr,aa
@@ -1413,7 +1413,7 @@ ret
 
 \ fetch frame bottom address
 native fbot
-fromrax
+tos_store
 rax FRAME mov_rr,[aa]
 ret
 
@@ -1517,7 +1517,7 @@ ret
 native u* ( n n -- l h )
 binary
 rcx mul_rr
-fromrax
+tos_store
 rax rdx mov_rr,rr
 ret
 
@@ -1633,14 +1633,14 @@ alias fswap swap
 
 \ stack zero
 native 0.
-fromrax
+tos_store
 fldz
 value_fp
 ret
 
 \ stack one
 native 1.
-fromrax
+tos_store
 fld1
 value_fp
 ret
@@ -2432,14 +2432,14 @@ rbx rcx cmp_rr,rr
 x' cr jc
 4 jz_fs
 rcx push
-fromrax
+tos_store
 rax rcx mov_rr,[rr]
 x' . call
 rcx pop
 rcx 8 add_rr,s
 3 lb jmp_s
 4 rslabel
-fromrax
+tos_store
 x' . call
 x' cr jmp
 
@@ -2525,7 +2525,7 @@ x' sproutl call
 x' bye jmp
 
 7 rslabel
-fromrax
+tos_store
 rax 30 mov_rr,x
 rax rsp add_rr,rr
 rax rax mov_rr,[rr]
