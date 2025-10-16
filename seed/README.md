@@ -360,8 +360,8 @@ in compile-time rather than in run-time.
     stack.
  * `write` outputs a given number of bytes from the 
     heap. Expects a reference to the first byte and the 
-    number of bytes on the data stack. Places the bytes 
-    actually written onto the data stack.
+    number of bytes on the data stack. Places the number
+    of bytes actually written onto the data stack.
 
 All of the above always succeeds.
 

@@ -12,6 +12,15 @@ output \ this must be on the first line
 \ code that lives in the virtual address range between
 \ 10000 and 17FFF inclusive.
 
+\ Glossary
+\ TOS: top of stack
+
+\ Imlementation
+\ RAX holds TOS, the top element of the data stack
+\ RBX points to the data stack (but top element is in RAX)
+\ RCX is a scratch register
+\ RSP is the call stack
+
 hex
 
 \ Auxiliary functions for the Assembler
