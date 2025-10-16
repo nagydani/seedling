@@ -1632,7 +1632,7 @@ bl }~ emit
 {: interpret
 word
 { find drop { cut }~fail }~|
-{ { pad }~ s>number { pad s. "  undefined" s. }~ cr }~|
+{ { pad }~ s>number { pad s. "  undefined" s. bye }~ cr }~|
 | }~self
 
 \ unnamed macro
