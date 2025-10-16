@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+      - staging
+    paths-ignore:
+      - '**.md'
+
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Compile Sprout from the Seed binary
+        run: |
+          mkdir -p build/
+          ./seed/bin/seed-linux-amd64 <sprout/src/sprout-linux-amd64.seed >build/sprout
+          chmod +x build/sprout
+
+      - name: Sprout bootstraps itself
+        run: |
+          ./build/sprout <sprout/src/sprout-linux-amd64.seed >build/sprout2
+          chmod +x build/sprout2
+          ./build/sprout2 <sprout/src/sprout-linux-amd64.seed >build/sprout3
+          cmp --verbose ./build/sprout2 ./build/sprout3
+
+      - name: Seed bootstraps itself
+        run: |
+          ./seed/bin/seed-linux-amd64 <seed/src/seed-linux-amd64.seed >build/seed2
+          chmod +x build/seed2
+          ./build/seed2 <seed/src/seed-linux-amd64.seed >build/seed3
+          cmp --verbose ./build/seed2 ./build/seed3
