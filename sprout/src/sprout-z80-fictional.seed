@@ -7,6 +7,10 @@ output \ this must be the first line
 \ byte from the standard input and sending a byte to
 \ port 0 writes that byte to the standard output.
 
+\ A command-line based simulator of this computer for
+\ POSIX systems can be found here:
+\ https://github.com/nagydani/z80sim
+
 \ Requirements
 \ It can be compiled by any seed that has at least 16 bit
 \ cells and about 12 kilobytes of free RAM space available.
