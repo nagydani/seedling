@@ -132,7 +132,6 @@ create labels
 {: mov_[aa],rl		88 c, 8* 4 + c, 25 c, w, 1 w, }
 {: mov_rl,[aa]		8A c, swap 8* 4 + c, 25 c, w, 1 w, }
 {: mov_rr,[aa]		48 c, 8B c, swap 8* 4 + c, 25 c, w, 1 w, }
-{: syscall		50F w, }
 {: add_rr,rr		48 c, 01 c, 8* + C0 or c, }
 {: add_rr,s		48 c, 83 c, swap C0 + c, c, }
 {: add_rr,[aa]		48 c, 03 c, swap 8* 4 + c, 25 c, w, 1 w, }
@@ -236,6 +235,21 @@ create labels
 {: fincstp		D9 c, F7 c, }
 {: ffree		DD c, C0 c, }
 {: frndint		D9 c, FC c, }
+
+\ syscall
+
+0  constant sys.read
+1  constant sys.write
+2  constant sys.open
+3  constant sys.close
+A  constant sys.mprotect
+C  constant sys.brk
+3C constant sys.exit
+
+{: syscall ( n -- )
+rax swap mov_rr,x
+50F w,
+}
 
 \ Cross Compilation
 \ The Sprout language cannot be directly cross-compiled,
@@ -804,8 +818,7 @@ $ f_EntryPoint @ w!
 7 jmp_f \ jump over the initial dictionary
 
 0 label \ get heap top
-rax C mov_rr,x  \ brk
-syscall
+sys.brk syscall
 ret
 
 1 label \ low-level heap allocation of rcx bytes
@@ -824,8 +837,7 @@ rdi DICTIONARY mov_rr,[aa] \ beginning of heap
 rax rdi sub_rr,rr	\ calculate length of heap
 rsi rax mov_rr,rr	\ move length to rsi
 rdx 7 mov_rr,x		\ PROT_READ + PROT_WRITE + PROT_EXEC
-rax A mov_rr,x		\ mprotect
-syscall
+sys.mprotect syscall
 2 rslabel
 rbx pop
 rax pop
@@ -1153,9 +1165,8 @@ ret
 \ end Sprout execution
 
 native bye
-rax 3C mov_rr,x \ Exit program
 rdi 0 mov_rr,x
-syscall
+sys.exit syscall
 
 \ constnats
 TIB address tib
@@ -1170,8 +1181,7 @@ rdi 1 mov_rr,x \ stdout
 4 label
 rsi rax mov_rr,rr \ buffer
 rdx rcx mov_rr,rr \ length
-rax 1 mov_rr,x \ write
-syscall
+sys.write syscall
 rbx pop
 ret
 
@@ -1187,10 +1197,9 @@ effect write ( -( write )- )
 native getbyte
 rdi rax mov_rr,rr \ file descriptor
 rbx push
-rax 0 mov_rr,x \ sys_read
 rsi EMIT_BUF mov_rr,aa
 rdx 1 mov_rr,x
-syscall
+sys.read syscall
 rax rax or_rr,rr
 rbx pop
 2 lb jz
@@ -1208,10 +1217,9 @@ rsi TIB_BUF mov_rr,aa
 TIB rsi mov_[aa],rr
 3 label
 rsi push
-rax 0 mov_rr,x
 rdi 0 mov_rr,x
 rdx 1 mov_rr,x
-syscall
+sys.read syscall
 rsi pop
 rax 1 cmp_rr,s
 2 lb jnz 
@@ -1233,10 +1241,9 @@ effect input
 \ open a file for reading
 native _readfile
 rdi rax mov_rr,rr
-rax 2 mov_rr,x \ sys_open
 rsi rsi xor_rr,rr \ O_RDONLY
 rbx push
-syscall
+sys.open syscall
 rbx pop
 rax rax or_rr,rr
 2 lb js
@@ -1245,9 +1252,8 @@ ret
 \ close a file
 native _closefile
 rdi rax mov_rr,rr
-rax 3 mov_rr,x \ sys_close
 rbx push
-syscall
+sys.close syscall
 rbx pop
 torax
 ret
