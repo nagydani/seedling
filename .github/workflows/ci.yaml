@@ -24,22 +24,40 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Compile Sprout from the Seed binary
+      - name: (x86) Compile Sprout from the Seed binary
         run: |
           mkdir -p build/
           ./seed/bin/seed-linux-amd64 <sprout/src/sprout-linux-amd64.seed >build/sprout
           chmod +x build/sprout
 
-      - name: Sprout bootstraps itself
+      - name: (x86) Sprout bootstraps itself
         run: |
-          ./build/sprout <sprout/src/sprout-linux-amd64.seed >build/sprout2
-          chmod +x build/sprout2
-          ./build/sprout2 <sprout/src/sprout-linux-amd64.seed >build/sprout3
-          cmp --verbose ./build/sprout2 ./build/sprout3
+          ./build/sprout <sprout/src/sprout-linux-amd64.seed >build/sprout.amd64.2
+          chmod +x build/sprout.amd64.2
+          ./build/sprout.amd64.2 <sprout/src/sprout-linux-amd64.seed >build/sprout.amd64.3
+          cmp --verbose ./build/sprout.amd64.2 ./build/sprout.amd64.3
 
-      - name: Seed bootstraps itself
+      - name: (x86) Seed bootstraps itself
         run: |
-          ./seed/bin/seed-linux-amd64 <seed/src/seed-linux-amd64.seed >build/seed2
-          chmod +x build/seed2
-          ./build/seed2 <seed/src/seed-linux-amd64.seed >build/seed3
-          cmp --verbose ./build/seed2 ./build/seed3
+          ./seed/bin/seed-linux-amd64 <seed/src/seed-linux-amd64.seed >build/seed.amd64.2
+          chmod +x build/seed.amd64.2
+          ./build/seed.amd64.2 <seed/src/seed-linux-amd64.seed >build/seed.amd64.3
+          cmp --verbose ./build/seed.amd64.2 ./build/seed.amd64.3
+
+      - name: (x86) Seed cross-compiles to z80
+        run: |
+          ./seed/bin/seed-linux-amd64 <seed/src/seed-z80-fictional.seed >build/seed.z80
+
+      - name: (z80) Seed bootstraps itself
+        run: |
+          sudo apt-get update && sudo apt-get install libz80ex-dev git
+          git clone https://github.com/nagydani/z80sim/
+          sh -c "cd z80sim && make"
+          ./z80sim/z80sim ./build/seed.z80   <seed/src/seed-z80-fictional.seed >build/seed.z80.1
+          ./z80sim/z80sim ./build/seed.z80.1 <seed/src/seed-z80-fictional.seed >build/seed.z80.2
+          cmp --verbose ./build/seed.z80.1 ./build/seed.z80.2
+
+      - name: (z80) Seed cross-compiles to x86
+        run: |
+          ./z80sim/z80sim ./build/seed.z80   <seed/src/seed-linux-amd64.seed >build/seed.z80-amd64
+          cmp --verbose ./build/seed.amd64.2 ./build/seed.z80-amd64
