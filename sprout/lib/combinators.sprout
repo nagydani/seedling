@@ -1,0 +1,35 @@
+\ This is a library of common combinators in Sprout language
+
+\ Executes a computation. Upon failure, uses the outer handler
+{: cutfail| ( a ( a -( fail )- b ) -( cutfail )- b )
+{ cut }~fail }~|
+
+\ Executes a computation while temporarily hiding the ToS
+{: dip ( a b ( a -( e )- c ) -( e )- c b )
+swap >r execute r> }
+
+\ Executes a computation with an item on the stack, restoring
+\ that item after the computation succeeds
+{: keep ( a ( a -( e )- b ) -( e )- b a )
+over >r execute r> }
+
+\ Executes a computation n times, fails upon failure
+{: times ( a ( a -( e )- a ) UInt -( e )- a )
+{ 0<> 1- >r dup >r cutfail| r> r> }~self
+'id| drop }~ drop
+
+\ Keeps executing a predicate and a subject until either of
+\ them fails. Succeeds upon predicate failure.
+{: while ( a ( a -( e )- b ) ( b -( f )- a ) -( e f )- a )
+>r dup >r
+{ r>drop r>drop r>drop } |
+r> r> swap >r dup >r execute r> r> swap }~self
+
+\ Executes two computations on the same argument
+{: bi ( a ( a -( e )- b ) ( a -( f )- c ) -( e f )- b c )
+>r over >r execute r> r> }~ execute
+
+\ Executes the same computation on two arguments
+{: both ( a a ( a -( e )- b ) -( e )- b b )
+dup >r swap >r execute r> r> }~ execute
+
