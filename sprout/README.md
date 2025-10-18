@@ -232,6 +232,7 @@ vocabulary.
  * [c,](#heap-effects)
  * [c@](#heap-effects)
  * [carry?](#miscellaneous)
+ * [catch](#exception-handling)
  * [cell+](#mappers)
  * [cell-](#mappers)
  * [cells](#mappers)
@@ -560,7 +561,7 @@ and the actual definition.
    as its argument.
  * `exception` creates a word that can be used in 
    computations that are given as the first argument to 
-   `catch`. See [below](#exception-handling) for details. 
+   ``. See [below](#exception-handling) for details. 
 
 All the above words create words whose compile mode behavior 
 is to compile a call to their (above described) interpret 
