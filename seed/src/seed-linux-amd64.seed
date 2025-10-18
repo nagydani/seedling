@@ -141,6 +141,7 @@ create labels
 {: mov_[aa],rl		88 c, 8* 4 + c, 25 c, w, 1 w, }
 {: mov_rl,[aa]		8A c, swap 8* 4 + c, 25 c, w, 1 w, }
 {: mov_rr,[aa]		48 c, 8B c, swap 8* 4 + c, 25 c, w, 1 w, }
+{: op_syscall		50F w, }
 {: add_rr,rr		48 c, 01 c, 8* + C0 or c, }
 {: add_rr,s		48 c, 83 c, swap C0 + c, c, }
 {: add_rr,[aa]		48 c, 03 c, swap 8* 4 + c, 25 c, w, 1 w, }
@@ -225,7 +226,7 @@ C  constant sys.brk
 
 {: syscall ( n -- )
 rax swap mov_rr,x
-50F w,
+op_syscall
 }
 
 \ Cross Compilation
