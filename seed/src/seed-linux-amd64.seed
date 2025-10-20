@@ -1066,8 +1066,7 @@ effect input
 \ stack manipulation primitives
 
 native drop
-rbx 8 sub_rr,s
-rax rbx mov_rr,[rr]
+tos_load
 ret
 
 native nip

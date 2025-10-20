@@ -1258,8 +1258,7 @@ ret
 \ stack manipulation primitives
 
 native drop
-rbx 8 sub_rr,s
-rax rbx mov_rr,[rr]
+tos_load
 ret
 
 native nip
@@ -1536,8 +1535,7 @@ rcx rcx or_rr,rr
 x' 0/ jz
 rbx 8 sub_rr,s
 rdx rbx mov_rr,[rr]
-rbx 8 sub_rr,s
-rax rbx mov_rr,[rr]
+tos_load
 rcx div_rr
 rbx rdx mov_[rr],rr
 rbx 8 add_rr,s
