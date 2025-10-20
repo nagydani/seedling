@@ -747,7 +747,6 @@ ret
 
 1 label \ low-level heap allocation of rcx bytes
 rax push
-rbx push
 rcx push
 rdi 0 mov_rr,x
 0 lb call
@@ -763,7 +762,6 @@ rsi rax mov_rr,rr	\ move length to rsi
 rdx 7 mov_rr,x		\ PROT_READ + PROT_WRITE + PROT_EXEC
 sys.mprotect syscall
 2 rslabel
-rbx pop
 rax pop
 ret
 
@@ -1000,13 +998,11 @@ native stdemit
 EMIT_BUF rax mov_[aa],rl
 tos_load
 rax push
-rbx push
 rdi 1 mov_rr,x
 rsi EMIT_BUF mov_rr,aa
 rdx 1 mov_rr,x
 sys.write syscall
 rax 1 cmp_rr,s
-rbx pop
 rax pop
 2 lb jnz
 ret
@@ -1015,25 +1011,21 @@ effect emit ( -( emit fail )- )
 
 native stdwrite
 binary
-rbx push
 rsi rax mov_rr,rr \ buffer
 rdx rcx mov_rr,rr \ length
 rdi 1 mov_rr,x \ stdout
 sys.write syscall
-rbx pop
 ret
 
 effect write ( -( write )- )
 
 native stdkey
 rax push
-rbx push
 rdi 0 mov_rr,x
 rsi EMIT_BUF mov_rr,aa
 rdx 1 mov_rr,x
 sys.read syscall
 rax rax or_rr,rr
-rbx pop
 rax pop
 2 lb jz
 tos_store
@@ -1046,7 +1038,6 @@ effect key ( -( key fail )- c )
 \ edit a line of text on stdin (quick and dirty)
 native stdinput
 rax push
-rbx push
 rsi TIB_BUF mov_rr,aa
 TIB rsi mov_[aa],rr
 3 label
@@ -1067,7 +1058,6 @@ rsi rcx cmp_rr,rr
 4 rslabel
 5 rslabel
 rsi 0 mov_byte_[rr],x
-rbx pop
 rax pop
 ret
 
