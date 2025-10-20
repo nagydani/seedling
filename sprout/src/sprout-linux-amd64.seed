@@ -833,7 +833,6 @@ ret
 
 1 label \ low-level heap allocation of rcx bytes
 rax push
-rbx push
 rcx push
 rdi 0 mov_rr,x
 0 lb call
@@ -849,7 +848,6 @@ rsi rax mov_rr,rr	\ move length to rsi
 rdx 7 mov_rr,x		\ PROT_READ + PROT_WRITE + PROT_EXEC
 sys.mprotect syscall
 2 rslabel
-rbx pop
 rax pop
 ret
 
@@ -1186,18 +1184,15 @@ PAD address pad
 
 native stdwrite
 binary
-rbx push
 rdi 1 mov_rr,x \ stdout
 4 label
 rsi rax mov_rr,rr \ buffer
 rdx rcx mov_rr,rr \ length
 sys.write syscall
-rbx pop
 ret
 
 native stderrwrite
 binary
-rbx push
 rdi 2 mov_rr,x \ stderr
 4 lb jmp_s
 
@@ -1206,12 +1201,10 @@ effect write ( -( write )- )
 \ read a byte from a file descriptor
 native getbyte
 rdi rax mov_rr,rr \ file descriptor
-rbx push
 rsi EMIT_BUF mov_rr,aa
 rdx 1 mov_rr,x
 sys.read syscall
 rax rax or_rr,rr
-rbx pop
 2 lb jz
 rax rax xor_rr,rr
 rax EMIT_BUF mov_rl,[aa]
@@ -1222,7 +1215,6 @@ effect key ( -( key fail )- c )
 \ edit a line of text on stdin (quick and dirty)
 native stdinput
 rax push
-rbx push
 rsi TIB_BUF mov_rr,aa
 TIB rsi mov_[aa],rr
 3 label
@@ -1242,7 +1234,6 @@ rsi rcx cmp_rr,rr
 3 lb jnz_s
 4 rslabel
 rsi 0 mov_byte_[rr],x
-rbx pop
 rax pop
 ret
 
@@ -1252,9 +1243,7 @@ effect input
 native _readfile
 rdi rax mov_rr,rr
 rsi rsi xor_rr,rr \ O_RDONLY
-rbx push
 sys.open syscall
-rbx pop
 rax rax or_rr,rr
 2 lb js
 ret
@@ -1262,9 +1251,7 @@ ret
 \ close a file
 native _closefile
 rdi rax mov_rr,rr
-rbx push
 sys.close syscall
-rbx pop
 tos_load
 ret
 
