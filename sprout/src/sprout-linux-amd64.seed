@@ -87,6 +87,15 @@ create labels
 \
 \ Relative labels: 'r' prefix in their name.
 \
+\ There are 3 classes of label primitives:
+\
+\ - label defining primitives: ! suffix
+\
+\ - label emitting primitives: , suffix
+\
+\ - other label primitives without any suffix put the label on
+\   the stack in some form.
+\
 \ Backward labels: at the point when they are needed their
 \ address is already known. We just store the current address
 \ when they are defined, and read it from the label_cell when
@@ -113,17 +122,23 @@ create labels
 \ Backward label address to stack (absolute)
 {: label	label_cell @ }
 
-\ Emit a relative jump offset (backward)
-{: rlabel	$ 4 + - w, FFFF w, }
-{: rlabel_s	$ 1+ - c, }
+{: label_offset ( n n -- n)
+  \ stack: label-address instr-size
+  $ + -
+}
+
+\ Emit a relative jump offset (backward). There exists only rel8
+\ and rel32 relative offsets in the x86 ISA.
+{: rlabel,	4 label_offset w, FFFF w, }
+{: rlabel_s,	1 label_offset c, }
 
 \
 \ Forward labels
 \
 
 \ Register relative offset location
-{: rlabel_f	here swap label_cell ! 0 d, }
-{: rlabel_fs	here swap label_cell ! 0 c, }
+{: rlabel_f,	here swap label_cell ! 0 d, }
+{: rlabel_fs,	here swap label_cell ! 0 c, }
 
 \ Fill in relative offset
 {: rlabel_f!	label dup here swap - 4 - swap w! }
@@ -134,13 +149,48 @@ create labels
 \ half of the 0x0001xxxx absolute base address, and store the
 \ location of the lower half to be emitted by our label_f!
 \ counterpart later.
-{: label_f	here swap label_cell ! 0 w, 1 w, }
+{: label_f,	here swap label_cell ! 0 w, 1 w, }
 
 \ Emit absolute forward label (only the lower 16 bits of it!)
-{: label_f!	label_cell @ $ swap w! }
+{: label_f!	label $ swap w! }
 
 \ multiply by 8
 {: 8*		3 lshift }
+
+\ Fails if the backward offset doesn't fit into a signed byte.
+{: short_rlabel? ( n n -( fail )- n )
+  \ stack: address short_instr_size -> address offset
+  over swap         \ dup address for the failure handler
+  label_offset      \ x byte instr, backward label
+  0 80 - u>=        \ fail if not within negative 7 bits range
+                    \ leaves the relative offset on the stack
+}
+
+\ Receives two blocks, and executes the short one if the
+\ backward offset fits into a signed byte.
+{: select_rel_emitter
+  \ address short_block long_block short_instr_size
+  >r >r                 \ address short
+  swap r> swap r>       \ short long address short_instr_size
+
+  {
+    short_rlabel?
+    \ short long address short_offset
+    nip                 \ drop address
+    nip                 \ drop long block
+    swap execute        \ execute short with offset at top
+  }
+  {
+    drop                \ short_instr_size
+    swap execute        \ long block with address at the top
+    drop                \ short
+  }
+}~|
+
+\ Most instructions using rel8 are 2 bytes long, but not all of
+\ them, so we keep around the more general select_rel_emitter
+\ abstraction.
+{: maybe_rs 2 select_rel_emitter }
 
 \ registers
 0 constant rax
@@ -185,44 +235,59 @@ create labels
 {: and_rr,rr		48 c, 21 c, 8* + C0 or c, }
 {: or_rr,rr		48 c, 09 c, 8* + C0 or c, }
 {: xor_rr,rr		48 c, 31 c, 8* + C0 or c, }
-{: call			E8 c, rlabel }
-{: call_f		E8 c, rlabel_f }
+{: call			E8 c, rlabel, }
+{: call_f		E8 c, rlabel_f, }
 {: call_rr		FF c, D0 or c, }
-{: jmp			E9 c, rlabel }
-{: jmp_s		EB c, rlabel_s }
-{: jmp_f		E9 c, rlabel_f }
+{: jmp                  { EB c, c, }
+                        { E9 c, rlabel, }
+                        maybe_rs }
+{: jmp_f		E9 c, rlabel_f, }
 {: jmp_[aa]		FF c, 24 c, 25 c, w, 1 w, }
 {: jmp_rr		FF c, E0 or c, }
-{: jc_s			72 c, rlabel_s }
-{: jb_s			}~ jc_s
-{: jnc_s		73 c, rlabel_s }
-{: jae_s		}~ jnc_s
-{: jz_s			74 c, rlabel_s }
-{: jnz_s		75 c, rlabel_s }
-{: jbe_s		76 c, rlabel_s }
-{: ja_s			77 c, rlabel_s }
-{: js_s			78 c, rlabel_s }
-{: jns_s		79 c, rlabel_s }
-{: jc_fs		72 c, rlabel_fs }
-{: jnc_fs		73 c, rlabel_fs }
-{: jz_fs		74 c, rlabel_fs }
-{: jnz_fs		75 c, rlabel_fs }
-{: js_fs		78 c, rlabel_fs }
-{: jns_fs		79 c, rlabel_fs }
-{: jc			0F c, 82 c, rlabel }
+{: jc_fs		72 c, rlabel_fs, }
+{: jnc_fs		73 c, rlabel_fs, }
+{: jz_fs		74 c, rlabel_fs, }
+{: jnz_fs		75 c, rlabel_fs, }
+{: js_fs		78 c, rlabel_fs, }
+{: jns_fs		79 c, rlabel_fs, }
+{: jc                   { 72 c, c, }
+                        { 0F c, 82 c, rlabel, }
+                        maybe_rs }
 {: jb			}~ jc
-{: jnc			0F c, 83 c, rlabel }
+{: jnc                  { 73 c, c, }
+                        { 0F c, 83 c, rlabel, }
+                        maybe_rs }
 {: jae			}~ jnc
-{: jz			0F c, 84 c, rlabel }
-{: jnz			0F c, 85 c, rlabel }
-{: jbe			0F c, 86 c, rlabel }
-{: ja			0F c, 87 c, rlabel }
-{: js			0F c, 88 c, rlabel }
-{: jns			0F c, 89 c, rlabel }
-{: jl			0F c, 8C c, rlabel }
-{: jge			0F c, 8D c, rlabel }
-{: jle			0F c, 8E c, rlabel }
-{: jg			0F c, 8F c, rlabel }
+{: jz                   { 74 c, c, }
+                        { 0F c, 84 c, rlabel, }
+                        maybe_rs }
+{: jnz                  { 75 c, c, }
+                        { 0F c, 85 c, rlabel, }
+                        maybe_rs }
+{: jbe			{ 76 c, c, }
+                        { 0F c, 86 c, rlabel, }
+                        maybe_rs }
+{: ja			{ 77 c, c, }
+                        { 0F c, 87 c, rlabel, }
+                        maybe_rs }
+{: js			{ 78 c, c, }
+                        { 0F c, 88 c, rlabel, }
+                        maybe_rs }
+{: jns			{ 79 c, c, }
+                        { 0F c, 89 c, rlabel, }
+                        maybe_rs }
+{: jl			{ 7C c, c, }
+                        { 0F c, 8C c, rlabel, }
+                        maybe_rs }
+{: jge			{ 7D c, c, }
+                        { 0F c, 8D c, rlabel, }
+                        maybe_rs }
+{: jle			{ 7E c, c, }
+                        { 0F c, 8E c, rlabel, }
+                        maybe_rs }
+{: jg			{ 7F c, c, }
+                        { 0F c, 8F c, rlabel, }
+                        maybe_rs }
 {: ret			C3 c, }
 {: push			50 + c, }
 {: pop			58 + c, }
@@ -927,7 +992,7 @@ rdx call_rr		\ execute finally
 rcx pop			\ restore current effect
 rax pop
 ERR_SP rax mov_[aa],rr	\ restore previous ERR_SP
-3 label jmp_s
+3 label jmp
 
 4 rlabel_fs!
 rcx rdx cmp_rr,rr	\ compare with current effect's
@@ -937,7 +1002,7 @@ rdx rbx mov_[rr],rr	\ restore previous handler address
 rbx rax mov_rr,rr	\ rbx = current handler address
 rax pop			\ rax = previous ERR_SP
 ERR_SP rax mov_[aa],rr	\ restore previous ERR_SP
-3 label jnz_s		\ next handler, if not found
+3 label jnz		\ next handler, if not found
 rcx rbx mov_rr,rr	\ rcx = current handler address
 rbx pop			\ restore data stack pointer
 rax rbx mov_rr,[rr]	\ restore TOS
@@ -1095,7 +1160,7 @@ rcx rsi cmp_rl,[rr]
 rcx rdi cmp_rl,[rr]
 6 jz_fs
 cmpsb
-4 label jz_s
+4 label jz
 6 rlabel_fs!
 stc
 ret
@@ -1224,7 +1289,7 @@ ret
 native stderrwrite
 binary
 rdi 2 mov_rr,x \ stderr
-4 label jmp_s
+4 label jmp
 
 effect write ( -( write )- )
 
@@ -1261,7 +1326,7 @@ rax A cmp_rr,s
 rsi inc_rr
 rcx TIB_BUF TIB_BUF_LEN + 1+ mov_rr,aa
 rsi rcx cmp_rr,rr
-3 label jnz_s
+3 label jnz
 4 rlabel_fs!
 rsi 0 mov_byte_[rr],x
 rax pop
@@ -1497,7 +1562,7 @@ rsi call_rr		\ call what follows
 rcx pop
 rcx 8 add_rr,s
 rsi rcx mov_rr,[rr]
-3 label jmp_s
+3 label jmp
 
 \ arithmetic mappers
 
@@ -1627,14 +1692,14 @@ ret
 native lshift
 binary
 rcx 3F cmp_rr,s
-3 label jnc_s
+3 label jnc
 rax shl_rr,cl
 ret
 
 native rshift
 binary
 rcx 3F cmp_rr,s
-3 label jnc_s
+3 label jnc
 rax shr_rr,cl
 ret
 
@@ -1646,7 +1711,7 @@ ret
 native arshift
 binary
 rcx 3F cmp_rr,s
-3 label jnc_s
+3 label jnc
 rax sar_rr,cl
 ret
 
@@ -2462,7 +2527,7 @@ rax rcx mov_rr,[rr]
 x' . call
 rcx pop
 rcx 8 add_rr,s
-3 label jmp_s
+3 label jmp
 4 rlabel_fs!
 tos_store
 x' . call
