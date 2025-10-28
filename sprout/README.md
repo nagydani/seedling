@@ -252,10 +252,11 @@ vocabulary.
  * [drop](#stack-manipulation)
  * [du/mod](#arithmetic-primitives)
  * [dup](#stack-manipulation)
- * [effect](#effect-handling)
+ * [effect](#other-ways-to-create-and-modify-words)
  * [emit](#output-functions)
  * [endcomp](#other-ways-to-create-and-modify-words)
  * [endtail](#other-ways-to-create-and-modify-words)
+ * [exception](#other-ways-to-create-and-modify-words)
  * [execute](#miscellaneous)
  * [f.](#output-functions)
  * [f*](#arithmetic-primitives)
@@ -561,7 +562,7 @@ and the actual definition.
    as its argument.
  * `exception` creates a word that can be used in 
    computations that are given as the first argument to 
-   ``. See [below](#exception-handling) for details. 
+   `catch`. See [below](#exception-handling) for details. 
 
 All the above words create words whose compile mode behavior 
 is to compile a call to their (above described) interpret 
