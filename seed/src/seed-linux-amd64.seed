@@ -268,14 +268,35 @@ op_syscall
 
 \ assembler macros
 
+40 constant xcell_bits		\ 64 bits
+3  constant xcelllog		\ for shifts
+xcell_bits 3 rshift
+   constant xcell		\ byte size of the target's word
+xcell 1 -
+   constant xcell1-		\ 7
+xcell1- invert 1+
+   constant xcell_mask          \ FFF8
+
+{: xcells
+  xcelllog lshift		\ 8 *
+}
+
+{: xalign
+  xcell1- + xcell_mask and
+}
+
+{: xcell+
+  xcell +
+}
+
 {: tos_load             \ top of data stack -> rax
-rbx 8 sub_rr,s
+rbx xcell sub_rr,s
 rax rbx mov_rr,[rr]
 }
 
 {: tos_store            \ rax -> data stack
 rbx rax mov_[rr],rr
-rbx 8 add_rr,s
+rbx xcell add_rr,s
 }
 
 {: binary
@@ -292,7 +313,7 @@ rax rcx cmp_rr,rr
 create xcurrent 0 w,
 
 {: xlink ( a -- a )
-8 align
+xcell align
 { 0<> $ swap }~ a,
 { $ swap }~ q,
 }~|
@@ -305,7 +326,7 @@ w@ 0<>
 offset @ +
 'self &
 dup
-8 +
+xcell+
 }
 
 {: xsearch ( a -( pad fail )- a )
@@ -472,20 +493,20 @@ drop
 {: field here swap ! }
 
 \ system variables
-18000 constant SEED
-18008 constant DP
-18010 constant TIB
-18018 constant FAIL
-18020 constant ERR_SP
-18028 constant DICTIONARY
-18030 constant BASE
-18031 constant EMIT_BUF
-18032 constant PAD
-   20 constant PAD_LEN
-18052 constant TIB_BUF
-  100 constant TIB_BUF_LEN
-
-18158 constant EFFECTS
+18000  dup    constant SEED
+xcell+ dup    constant DP
+xcell+ dup    constant TIB
+xcell+ dup    constant FAIL
+xcell+ dup    constant ERR_SP
+xcell+ dup    constant DICTIONARY
+xcell+ dup    constant BASE        \ of the number reader
+1+     dup    constant EMIT_BUF    \ for the write syscall
+1+     dup    constant PAD         \ temp buffer
+20            constant PAD_LEN
+PAD_LEN + dup constant TIB_BUF     \ line edit buffer
+100           constant TIB_BUF_LEN
+TIB_BUF_LEN + xalign
+              constant EFFECTS
 
 \ effect pointer for cross-compiling
 EFFECTS variable effects
@@ -504,7 +525,7 @@ E9 c, 0 d, \ jmp forward
 \ effect definition
 {: effect ( -- )
 native
-effects @ dup 8 + effects !
+effects @ dup xcell+ effects !
 jmp_[aa]
 }
 
@@ -527,7 +548,7 @@ ret
 \ change compile mode behavior
 {: does
 xlast
-10 +
+2 xcells +
 offset @ +
 w! }
 
@@ -542,11 +563,11 @@ xfind
 dup
 w@ \ interpret mode behavior
 swap
-8 +
+xcell+
 w@ \ compile mode behavior
 does
 xlast
-8 +
+xcell+
 offset @ +
 w! }
 
@@ -847,11 +868,11 @@ rax DP mov_rr,[aa]
 ret
 
 native ,
-rcx 8 mov_rr,x
+rcx xcell mov_rr,x
 1 label call
 rcx DP mov_rr,[aa]
 rcx rax mov_[rr],rr
-rcx 8 add_rr,s
+rcx xcell add_rr,s
 DP rcx mov_[aa],rr
 tos_load
 ret
@@ -1007,13 +1028,13 @@ tos_load
 ret
 
 native nip
-rbx 8 sub_rr,s
+rbx xcell sub_rr,s
 ret
 
 native swap
 binary
 rbx rcx mov_[rr],rr
-rbx 8 add_rr,s
+rbx xcell add_rr,s
 ret
 
 native dup
@@ -1022,15 +1043,15 @@ ret
 
 native over
 binary
-rbx 8 add_rr,s
+rbx xcell add_rr,s
 rbx rcx mov_[rr],rr
-rbx 8 add_rr,s
+rbx xcell add_rr,s
 ret
 
 native third
 rcx rbx mov_rr,rr
 tos_store
-rcx 10 sub_rr,s
+rcx 2 xcells sub_rr,s
 rax rcx mov_rr,[rr]
 ret
 
@@ -1080,9 +1101,9 @@ rcx 3 add_rr,s
 rdx rdx xor_rr,rr
 rdx rcx mov_er,[rr]	\ handler pointer in rdx
 3 label!
-rbx 10 sub_rr,s		\ data stack pointer to be saved
+rbx 2 xcells sub_rr,s	\ data stack pointer to be saved
 rbx push		\ save data stack pointer
-rbx 10 add_rr,s		\ current data stack pointer
+rbx 2 xcells add_rr,s	\ current data stack pointer
 rcx ERR_SP mov_rr,[aa]	\ ERR_SP in rcx
 rcx push		\ save previous ERR_SP
 rcx rdx mov_rr,[rr]	\ previous handler address in rcx
@@ -1098,7 +1119,7 @@ rdx pop			\ previous handler addr. in rdx
 rcx rdx mov_[rr],rr	\ restore handler
 rcx pop
 ERR_SP rcx mov_[aa],rr	\ restore ERR_SP
-rsp 8 add_rr,s		\ discard data stack pointer
+rsp xcell add_rr,s	\ discard data stack pointer
 ret
 
 \ disjunction combinator
@@ -1125,9 +1146,9 @@ x' endcomp does
 native cut
 rdi ERR_SP mov_rr,[aa]
 rcx rdi mov_rr,[rr]	\ handler ptr in rcx
-rdi 8 add_rr,s
+rdi xcell add_rr,s
 rdx rdi mov_rr,[rr]	\ previous handler reference in rdx
-rdi 8 add_rr,s
+rdi xcell add_rr,s
 rcx rdx mov_[rr],rr	\ restore previous handler
 rcx rdi mov_rr,[rr]	\ previous ERR_SP in rcx
 ERR_SP rcx mov_[aa],rr	\ restore previous ERR_SP
@@ -1146,13 +1167,13 @@ rdx FAIL mov_rr,aa
 rdx push		\ save failure handler pointer
 rdx rcx	mov_[rr],rr	\ set new handler
 ERR_SP rsp mov_[aa],rr	\ set new ERR_SP
-rcx 18 mov_rr,x		\ frame offset
+rcx 3 xcells mov_rr,x	\ frame offset
 rcx rsp add_rr,rr	\ add stack pointer
 3 label!
 rcx push
 rsi call_rr		\ call what follows
 rcx pop
-rcx 8 add_rr,s
+rcx xcell add_rr,s
 rsi rcx mov_rr,[rr]
 3 label jmp_s
 
@@ -1167,15 +1188,15 @@ rax 1 add_rr,s
 ret
 
 native cell-
-rax 8 sub_rr,s
+rax xcell sub_rr,s
 ret
 
 native cell+
-rax 8 add_rr,s
+rax xcell add_rr,s
 ret
 
 native cells
-rax 3 shl_rr,s
+rax xcelllog shl_rr,s
 ret
 
 \ binary arithmetic primitives
@@ -1202,7 +1223,7 @@ binary
 rdx rdx xor_rr,rr
 rcx div_rr
 rbx rdx mov_[rr],rr
-rbx 8 add_rr,s
+rbx xcell add_rr,s
 ret
 
 \ bitwise primitives
@@ -1232,14 +1253,14 @@ ret
 
 native lshift
 binary
-rcx 40 cmp_rr,s
+rcx xcell_bits cmp_rr,s
 3 label jnc_s
 rax shl_rr,cl
 ret
 
 native rshift
 binary
-rcx 40 cmp_rr,s
+rcx xcell_bits cmp_rr,s
 3 label jnc_s
 rax shr_rr,cl
 ret
@@ -1646,7 +1667,7 @@ cell- dup @ current ! dp }~ !
 
 \ output data stack content
 native .s
-rcx effects @ 8 + mov_rr,aa \ stack bottom
+rcx effects @ xcell+ mov_rr,aa \ stack bottom
 3 label!
 rbx rcx cmp_rr,rr
 x' cr jc
@@ -1656,7 +1677,7 @@ tos_store
 rax rcx mov_rr,[rr]
 x' . call
 rcx pop
-rcx 8 add_rr,s
+rcx xcell add_rr,s
 3 label jmp_s
 4 rlabel_fs!
 tos_store
@@ -1693,7 +1714,7 @@ rdx rcx mov_[rr],rr \ initialize it
 rbx rax mov_[rr],rr	\ save TOS
 rbx push		\ save data stack ptr.
 rcx rsp mov_rr,rr	\ return stack ptr. to rcx
-rcx 18 sub_rr,s		\ bottom of handler frame
+rcx 3 xcells sub_rr,s	\ bottom of handler frame
 rcx push		\ circular reference
 rcx 6 label mov_rr,aa	\ this handler's address
 rcx push		\ circular reference
@@ -1703,15 +1724,15 @@ ERR_SP rsp mov_[aa],rr	\ set ERR_SP
 
 \ initialize effects
 rcx x' stdemit mov_rr,aa
-EFFECTS rcx mov_[aa],rr
+EFFECTS dup rcx mov_[aa],rr
 rcx x' stdwrite mov_rr,aa
-EFFECTS 8 + rcx mov_[aa],rr
+xcell+  dup rcx mov_[aa],rr
 rcx x' stdkey mov_rr,aa
-EFFECTS 10 + rcx mov_[aa],rr
+xcell+  dup rcx mov_[aa],rr
 rcx x' stdinput mov_rr,aa
-EFFECTS 18 + rcx mov_[aa],rr
+xcell+  dup rcx mov_[aa],rr
 rcx x' stdok mov_rr,aa
-EFFECTS 20 + rcx mov_[aa],rr
+xcell+      rcx mov_[aa],rr
 
 \ execute seed loop
 x' seedl jmp
