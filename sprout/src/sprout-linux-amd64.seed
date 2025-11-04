@@ -1596,14 +1596,14 @@ ret
 
 native lshift
 binary
-rcx 3F cmp_rr,s
+rcx 40 cmp_rr,s
 3 lb jnc_s
 rax shl_rr,cl
 ret
 
 native rshift
 binary
-rcx 3F cmp_rr,s
+rcx 40 cmp_rr,s
 3 lb jnc_s
 rax shr_rr,cl
 ret
