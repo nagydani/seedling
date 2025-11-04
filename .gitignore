@@ -1,0 +1,5 @@
+.dir-locals.el
+build/
+playground/
+z80sim/
+test.sh

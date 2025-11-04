@@ -382,7 +382,7 @@ E8 c, 0 d, \ call forward
 }~ here
 
 {: x}} ( a -( heap )- )
-dup here swap - swap 4 - w!
+dup here swap - swap 4 - w!     \ 32 bit relative call offset
 tos_store
 rax pop
 }
@@ -946,7 +946,7 @@ native bye
 rdi 0 mov_rr,x
 sys.exit syscall
 
-\ constnats
+\ constants
 TIB address tib
 PAD address pad
 
@@ -1254,14 +1254,14 @@ ret
 native lshift
 binary
 rcx xcell_bits cmp_rr,s
-3 label jnc_s
+3 label jae_s
 rax shl_rr,cl
 ret
 
 native rshift
 binary
 rcx xcell_bits cmp_rr,s
-3 label jnc_s
+3 label jae_s
 rax shr_rr,cl
 ret
 
@@ -1313,7 +1313,7 @@ dup here swap - swap 4 - d!
 native }~self
 2 label jmp \ not permitted in interpret mode
 
-{ drop dup here - 5 - E9 c, d, }~fail
+{ drop dup here - 5 - E9 c, d, }~fail		\ jmp
 
 does
 
@@ -1522,7 +1522,7 @@ C3 }~ c,		\ ret
 \ create effect with default handler
 {: effect ( x -( heap )- )
 create redefine
-here 7 +
+here 7 +		\ instruction length, 3 + 4
 FF c, 24 c, 25 c, d,	\ jmp [address]
 }~ ,
 

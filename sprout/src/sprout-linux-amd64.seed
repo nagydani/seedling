@@ -1226,7 +1226,7 @@ native bye
 rdi 0 mov_rr,x
 sys.exit syscall
 
-\ constnats
+\ constants
 TIB address tib
 PAD address pad
 
@@ -1647,14 +1647,14 @@ ret
 native lshift
 binary
 rcx xcell_bits cmp_rr,s
-3 label jnc_s
+3 label jae_s
 rax shl_rr,cl
 ret
 
 native rshift
 binary
 rcx xcell_bits cmp_rr,s
-3 label jnc_s
+3 label jae_s
 rax shr_rr,cl
 ret
 
@@ -1666,7 +1666,7 @@ ret
 native arshift
 binary
 rcx xcell_bits 1- cmp_rr,s	\ 1- is for the sign bit
-3 label jnc_s
+3 label jae_s
 rax sar_rr,cl
 ret
 
@@ -2233,7 +2233,7 @@ C3 }~ c,		\ ret
 \ create effect with default handler
 {: effect ( x -( heap )- )
 create redefine
-here 7 +
+here 7 +		\ instruction length, 3 + 4
 FF c, 24 c, 25 c, d,	\ jmp [address]
 }~ ,
 
