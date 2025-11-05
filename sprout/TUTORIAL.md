@@ -117,7 +117,7 @@ mark `'`. Try this:
 The output is the same, but there is a slight difference 
 under the hood: in the latter case the computer does not 
 need to create and store a new anonymous program (a so 
-called "quotation"), it merely refers to the program 
+called *quotation*), it merely refers to the program 
 already stored under the word `greet`.
 
 Now, let us delve into the internals of `times`!
