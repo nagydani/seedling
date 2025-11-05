@@ -4,6 +4,10 @@
 {: cutfail| ( a ( a -( fail )- b ) -( cutfail )- b )
 { cut }~fail }~|
 
+\ Executes the complement of a filter
+{: not ( a ( a -( fail )- a ) -( fail )- a )
+{ over over execute cut }~fail ' drop }~|
+
 \ Executes a computation while temporarily hiding the ToS
 {: dip ( a b ( a -( e )- c ) -( e )- c b )
 swap >r execute r> }
