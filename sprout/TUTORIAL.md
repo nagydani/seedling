@@ -20,7 +20,7 @@ Hello, world!
 You can immediately notice three important characteristics 
 of Sprout:
 
- * There is a space between the opening quote of the 
+ * There is an extra space after the opening quote of the 
    string literal. This is due to the extremely simple 
    parsing rules of Sprout. We will talk more about them 
    later. In short, words in Sprout are separated by one 
