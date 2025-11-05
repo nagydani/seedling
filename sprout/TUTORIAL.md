@@ -160,7 +160,7 @@ Now let us look inside the first quotation. It begins
 with the word `0<>`, which is synonymous to `0 <>`, but 
 it is used so frequently, that it is worth having in a 
 single word. It checks whether the number on the top of 
-the stack equals zero. If no, the computation continues. 
+the stack equals zero. If not, the computation continues. 
 If, however, it does equal zero, the computation 
 *fails*. Failure is a very important concept in Sprout, we 
 shall discuss it in more detail.
