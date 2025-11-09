@@ -58,8 +58,15 @@ The naive compilation strategy of chaining together the interpret mode
 behaviors of each successive word as a deferred computation breaks down 
 with words that influence the interpretation of what follows. In most 
 cases, the desired behavior is not deferring that influence until 
-execution, but for it to have *immediate* effect. A typical example 
-would be words changing the base of numeric literals, such as `hex`.
+execution, but for it to have *immediate* effect. A typical example of 
+an immediate word is that beginning comments such as `\`, as ignoring 
+it and everything that follows must not be deferred to execution time.
+
+A counterexample would be `hex` that changes the base of number literals 
+to hexadecimal. If it were immediate, it would not be possible to write 
+words which do this at runtime, so if one needs to change the base 
+immediately inside a deferred computation, one should use `[ hex ]` 
+instead.
 
 In addition to regular and immediate words, there are also some more 
 complicated cases, typically involving reading the input, such as `'` 
