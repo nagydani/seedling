@@ -437,11 +437,7 @@ drop
 0 variable headersLength
 0 variable f_EntryPoint
 0 variable f_ProgramHeaders
-0 variable f_SectionHeaders
 0 variable f_SizeInFile
-0 variable f_TotalFileSize
-0 variable f_StringTableVA
-0 variable f_StringTableOffset
 
 {: 0c, 0 c, }
 
@@ -591,8 +587,7 @@ f_EntryPoint field
 f_ProgramHeaders field
 0 q,
 
-f_SectionHeaders field
-
+\ e_shoff: file offset of the section headers
 0 q,
 
 \ e_flags: unused
@@ -607,14 +602,14 @@ f_SectionHeaders field
 \ e_phnum: Number of program header entries
 1 w,
 
-\ Section header entry size
-40 w,
+\ e_shentsize: Section header entry size
+0 w,
 
-\ Number of section header entries
-4 w,
+\ e_shnum: Number of section header entries
+0 w,
 
-\ Index of string table section
-3 w,
+\ e_shstrndx: Index of string table section
+0 w,
 
 \
 \ Program Headers
@@ -647,99 +642,9 @@ f_SizeInFile field
 \ p_align: alignment
 8000 q,
 
-\ Section Headers
-
-$ f_SectionHeaders @ w!
-
-\ null header
-' 0c, 40 times
-
-\ .text segment
-
-\ Offset of .text in the table
-1 d,
-
-\ Loadable "bits" section
-1 d,
-
-\ Flags: 6 = allocated + executable
-6 q,
-
-\ Virtual address 10000
-0 w, 1 w, 0 d,
-
-\ Offset in the file
-0 q,
-
-f_TotalFileSize field
-0 q,
-
-\ Linked section index
-0 d,
-
-\ Info ???
-0 d,
-
-\ Alignment
-10 q,
-
-\ Section entry size
-0 q,
-
-\ .bss segment
-
-\ Offset of .bss in the table
-7 d,
-
-\ Type: nobits
-8 d,
-
-\ Flags: writable, allocated, executable
-7 q,
-
-\ Virtual address
-8000 w, 1 w, 0 d,
-
-\ Offset in the file
-0 q,
-
-\ Section size
-8000 q,
-
-\ Linked section index
-0 d,
-
-\ Info ???
-0 d,
-
-\ Alignment
-10 q,
-
-\ Section entry size
-0 q,
-
-
-
-\ String Table Section
-C d,
-
-\ Type: string table
-3 d,
-
-\ No need to load it
-0 q,
-
-f_StringTableVA field
-0 w, 1 w, 0 d,
-
-f_StringTableOffset field
-0 q,
-
-\ Length
-16 q,
-
-\ Other stuff
-0 d, 0 d, 1 q, 0 q,
+\
+\ Emit the machine code
+\
 
 $ f_EntryPoint @ w!
 
@@ -1796,18 +1701,13 @@ x' seedl jmp
 
 0 q,
 
-$ dup dup
-f_SizeInFile @ w!
-f_StringTableVA @ w!
-f_StringTableOffset @ w!
+$ f_SizeInFile @ w!
 
 0 c,
 
 " .text" drop
 " .bss" drop
 " .shstrtab" drop
-
-$ f_TotalFileSize @ w!
 
 ELF dump
 
