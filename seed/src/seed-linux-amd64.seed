@@ -573,37 +573,38 @@ create ELF
 \ Extended ABI
 0 q,
 
-\ Executable file type
+\ e_type: Elf file type (ET_EXEC = 2)
 2 w,
 
-\ Target architecture x86_64
+\ e_machine: Target architecture (EM_X86_64 = 62 = 0x3e)
 3E w,
 
-\ Additional ELF version
+\ e_version
 1 d,
 
+\ e_entry: Entry point, lower 16 bits
 f_EntryPoint field
-
+\ and the remaining 48 bits; the virtual address is 0x001xxxx
 0 w, 1 w, 0 d,
 
+\ e_phoff: file offset of the program headers
 f_ProgramHeaders field
-
 0 q,
 
 f_SectionHeaders field
 
 0 q,
 
-\ Unused flags
+\ e_flags: unused
 0 d,
 
-\ Header size
+\ e_ehsize: size of this elf header (struct ELF64_Ehdr)
 40 w,
 
-\ Program header entry size
+\ e_phentsize: size of program header entry
 38 w,
 
-\ Number of program header entries
+\ e_phnum: Number of program header entries
 1 w,
 
 \ Section header entry size
@@ -615,32 +616,35 @@ f_SectionHeaders field
 \ Index of string table section
 3 w,
 
+\
 \ Program Headers
+\
 
 $ f_ProgramHeaders @ w!
 
-\ Program header type: 1 = loadable segment
+\ p_type: program header type (PT_LOAD = 1)
 1 d,
 
-\ Program header flags: 7 = read + write + execute
+\ p_flags: program header flags: 7 = read + write + execute
 7 d,
 
-\ Loadable segment offset in the file
+\ p_offset: loadable segment offset in the file
 0 q,
 
-\ Virtual address 10000
+\ p_vaddr: Virtual address, i.e. 10000
 0 w, 1 w, 0 d,
 
-\ Physical address ???
+\ p_paddr: Physical address (ignored)
 0 w, 1 w, 0 d,
 
+\ p_filesz: size in file
 f_SizeInFile field
 0 q,
 
-\ Size in memory
+\ p_memsz: size in memory
 0 w, 1 w, 0 d,
 
-\ Alignment
+\ p_align: alignment
 8000 q,
 
 \ Section Headers
