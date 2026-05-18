@@ -640,7 +640,7 @@ f_SizeInFile field
 0 w, 1 w, 0 d,
 
 \ p_align: alignment
-8000 q,
+1000 q,
 
 \
 \ Emit the machine code
