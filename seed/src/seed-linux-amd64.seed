@@ -1699,15 +1699,7 @@ EFFECTS 20 + rcx mov_[aa],rr
 \ execute seed loop
 x' seedl jmp
 
-0 q,
-
 $ f_SizeInFile @ w!
-
-0 c,
-
-" .text" drop
-" .bss" drop
-" .shstrtab" drop
 
 ELF dump
 
