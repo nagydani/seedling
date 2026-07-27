@@ -569,13 +569,13 @@ create ELF
 \ Extended ABI
 0 q,
 
-\ e_type: Elf file type (ET_EXEC = 2)
+\ e_type: Elf file type (ET_EXEC = 2, executable)
 2 w,
 
-\ e_machine: Target architecture (EM_X86_64 = 62 = 0x3e)
+\ e_machine: Target architecture (EM_X86_64 = 62 = 0x3e, x86_64)
 3E w,
 
-\ e_version
+\ e_version: Additional ELF version
 1 d,
 
 \ e_entry: Entry point, lower 16 bits
