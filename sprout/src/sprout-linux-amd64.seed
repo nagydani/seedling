@@ -73,35 +73,74 @@ hex
 create labels
 8 cells allot
 
-\ access label
-{: lbl		cells labels + }
+\
+\ Naming convention
+\
+\ Labels can be forward/backward, short/long, and
+\ relative/absolute.
+\
+\ Forward labels: _f suffix.
+\
+\ Short labels: _s suffix. Their distance must be within
+\ (-128..127). Note that the _sf suffix combination is also
+\ possible.
+\
+\ Relative labels: 'r' prefix in their name.
+\
+\ Backward labels: at the point when they are needed their
+\ address is already known. We just store the current address
+\ when they are defined, and read it from the label_cell when
+\ they are needed.
+\
+\ Forward labels are trickier: we store the location where the
+\ address of the future label is needed (typically as a
+\ component of a machine code instruction), and when the point
+\ is reached in the emission where we should point to, then the
+\ label-defining counterpart will emit the address (or offset)
+\ into the previously registered location. Important corollary:
+\ forward labels can only have one reference to them.
 
-\ absolute backward label
-{: label	$ swap lbl ! }
+\ label cell address
+{: label_cell	cells labels + }
 
-\ use absolute backward label
-{: lb		lbl @ }
+\
+\ Backward labels
+\
 
-\ use absolute forward label after a one-byte opcode
-{: fl1		here 1+ swap lbl ! 0 }
+\ Store current address into a label
+{: label!	$ swap label_cell ! }
 
-\ use absolute forward label immediately (32 bits)
-{: fl0		here swap lbl ! 0 w, 1 w, }
+\ Backward label address to stack (absolute)
+{: label	label_cell @ }
 
-\ absolute forward label (only 16 bits!)
-{: flabel	lbl @ $ swap w! }
+\ Emit a relative jump offset (backward)
+{: rlabel	$ 4 + - w, FFFF w, }
+{: rlabel_s	$ 1+ - c, }
 
-\ relative forward jump
-{: jrf		here swap lbl ! 0 d, }
+\
+\ Forward labels
+\
 
-\ relative forward label
-{: rlabel	lb dup here swap - 4 - swap w! }
+\ Register relative offset location
+{: rlabel_f	here swap label_cell ! 0 d, }
+{: rlabel_fs	here swap label_cell ! 0 c, }
 
-\ short relative forward jump
-{: jrfs		here swap lbl ! 0 c, }
+\ Fill in relative offset
+{: rlabel_f!	label dup here swap - 4 - swap w! }
+{: rlabel_fs!	label dup here swap - 1- swap c! }
 
-\ relative short forward label
-{: rslabel	lb dup here swap - 1- swap c! }
+\ Register a 32 bit absolute forward location. Because we can
+\ only assume 16 bit words in our host, we write out the upper
+\ half of the 0x0001xxxx absolute base address, and store the
+\ location of the lower half to be emitted by our label_f!
+\ counterpart later.
+{: label_f	here swap label_cell ! 0 w, 1 w, }
+
+\ Emit absolute forward label (only the lower 16 bits of it!)
+{: label_f!	label_cell @ $ swap w! }
+
+\ multiply by 8
+{: 8*		3 lshift }
 
 \ registers
 0 constant rax
@@ -112,15 +151,6 @@ create labels
 5 constant rbp
 6 constant rsi
 7 constant rdi
-
-\ relative jump backwards
-{: rel          $ 4 + - w, FFFF w, }
-
-\ short relative jump
-{: srel		$ 1+ - c, }
-
-\ multiply by 8
-{: 8*		3 lshift }
 
 \ Opcodes
 
@@ -155,44 +185,44 @@ create labels
 {: and_rr,rr		48 c, 21 c, 8* + C0 or c, }
 {: or_rr,rr		48 c, 09 c, 8* + C0 or c, }
 {: xor_rr,rr		48 c, 31 c, 8* + C0 or c, }
-{: call			E8 c, rel }
-{: call_f		E8 c, jrf }
+{: call			E8 c, rlabel }
+{: call_f		E8 c, rlabel_f }
 {: call_rr		FF c, D0 or c, }
-{: jmp			E9 c, rel }
-{: jmp_s		EB c, srel }
-{: jmp_f		E9 c, jrf }
+{: jmp			E9 c, rlabel }
+{: jmp_s		EB c, rlabel_s }
+{: jmp_f		E9 c, rlabel_f }
 {: jmp_[aa]		FF c, 24 c, 25 c, w, 1 w, }
 {: jmp_rr		FF c, E0 or c, }
-{: jc_s			72 c, srel }
+{: jc_s			72 c, rlabel_s }
 {: jb_s			}~ jc_s
-{: jnc_s		73 c, srel }
+{: jnc_s		73 c, rlabel_s }
 {: jae_s		}~ jnc_s
-{: jz_s			74 c, srel }
-{: jnz_s		75 c, srel }
-{: jbe_s		76 c, srel }
-{: ja_s			77 c, srel }
-{: js_s			78 c, srel }
-{: js_s			79 c, srel }
-{: jc_fs		72 c, jrfs }
-{: jnc_fs		73 c, jrfs }
-{: jz_fs		74 c, jrfs }
-{: jnz_fs		75 c, jrfs }
-{: js_fs		78 c, jrfs }
-{: jns_fs		79 c, jrfs }
-{: jc			0F c, 82 c, rel }
+{: jz_s			74 c, rlabel_s }
+{: jnz_s		75 c, rlabel_s }
+{: jbe_s		76 c, rlabel_s }
+{: ja_s			77 c, rlabel_s }
+{: js_s			78 c, rlabel_s }
+{: jns_s		79 c, rlabel_s }
+{: jc_fs		72 c, rlabel_fs }
+{: jnc_fs		73 c, rlabel_fs }
+{: jz_fs		74 c, rlabel_fs }
+{: jnz_fs		75 c, rlabel_fs }
+{: js_fs		78 c, rlabel_fs }
+{: jns_fs		79 c, rlabel_fs }
+{: jc			0F c, 82 c, rlabel }
 {: jb			}~ jc
-{: jnc			0F c, 83 c, rel }
+{: jnc			0F c, 83 c, rlabel }
 {: jae			}~ jnc
-{: jz			0F c, 84 c, rel }
-{: jnz			0F c, 85 c, rel }
-{: jbe			0F c, 86 c, rel }
-{: ja			0F c, 87 c, rel }
-{: js			0F c, 88 c, rel }
-{: jns			0F c, 89 c, rel }
-{: jl			0F c, 8C c, rel }
-{: jge			0F c, 8D c, rel }
-{: jle			0F c, 8E c, rel }
-{: jg			0F c, 8F c, rel }
+{: jz			0F c, 84 c, rlabel }
+{: jnz			0F c, 85 c, rlabel }
+{: jbe			0F c, 86 c, rlabel }
+{: ja			0F c, 87 c, rlabel }
+{: js			0F c, 88 c, rlabel }
+{: jns			0F c, 89 c, rlabel }
+{: jl			0F c, 8C c, rlabel }
+{: jge			0F c, 8D c, rlabel }
+{: jle			0F c, 8E c, rlabel }
+{: jg			0F c, 8F c, rlabel }
 {: ret			C3 c, }
 {: push			50 + c, }
 {: pop			58 + c, }
@@ -272,14 +302,35 @@ op_syscall
 
 \ assembler macros
 
+40 constant xcell_bits		\ 64 bits
+3  constant xcelllog		\ for shifts
+xcell_bits xcelllog rshift
+   constant xcell		\ byte size of the target's word
+xcell 1 -
+   constant xcell1-		\ 0007
+xcell1- invert 1+
+   constant xcell_mask          \ FFF8
+
+{: xcells
+  xcelllog lshift		\ 8 *
+}
+
+{: xalign
+  xcell1- + xcell_mask and
+}
+
+{: xcell+
+  xcell +
+}
+
 {: tos_load               \ top of data stack -> rax
-rbx 8 sub_rr,s
+rbx xcell sub_rr,s
 rax rbx mov_rr,[rr]
 }
 
 {: tos_store              \ rax -> data stack
 rbx rax mov_[rr],rr
-rbx 8 add_rr,s
+rbx xcell add_rr,s
 }
 
 {: binary
@@ -299,7 +350,7 @@ rbx fld_[rr]
 
 {: binary_fp
 unary_fp
-rbx 8 sub_rr,s
+rbx xcell sub_rr,s
 rbx fld_[rr]
 }
 
@@ -327,7 +378,7 @@ fincstp
 create xcurrent 0 w,
 
 {: xlink ( a -- a )
-8 align
+xcell align
 { 0<> $ swap }~ a,
 { $ swap }~ q,
 }~|
@@ -340,7 +391,7 @@ w@ 0<>
 offset @ +
 'self &
 dup
-8 +
+xcell+
 }
 
 {: xsearch ( a -( pad fail )- a )
@@ -522,25 +573,24 @@ drop
 
 {: field here swap ! }
 
-\ system variables
-18000 constant SPROUT
-18008 constant DP
-18010 constant TIB
-18018 constant FAIL
-18020 constant ERR_SP
-18028 constant CONTEXT
-18030 constant CURRENT
-18038 constant DICTIONARY
-18040 constant FRAME
-18048 constant ENV
-18050 constant BASE
-18051 constant EMIT_BUF
-18052 constant PAD
-   20 constant PAD_LEN
-18072 constant TIB_BUF
-  100 constant TIB_BUF_LEN
-
-18178 constant EFFECTS
+18000  dup    constant SPROUT
+xcell+ dup    constant DP
+xcell+ dup    constant TIB
+xcell+ dup    constant FAIL
+xcell+ dup    constant ERR_SP
+xcell+ dup    constant CONTEXT
+xcell+ dup    constant CURRENT
+xcell+ dup    constant DICTIONARY
+xcell+ dup    constant FRAME
+xcell+ dup    constant ENV
+xcell+ dup    constant BASE        \ of the number reader
+1+     dup    constant EMIT_BUF    \ for the write syscall
+1+     dup    constant PAD         \ temp buffer
+20            constant PAD_LEN
+PAD_LEN + dup constant TIB_BUF     \ line edit buffer
+100           constant TIB_BUF_LEN
+TIB_BUF_LEN + xalign
+              constant EFFECTS
 
 \ effect pointer for cross-compiling
 EFFECTS variable effects
@@ -559,14 +609,14 @@ E9 c, 0 d, \ jmp forward
 \ effect definition
 {: effect
 native
-effects @ dup 8 + effects !
+effects @ dup xcell+ effects !
 jmp_[aa]
 }
 
 \ exception definition
 {: exception
 native
-effects @ dup 8 + effects !
+effects @ dup xcell+ effects !
 rcx swap mov_rr,aa
 catch @ jmp
 }
@@ -605,11 +655,11 @@ xfind'
 dup
 w@ \ interpret mode behavior
 swap
-8 +
+xcell+
 w@ \ compile mode behavior
 does
 xlast
-8 +
+xcell+
 offset @ +
 w! }
 
@@ -827,39 +877,37 @@ $ f_EntryPoint @ w!
 
 7 jmp_f \ jump over the initial dictionary
 
-0 label \ get heap top
+0 label! \ get heap top
 sys.brk syscall
 ret
 
-1 label \ low-level heap allocation of rcx bytes
+1 label! \ low-level heap allocation of rcx bytes
 rax push
-rbx push
 rcx push
 rdi 0 mov_rr,x
-0 lb call
+0 label call
 rcx pop
 rcx DP add_rr,[aa]
 rax rcx cmp_rr,rr
 2 jnc_fs
 rdi rcx mov_rr,rr
-0 lb call
+0 label call
 rdi DICTIONARY mov_rr,[aa] \ beginning of heap
 rax rdi sub_rr,rr	\ calculate length of heap
 rsi rax mov_rr,rr	\ move length to rsi
 rdx 7 mov_rr,x		\ PROT_READ + PROT_WRITE + PROT_EXEC
 sys.mprotect syscall
-2 rslabel
-rbx pop
+2 rlabel_fs!
 rax pop
 ret
 
 native callcomp
 $ callcomp !
 rcx 5 mov_rr,x
-1 lb call
+1 label call
 rcx DP mov_rr,[aa]
 rcx E8 mov_byte_[rr],x \ call
-2 label
+2 label!
 rcx inc_rr
 rax rcx sub_rr,rr
 rax 4 sub_rr,s
@@ -873,10 +921,10 @@ x' callcomp does
 
 native tailcomp
 rcx 5 mov_rr,x
-1 lb call
+1 label call
 rcx DP mov_rr,[aa]
 rcx E9 mov_byte_[rr],x \ jmp
-2 lb jmp
+2 label jmp
 
 native endcomp
 $ endcomp !
@@ -884,11 +932,11 @@ x' tailcomp call
 2 jmp_f
 
 native }~fail
-2 rlabel
-2 label
+2 rlabel_f!
+2 label!
 rcx FAIL mov_rr,aa
 $ catch !
-3 label
+3 label!
 rsp ERR_SP mov_rr,[aa]	\ restore rsp
 rdx pop			\ handler pointer in rdx
 rdx rdx or_rr,rr	\ check for zero
@@ -899,9 +947,9 @@ rdx call_rr		\ execute finally
 rcx pop			\ restore current effect
 rax pop
 ERR_SP rax mov_[aa],rr	\ restore previous ERR_SP
-3 lb jmp_s
+3 label jmp_s
 
-4 rslabel
+4 rlabel_fs!
 rcx rdx cmp_rr,rr	\ compare with current effect's
 rbx pop			\ rbx = previous handler address
 rax rdx mov_rr,[rr]
@@ -909,7 +957,7 @@ rdx rbx mov_[rr],rr	\ restore previous handler address
 rbx rax mov_rr,rr	\ rbx = current handler address
 rax pop			\ rax = previous ERR_SP
 ERR_SP rax mov_[aa],rr	\ restore previous ERR_SP
-3 lb jnz_s		\ next handler, if not found
+3 label jnz_s		\ next handler, if not found
 rcx rbx mov_rr,rr	\ rcx = current handler address
 rbx pop			\ restore data stack pointer
 rax rbx mov_rr,[rr]	\ restore TOS
@@ -922,167 +970,167 @@ postpone word
 postpone find
 
 native carry?
-2 lb jc
+2 label jc
 ret
 
 \ arithmetic filters
 
 native 0=
 rax rax or_rr,rr
-2 lb jnz
+2 label jnz
 ret
 
 native 0<>
 rax rax or_rr,rr
-2 lb jz
+2 label jz
 ret
 
 native 0>=
 rax rax or_rr,rr
-2 lb js
+2 label js
 ret
 
 native 0<
 rax rax or_rr,rr
-2 lb jns
+2 label jns
 ret
 
 native f0=
 unary_fcmp
-2 lb jnz
+2 label jnz
 ret
 
 native f0<>
 unary_fcmp
-2 lb jz
+2 label jz
 ret
 
 native f0>=
 unary_fcmp
-2 lb ja
+2 label ja
 ret
 
 native f0<
 unary_fcmp
-2 lb jbe
+2 label jbe
 ret
 
 \ relations
 
 native =
 binary_cmp
-2 lb jnz
+2 label jnz
 ret
 
 native <>
 binary_cmp
-2 lb jz
+2 label jz
 ret
 
 native u>
 binary_cmp
-2 lb jbe
+2 label jbe
 ret
 
 native u>=
 binary_cmp
-2 lb jb
+2 label jb
 ret
 
 native u<
 binary_cmp
-2 lb jae
+2 label jae
 ret
 
 native u<=
 binary_cmp
-2 lb ja
+2 label ja
 ret
 
 native f>
 binary_fcmp
-2 lb jbe
+2 label jbe
 rax rbx mov_rr,[rr]
 ret
 
 native f>=
 binary_fcmp
-2 lb jb
+2 label jb
 rax rbx mov_rr,[rr]
 ret
 
 native f<
 binary_fcmp
-2 lb jae
+2 label jae
 rax rbx mov_rr,[rr]
 ret
 
 native f<=
 binary_fcmp
-2 lb ja
+2 label ja
 rax rbx mov_rr,[rr]
 ret
 
 native f=
 binary_fcmp
-2 lb jnz
+2 label jnz
 rax rbx mov_rr,[rr]
 ret
 
 native f<>
 binary_fcmp
-2 lb jz
+2 label jz
 rax rbx mov_rr,[rr]
 ret
 
 native >
 binary_cmp
-2 lb jle
+2 label jle
 ret
 
 native >=
 binary_cmp
-2 lb jl
+2 label jl
 ret
 
 native <
 binary_cmp
-2 lb jge
+2 label jge
 ret
 
 native <=
 binary_cmp
-2 lb jg
+2 label jg
 ret
 
 \ compare strings for equality
-3 label
+3 label!
 rsi rax mov_rr,rr
 tos_load
 rdi rax mov_rr,rr
 rcx rcx xor_rr,rr
-4 label
+4 label!
 rcx rsi cmp_rl,[rr]
 5 jz_fs
 rcx rdi cmp_rl,[rr]
 6 jz_fs
 cmpsb
-4 lb jz_s
-6 rslabel
+4 label jz_s
+6 rlabel_fs!
 stc
 ret
-5 rslabel
+5 rlabel_fs!
 rcx rdi cmp_rl,[rr]
 ret
 
 native s=
-3 lb call
-2 lb jc
+3 label call
+2 label jc
 ret
 
 native s<>
-3 lb call
-2 lb jnc
+3 label call
+2 label jnc
 ret
 
 \ heap manipulation
@@ -1100,18 +1148,18 @@ rax DP mov_rr,[aa]
 ret
 
 native ,
-rcx 8 mov_rr,x
-1 lb call
+rcx xcell mov_rr,x
+1 label call
 rcx DP mov_rr,[aa]
 rcx rax mov_[rr],rr
-rcx 8 add_rr,s
+rcx xcell add_rr,s
 DP rcx mov_[aa],rr
 tos_load
 ret
 
 native d,
 rcx 4 mov_rr,x
-1 lb call
+1 label call
 rcx DP mov_rr,[aa]
 rcx rax mov_[rr],er
 rcx 4 add_rr,s
@@ -1121,7 +1169,7 @@ ret
 
 native c,
 rcx 1 mov_rr,x
-1 lb call
+1 label call
 rcx DP mov_rr,[aa]
 rcx rax mov_[rr],rl
 rcx inc_rr
@@ -1166,7 +1214,7 @@ ret
 native allot
 binary
 rcx push
-1 lb call
+1 label call
 rcx pop
 rcx DP add_rr,[aa]
 DP rcx mov_[aa],rr
@@ -1178,7 +1226,7 @@ native bye
 rdi 0 mov_rr,x
 sys.exit syscall
 
-\ constnats
+\ constants
 TIB address tib
 PAD address pad
 
@@ -1186,33 +1234,28 @@ PAD address pad
 
 native stdwrite
 binary
-rbx push
 rdi 1 mov_rr,x \ stdout
-4 label
+4 label!
 rsi rax mov_rr,rr \ buffer
 rdx rcx mov_rr,rr \ length
 sys.write syscall
-rbx pop
 ret
 
 native stderrwrite
 binary
-rbx push
 rdi 2 mov_rr,x \ stderr
-4 lb jmp_s
+4 label jmp_s
 
 effect write ( -( write )- )
 
 \ read a byte from a file descriptor
 native getbyte
 rdi rax mov_rr,rr \ file descriptor
-rbx push
 rsi EMIT_BUF mov_rr,aa
 rdx 1 mov_rr,x
 sys.read syscall
 rax rax or_rr,rr
-rbx pop
-2 lb jz
+2 label jz
 rax rax xor_rr,rr
 rax EMIT_BUF mov_rl,[aa]
 ret
@@ -1222,27 +1265,25 @@ effect key ( -( key fail )- c )
 \ edit a line of text on stdin (quick and dirty)
 native stdinput
 rax push
-rbx push
 rsi TIB_BUF mov_rr,aa
 TIB rsi mov_[aa],rr
-3 label
+3 label!
 rsi push
 rdi 0 mov_rr,x
 rdx 1 mov_rr,x
 sys.read syscall
 rsi pop
 rax 1 cmp_rr,s
-2 lb jnz 
+2 label jnz
 rax rsi mov_rl,[rr]
 rax A cmp_rr,s
 4 jz_fs
 rsi inc_rr
 rcx TIB_BUF TIB_BUF_LEN + 1+ mov_rr,aa
 rsi rcx cmp_rr,rr
-3 lb jnz_s
-4 rslabel
+3 label jnz_s
+4 rlabel_fs!
 rsi 0 mov_byte_[rr],x
-rbx pop
 rax pop
 ret
 
@@ -1252,37 +1293,32 @@ effect input
 native _readfile
 rdi rax mov_rr,rr
 rsi rsi xor_rr,rr \ O_RDONLY
-rbx push
 sys.open syscall
-rbx pop
 rax rax or_rr,rr
-2 lb js
+2 label js
 ret
 
 \ close a file
 native _closefile
 rdi rax mov_rr,rr
-rbx push
 sys.close syscall
-rbx pop
 tos_load
 ret
 
 \ stack manipulation primitives
 
 native drop
-rbx 8 sub_rr,s
-rax rbx mov_rr,[rr]
+tos_load
 ret
 
 native nip
-rbx 8 sub_rr,s
+rbx xcell sub_rr,s
 ret
 
 native swap
 binary
 rbx rcx mov_[rr],rr
-rbx 8 add_rr,s
+rbx xcell add_rr,s
 ret
 
 native dup
@@ -1291,15 +1327,15 @@ ret
 
 native over
 binary
-rbx 8 add_rr,s
+rbx xcell add_rr,s
 rbx rcx mov_[rr],rr
-rbx 8 add_rr,s
+rbx xcell add_rr,s
 ret
 
 native third
 rcx rbx mov_rr,rr
 tos_store
-rcx 10 sub_rr,s
+rcx 2 xcells sub_rr,s
 rax rcx mov_rr,[rr]
 ret
 
@@ -1366,10 +1402,10 @@ binary			\ effect reference in rcx
 rcx 3 add_rr,s
 rdx rdx xor_rr,rr
 rdx rcx mov_er,[rr]	\ handler pointer in rdx
-3 label
-rbx 10 sub_rr,s		\ data stack pointer to be saved
+3 label!
+rbx 2 xcells sub_rr,s	\ data stack pointer to be saved
 rbx push		\ save data stack pointer
-rbx 10 add_rr,s		\ current data stack pointer
+rbx 2 xcells add_rr,s	\ current data stack pointer
 rcx ERR_SP mov_rr,[aa]	\ ERR_SP in rcx
 rcx push		\ save previous ERR_SP
 rcx rdx mov_rr,[rr]	\ previous handler address in rcx
@@ -1385,7 +1421,7 @@ rdx pop			\ previous handler addr. in rdx
 rcx rdx mov_[rr],rr	\ restore handler
 rcx pop
 ERR_SP rcx mov_[aa],rr	\ restore ERR_SP
-rsp 8 add_rr,s		\ discard data stack pointer
+rsp xcell add_rr,s	\ discard data stack pointer
 ret
 
 \ execute computation with exception
@@ -1394,12 +1430,12 @@ binary			\ exception reference in rcx
 rcx 1 add_rr,s
 rdx rdx xor_rr,rr
 rdx rcx mov_er,[rr]	\ handler pointer in rdx
-3 lb jmp
+3 label jmp
 
 \ execute computation with environment
 native reader
 rdx ENV mov_rr,aa
-3 lb jmp
+3 label jmp
 
 \ fetch environment
 native ask
@@ -1410,13 +1446,13 @@ ret
 \ execute computation with scratch space
 native frame
 binary
-rcx 3 shl_rr,s
+rcx xcelllog shl_rr,s           \ xcell *
 rsp rcx sub_rr,rr \ allocate frame
 tos_store
 rax rsp mov_rr,rr \ frame base on data stack
 rcx push
 rdx FRAME mov_rr,aa
-3 lb call
+3 label call
 rcx pop
 rsp rcx add_rr,rr \ deallocate frame
 ret
@@ -1431,7 +1467,7 @@ ret
 native |
 ( a ( a -( fail e )- a b ) ( a -( f )- a b ) -( e f )- a b )
 rdx FAIL mov_rr,aa
-3 lb jmp
+3 label jmp
 
 \ tail disjunction
 alias }~| |
@@ -1452,9 +1488,9 @@ x' endcomp does
 native cut
 rdi ERR_SP mov_rr,[aa]
 rcx rdi mov_rr,[rr]	\ handler ptr in rcx
-rdi 8 add_rr,s
+rdi xcell add_rr,s
 rdx rdi mov_rr,[rr]	\ previous handler reference in rdx
-rdi 8 add_rr,s
+rdi xcell add_rr,s
 rcx rdx mov_[rr],rr	\ restore previous handler
 rcx rdi mov_rr,[rr]	\ previous ERR_SP in rcx
 ERR_SP rcx mov_[aa],rr	\ restore previous ERR_SP
@@ -1473,15 +1509,15 @@ rdx FAIL mov_rr,aa
 rdx push		\ save failure handler pointer
 rdx rcx	mov_[rr],rr	\ set new handler
 ERR_SP rsp mov_[aa],rr	\ set new ERR_SP
-rcx 18 mov_rr,x		\ frame offset
+rcx 3 xcells mov_rr,x	\ frame offset
 rcx rsp add_rr,rr	\ add stack pointer
-3 label
+3 label!
 rcx push
 rsi call_rr		\ call what follows
 rcx pop
-rcx 8 add_rr,s
+rcx xcell add_rr,s
 rsi rcx mov_rr,[rr]
-3 lb jmp_s
+3 label jmp_s
 
 \ arithmetic mappers
 
@@ -1494,22 +1530,22 @@ rax 1 add_rr,s
 ret
 
 native cell-
-rax 8 sub_rr,s
+rax xcell sub_rr,s
 ret
 
 native cell+
-rax 8 add_rr,s
+rax xcell add_rr,s
 ret
 
 native cells
-rax 3 shl_rr,s
+rax xcelllog shl_rr,s
 ret
 
 native abs
 rax rax or_rr,rr
 3 jns_fs
 rax neg_rr
-3 rslabel
+3 rlabel_fs!
 ret
 
 \ binary arithmetic primitives
@@ -1540,20 +1576,19 @@ x' 0/ jz
 rdx rdx xor_rr,rr
 rcx div_rr
 rbx rdx mov_[rr],rr
-rbx 8 add_rr,s
+rbx xcell add_rr,s
 ret
 
 native du/mod ( n n n -( 0/ )- n n )
 rcx rax mov_rr,rr
 rcx rcx or_rr,rr
 x' 0/ jz
-rbx 8 sub_rr,s
+rbx xcell sub_rr,s
 rdx rbx mov_rr,[rr]
-rbx 8 sub_rr,s
-rax rbx mov_rr,[rr]
+tos_load
 rcx div_rr
 rbx rdx mov_[rr],rr
-rbx 8 add_rr,s
+rbx xcell add_rr,s
 ret
 
 native /mod ( n n -( 0/ )- n n )
@@ -1572,11 +1607,11 @@ rdx rcx xor_rr,rr
 rdx rcx add_rr,rr
 rax 1 sub_rr,s
 rdx rcx xor_rr,rr
-4 rslabel
+4 rlabel_fs!
 rdx rcx xor_rr,rr
-3 rslabel
+3 rlabel_fs!
 rbx rdx mov_[rr],rr
-rbx 8 add_rr,s
+rbx xcell add_rr,s
 ret
 
 
@@ -1605,33 +1640,33 @@ native negate
 rax neg_rr
 ret
 
-3 label
+3 label!
 rax rax xor_rr,rr
 ret
 
 native lshift
 binary
-rcx 3F cmp_rr,s
-3 lb jnc_s
+rcx xcell_bits cmp_rr,s
+3 label jae_s
 rax shl_rr,cl
 ret
 
 native rshift
 binary
-rcx 3F cmp_rr,s
-3 lb jnc_s
+rcx xcell_bits cmp_rr,s
+3 label jae_s
 rax shr_rr,cl
 ret
 
-3 label
+3 label!
 rax rax add_rr,rr
 rax rax sbb_rr,rr
 ret
 
 native arshift
 binary
-rcx 3F cmp_rr,s
-3 lb jnc_s
+rcx xcell_bits 1- cmp_rr,s	\ 1- is for the sign bit
+3 label jae_s
 rax sar_rr,cl
 ret
 
@@ -1731,7 +1766,7 @@ ret
 native f^
 unary_fp
 fld1
-rbx 8 sub_rr,s
+rbx xcell sub_rr,s
 rbx fld_[rr]
 fyl2x
 fmulp
@@ -1766,7 +1801,7 @@ ret
 \ tail call
 
 native }~
-2 lb jmp \ not permitted in interpret mode
+2 label jmp \ not permitted in interpret mode
 
 { drop word find drop endcomp } does
 
@@ -1814,7 +1849,7 @@ dup here swap - swap 4 - d!
 
 \ tail call to self
 native }~self
-2 lb jmp \ not permitted in interpret mode
+2 label jmp \ not permitted in interpret mode
 
 { drop dup here - 5 - E9 c, d, }~fail
 
@@ -1822,7 +1857,7 @@ does
 
 \ self reference
 native 'self
-2 lb jmp \ not permitted in interpret mode
+2 label jmp \ not permitted in interpret mode
 
 { drop dup }~ literal
 does
@@ -2198,7 +2233,7 @@ C3 }~ c,		\ ret
 \ create effect with default handler
 {: effect ( x -( heap )- )
 create redefine
-here 7 +
+here 7 +		\ instruction length, 3 + 4
 FF c, 24 c, 25 c, d,	\ jmp [address]
 }~ ,
 
@@ -2436,8 +2471,8 @@ cell- dup @ current @ ! dp }~ !
 
 \ output data stack content
 native .s
-rcx effects @ 8 + mov_rr,aa \ stack bottom
-3 label
+rcx effects @ xcell+ mov_rr,aa \ stack bottom
+3 label!
 rbx rcx cmp_rr,rr
 x' cr jc
 4 jz_fs
@@ -2446,9 +2481,9 @@ tos_store
 rax rcx mov_rr,[rr]
 x' . call
 rcx pop
-rcx 8 add_rr,s
-3 lb jmp_s
-4 rslabel
+rcx xcell add_rr,s
+3 label jmp_s
+4 rlabel_fs!
 tos_store
 x' . call
 x' cr jmp
@@ -2481,8 +2516,8 @@ x' cr jmp
 
 $ 177F w, \ FPU control word, round towards -inf
 
-7 rlabel \ the dictionary is ready here
-7 label
+7 rlabel_f! \ the dictionary is ready here
+7 label!
 
 finit
 rbx swap mov_rr,aa \ FPU control word address in rbx
@@ -2490,7 +2525,7 @@ rbx fldcw_[rr]
 rax A mov_rr,x
 BASE rax mov_[aa],rl \ initialize numeral base
 rdi 0 mov_rr,x
-0 lb call \ get heap bottom
+0 label call \ get heap bottom
 DP rax mov_[aa],rr \ initialize dictionary end
 DICTIONARY rax mov_[aa],rr \ and beginning
 rbx effects @ mov_rr,aa \ initialize stack pointer
@@ -2500,13 +2535,13 @@ rdx rcx mov_[rr],rr \ initialize it
 CONTEXT rdx mov_[aa],rr \ initialize context vocabulary
 CURRENT rdx mov_[aa],rr \ initialize current vocabulary
 
-6 label
+6 label!
 rbx rax mov_[rr],rr	\ save TOS
 rbx push		\ save data stack ptr.
 rcx rsp mov_rr,rr	\ return stack ptr. to rcx
-rcx 18 sub_rr,s		\ bottom of handler frame
+rcx 3 xcells sub_rr,s	\ bottom of handler frame
 rcx push		\ circular reference
-rcx 6 lb mov_rr,aa	\ this handler's address
+rcx 6 label mov_rr,aa	\ this handler's address
 rcx push		\ circular reference
 rcx FAIL mov_rr,aa	\ failure handler
 rcx push
@@ -2534,7 +2569,7 @@ rcx 2 cmp_rr,s
 x' sproutl call
 x' bye jmp
 
-7 rslabel
+7 rlabel_fs!
 tos_store
 rax 30 mov_rr,x
 rax rsp add_rr,rr
